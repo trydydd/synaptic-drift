@@ -42,7 +42,7 @@ Never assume something is implemented (or not) because a document says so. Check
 ledger. Read the codebase to determine current state before writing chunks.
 
 **Revising an existing ledger** — User provides an existing ledger. Do not touch
-APPROVED or IN_PROGRESS chunks. Revise PENDING chunks freely. Add new chunks as needed.
+DONE or IN_PROGRESS chunks. Revise PENDING chunks freely. Add new chunks as needed.
 Record structural changes in `# PLANNER NOTE:` YAML comments.
 
 **Answering a ledger question** — User asks about the schema, a specific field, or
@@ -88,8 +88,9 @@ Key rules to apply:
 | `trusted` | Gotchas only | True unknowns only | Names only | Brief pointer |
 
 Fields unaffected by profile — keep rigorous regardless: `behaviors`, `taboos`,
-`definition_of_done`, `review_targets`, `interface_contract.inputs`,
-`interface_contract.allowed_new_deps`, progress log, `rollback_anchor`.
+`definition_of_done`, `review_targets`, `verification_inputs`, `negative_tests`,
+`interface_contract.inputs`, `interface_contract.allowed_new_deps`, progress log,
+`rollback_anchor`.
 
 **Chunks**
 - One cohesive unit of work per chunk. When in doubt, split.
@@ -119,6 +120,44 @@ Fields unaffected by profile — keep rigorous regardless: `behaviors`, `taboos`
 - Must be checkable yes/no. Not "code is clean" — "normalize() preserves content
   inside fenced code blocks verbatim — verified in tests."
 - Minimum two per chunk.
+- Each target includes `verified_by` (test function name) and `assertion` (concrete
+  expected behavior). This enables end-of-project batch review without re-deriving
+  intent from test code.
+
+**Verification inputs**
+- Golden-pair test data (input → expected output) for functions on the integrity path:
+  normalization, hashing, sort ordering, policy evaluation.
+- The executor must implement these as actual test assertions — not just documentation.
+- Include edge cases for the failure modes anticipated during planning: whitespace-only
+  lines, empty inputs, sign flips, partial configs with missing keys.
+- Each case has a `label` so the reviewer can verify coverage without reading the function.
+
+**Negative tests**
+- 1–3 tests per chunk verifying that wrong behavior does NOT occur.
+- These catch "works but subtly wrong" bugs: worst-first sort ordering, empty-list
+  defaults that block everything, skipped production code paths.
+- **Inlining rule (v2.3)**: every negative test name MUST appear in
+  `interface_contract.outputs` alongside the regular test functions, with a
+  `# NEG: <description>` inline comment. The executor implements what it sees
+  in `interface_contract.outputs` — if a test isn't listed there, it won't be written.
+- The `negative_tests` section still exists as structured reviewer reference
+  (with `must_not` conditions), but the test names are duplicated into
+  `interface_contract.outputs` to ensure executor compliance.
+- Focus on bugs that pass all other tests but fail in production or under composition.
+
+**Writing style for assumptions and checklists**
+- Promote critical qualifiers out of parentheticals — small models miss nested clauses.
+- Distinguish behavioral requirements ("operation is atomic") from implementation
+  requirements ("code must contain literal BEGIN/COMMIT SQL"). If you mean specific
+  code, write the code in the assumptions section.
+- Specify default-fallback for every optional config key independently, not just the
+  "no file found" case. Partial files merge with defaults, not override completely.
+- When a value is transformed before sorting, state the sort direction with the
+  transformed value. Do not leave the executor to re-derive sort order after sign flips.
+- For testability parameters with `None` default, specify that None means "use production
+  default," not "skip this step."
+- For ranked-output functions, require a multi-result ordering test — single-result
+  tests cannot catch ordering bugs.
 
 **Progress log**
 - Do not pre-populate `progress.txt`. Leave it empty except for the standard header.
@@ -154,22 +193,25 @@ before the `meta:` key:
 #
 # DURING EACH CHUNK:
 #   6. Write tests first (TDD). Tests must fail before implementation.
-#   7. Implement only what is in objective and interface_contract.outputs.
-#   8. Do not make decisions listed in capability_ceiling — stop and flag them.
-#   9. Do not add dependencies not in interface_contract.allowed_new_deps.
+#   7. Implement ALL test functions listed in interface_contract.outputs —
+#      including tests marked with "# NEG:" comments (negative tests).
+#   8. For each verification_inputs case, your test assertions must check
+#      the EXACT expected output, not a weaker property.
+#   9. Do not make decisions listed in capability_ceiling — stop and flag them.
+#  10. Do not add dependencies not in interface_contract.allowed_new_deps.
 #
 # BEFORE SUBMITTING (transitioning to NEEDS_REVIEW):
-#  10. Run every command in definition_of_done.automated. All must exit 0.
-#  11. Append to progress.txt using the gotcha entry format.
+#  11. Run every command in definition_of_done.automated. All must exit 0.
+#  12. Append to progress.txt using the gotcha entry format.
 #      Write "[chunk-id] No gotchas." if none — never skip this step.
-#  12. Fill in handoff: status_note, files_modified, open_questions,
+#  13. Fill in handoff: status_note, files_modified, open_questions,
 #      progress_log_updated: true.
-#  13. Set chunk status to NEEDS_REVIEW.
+#  14. Set chunk status to NEEDS_REVIEW.
 #
 # DO NOT:
 #   - Process more than one chunk at a time.
-#   - Start a chunk before all depends_on chunks are APPROVED.
-#   - Modify APPROVED chunks.
+#   - Start a chunk before all depends_on chunks are DONE.
+#   - Modify DONE chunks.
 #   - Invent missing inputs. Stop and ask.
 # =============================================================================
 ```
@@ -198,17 +240,21 @@ Write the ledger to `.work/ledger.yaml`.
 ## Chunk status state machine
 
 ```
-PENDING → IN_PROGRESS → NEEDS_REVIEW → APPROVED
-                                     ↘ REJECTED → IN_PROGRESS (retry)
+PENDING → NEEDS_REVIEW → VERIFIED → DONE
 ```
 
-Opus transitions to APPROVED or REJECTED. REJECTED requires a `rejection_reason`
-that is specific and actionable, referencing the relevant `review_targets`.
+- **PENDING**: Not started.
+- **NEEDS_REVIEW**: Executor finished, awaiting verification pipeline.
+- **VERIFIED**: Automated pipeline (review-chunk.sh) passed all completion promise lines.
+- **DONE**: Reviewer (Opus) signed off after independent review.
+
+Opus transitions VERIFIED → DONE after independent review, or back to NEEDS_REVIEW
+with a `rejection_reason` that is specific and actionable, referencing `review_targets`.
 
 ## Late-project context management
 
-Once many chunks are APPROVED, their `handoff` and `review` blocks accumulate.
-If context pressure appears, strip the content of those blocks from APPROVED chunks
+Once many chunks are DONE, their `handoff` and `review` blocks accumulate.
+If context pressure appears, strip the content of those blocks from DONE chunks
 and archive separately. Keep the chunk header and `interface_contract` — the executor
 needs to know what exists, even for completed chunks.
 

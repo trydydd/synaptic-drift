@@ -13,29 +13,32 @@
 #
 # DURING EACH CHUNK:
 #   6. Write tests first (TDD). Tests must fail before implementation.
-#   7. Implement only what is in objective and interface_contract.outputs.
-#   8. Do not make decisions listed in capability_ceiling — stop and flag them.
-#   9. Do not add dependencies not in interface_contract.allowed_new_deps.
+#   7. Implement ALL test functions listed in interface_contract.outputs —
+#      including tests marked with "# NEG:" comments (negative tests).
+#   8. For each verification_inputs case, your test assertions must check
+#      the EXACT expected output, not a weaker property.
+#   9. Do not make decisions listed in capability_ceiling — stop and flag them.
+#  10. Do not add dependencies not in interface_contract.allowed_new_deps.
 #
 # BEFORE SUBMITTING (transitioning to NEEDS_REVIEW):
-#  10. Run every command in definition_of_done.automated. All must exit 0.
-#  11. Append to progress.txt using the gotcha entry format.
+#  11. Run every command in definition_of_done.automated. All must exit 0.
+#  12. Append to progress.txt using the gotcha entry format.
 #      Write "[chunk-id] No gotchas." if none — never skip this step.
-#  12. Fill in handoff: status_note, files_modified, open_questions,
+#  13. Fill in handoff: status_note, files_modified, open_questions,
 #      progress_log_updated: true.
-#  13. Set chunk status to NEEDS_REVIEW.
+#  14. Set chunk status to NEEDS_REVIEW.
 #
 # DO NOT:
 #   - Process more than one chunk at a time.
-#   - Start a chunk before all depends_on chunks are APPROVED.
-#   - Modify APPROVED chunks.
+#   - Start a chunk before all depends_on chunks are DONE.
+#   - Modify DONE chunks.
 #   - Invent missing inputs. Stop and ask.
 # =============================================================================
 
 meta:
   project: "tank"
   created_at: ""                     # ISO 8601 e.g. 2026-05-17T10:00:00Z
-  ledger_version: "2.1"
+  ledger_version: "2.3"
   models:
     planner: "claude-opus-4-6"
     executor: ""                     # e.g. nvidia-spark, qwen-27b, claude-sonnet-4-6
@@ -70,7 +73,8 @@ meta:
 #   local_context:      Brief orientation.
 #
 # Fields unaffected by profile (keep rigorous regardless):
-#   behaviors, taboos, definition_of_done, review_targets, gotcha_bar,
+#   behaviors, taboos, definition_of_done, review_targets,
+#   verification_inputs, negative_tests, gotcha_bar,
 #   interface_contract.inputs, interface_contract.allowed_new_deps,
 #   progress log obligation, rollback_anchor
 # =============================================================================
@@ -234,7 +238,7 @@ chunks:
   # ---------------------------------------------------------------------------
   - id: "chunk-01"
     title: ""
-    status: PENDING                  # PENDING | IN_PROGRESS | NEEDS_REVIEW | APPROVED | REJECTED
+    status: PENDING                  # PENDING | NEEDS_REVIEW | VERIFIED | DONE
     depends_on: []
     token_budget_hint: medium        # small (<30k) | medium (30–100k) | large (>100k)
 
@@ -254,6 +258,14 @@ chunks:
           exports:
             - ""                     # e.g. "def normalize(content: str) -> str"
             - ""                     # e.g. "class NormalizationError(TankError)"
+        # Test files — include ALL tests the executor must write, including negative tests.
+        # Negative tests are marked with "# NEG:" and a description so the executor
+        # knows what wrong behavior to assert against.
+        - path: "tests/test_example/test_example.py"
+          exports:
+            - "test_happy_path()"
+            - "test_error_case()"
+            - "test_wrong_behavior_does_not_occur()  # NEG: <description of what must NOT happen>"
       allowed_new_deps: []
 
     # Depth calibrated by meta.executor_profile
@@ -285,8 +297,40 @@ chunks:
         - ""                         # e.g. "docs/architecture.md section: Archive Safety Validator"
 
     review_targets:
-      - ""                           # e.g. "normalize() preserves code blocks verbatim — verified in tests"
-      - ""                           # e.g. "TankError subclass used for every failure path — no generic exceptions"
+      - target: ""                   # e.g. "normalize() preserves code blocks verbatim"
+        verified_by: ""              # e.g. "test_normalize_preserves_code_blocks"
+        assertion: ""                # e.g. "normalize('```\\nfoo  bar\\n```') contains 'foo  bar'"
+      - target: ""                   # e.g. "TankError subclass used for every failure path"
+        verified_by: ""              # e.g. "test_invalid_path_raises_build_error"
+        assertion: ""                # e.g. "build(bad_path) raises BuildError, not ValueError"
+
+    # Golden-pair test data for functions on the integrity/correctness path.
+    # The executor must implement these as actual test assertions.
+    # Use for: normalizer, hash computation, sort ordering, policy evaluation —
+    # any function where "close but wrong" output is hard to detect by inspection.
+    verification_inputs:
+      - function: ""                 # e.g. "normalize"
+        cases:
+          - input: ""                # e.g. "para1\\n   \\n   \\npara2"
+            expected: ""             # e.g. "para1\\n\\npara2"
+            label: ""               # e.g. "whitespace-only lines treated as blank"
+      # - function: ""
+      #   cases:
+      #     - input: ""
+      #       expected: ""
+      #       label: ""
+
+    # Tests verifying wrong behavior does NOT occur. Structured reviewer reference.
+    # IMPORTANT: every test_name below MUST also appear in interface_contract.outputs
+    # with a "# NEG: <description>" comment. The executor only implements tests listed
+    # in interface_contract.outputs — if a negative test isn't there, it won't be written.
+    negative_tests:
+      - test_name: ""                # e.g. "test_partial_policy_does_not_block_all"
+        description: ""              # e.g. "A policy file with only require_signatures must not default allowed_lifecycle_states to []"
+        must_not: ""                 # e.g. "Policy.load(partial_file).allowed_lifecycle_states == []"
+      # - test_name: ""
+      #   description: ""
+      #   must_not: ""
 
     rollback_anchor:
       git_ref: ""

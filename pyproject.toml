@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tank"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "click",
+    "rich",
+    "mcp",
+]
+
+[project.optional-dependencies]
+build = [
+    "chunkana>=0.1",
+]
+dev = [
+    "pytest",
+    "mypy",
+    "ruff",
+]
+all = [
+    "tank[build]",
+    "tank[dev]",
+]
+
+[project.scripts]
+tank = "tank.cli.main:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"

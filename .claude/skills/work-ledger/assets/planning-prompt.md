@@ -71,7 +71,7 @@ Key Tank constraints the executor must respect:
 
 {{#if EXISTING_LEDGER}}
 An existing ledger has been provided. Your job is to **extend or revise it**:
-- Do not discard existing APPROVED or IN_PROGRESS chunks
+- Do not discard existing DONE or NEEDS_REVIEW chunks
 - You may revise PENDING chunks freely
 - Add new chunks as needed
 - Update `global` fields if the plan has changed
@@ -148,6 +148,23 @@ If anything in the plan is ambiguous, resolve it conservatively (smaller scope, 
 - Bad: "Code is clean and readable."
 - Good: "normalize() preserves content inside fenced code blocks verbatim — verified in tests."
 - Each target must be checkable with a yes/no answer. Minimum two per chunk.
+- Each target must name the test function that verifies it (`verified_by`) and state the concrete assertion (`assertion`). This allows end-of-project review without re-deriving test intent from test code.
+
+**Verification inputs** — for integrity-path functions (all profiles)
+- Provide golden-pair test data (input → expected output) for any function where "close but wrong" output is hard to detect by inspection: normalization, hashing, sort ordering, policy evaluation, score computation.
+- The executor must implement these as actual test assertions — they are not just documentation.
+- Include edge cases that exercise the specific failure modes you anticipate: whitespace-only lines, empty inputs, algebraic sign flips, partial configs with missing keys.
+- Each case has a `label` explaining what it tests, so the reviewer can verify the test covers the intended scenario without re-reading the function.
+
+**Negative tests** — for subtle correctness traps (all profiles)
+- For each chunk, identify 1–3 scenarios where the code could "work" but produce subtly wrong results, and specify a test that verifies the wrong behavior does NOT occur.
+- **Inlining rule (v2.3)**: every negative test name MUST appear in BOTH places:
+  1. In `interface_contract.outputs` with a `# NEG: <description>` inline comment
+  2. In the `negative_tests` section with full `must_not` detail for the reviewer
+  The executor only reads `interface_contract.outputs`. If a negative test is only in the
+  `negative_tests` section, the executor will not implement it.
+- Examples: "search results must not be ordered worst-first", "partial policy file must not block all lifecycle states", "home_dir=None must not skip the user-level policy lookup"
+- Focus on bugs that would pass all other tests but fail in production or under composition with later chunks.
 
 **Capability ceiling — profile-sensitive**
 - Frame each as: "If you encounter X, do not decide — stop and raise an open_question."
@@ -164,6 +181,14 @@ If anything in the plan is ambiguous, resolve it conservatively (smaller scope, 
 **Progress log** — identical across all profiles
 - Do NOT pre-populate `progress.txt` during planning. Leave it empty except for the header.
 - The executor creates the file if it doesn't exist and appends to it; it never overwrites prior entries.
+
+**Writing style for assumptions and manual_checklist** — critical for constrained executors
+- Promote critical qualifiers out of parentheticals. Small models parse top-level statements more reliably than nested clauses. Bad: "replace sequences of 2+ consecutive newlines *(possibly with whitespace-only lines between them)*". Good: "Replace sequences of 2+ blank lines (including lines containing only spaces/tabs) with exactly two newlines."
+- Distinguish behavioral requirements from implementation requirements. When the checklist says "uses a single transaction," make explicit whether this means "the operation is atomic" (behavioral) or "the code must contain literal BEGIN and COMMIT SQL statements" (implementation). If you mean specific code, write the code in the assumptions.
+- Specify default-fallback behavior for every optional key in config/policy files. State what the default is for EACH key independently, not just the "no file found" case. Bad: "The default policy allows X." Good: "The default policy allows X. When loading a policy file, any missing key falls back to the same defaults — a partial file is merged with defaults, not treated as a complete override."
+- When a value must be transformed before sorting or comparison, state the expected sort direction with the transformed value. Bad: "bm25 returns negative scores; negate for display." Good: "Two correct patterns: (a) `bm25(fts) AS score ORDER BY score ASC` or (b) `-bm25(fts) AS score ORDER BY score DESC`. Do not mix negation with ASC."
+- For parameters added for testability (e.g. `home_dir: Path | None = None`), specify the production-default behavior. Bad: (no mention). Good: "When home_dir is None, use Path.home() as the fallback — None means 'use the real default,' not 'skip this step.'"
+- For any function that returns ranked/ordered results, require a multi-result ordering test in the interface_contract. A single-result test cannot catch ordering bugs.
 
 **Self-check before outputting**
 Run through each chunk and confirm:
@@ -197,22 +222,25 @@ If any answer is no, fix it before outputting.
 #
 # DURING EACH CHUNK:
 #   6. Write tests first (TDD). Tests must fail before implementation.
-#   7. Implement only what is in objective and interface_contract.outputs.
-#   8. Do not make decisions listed in capability_ceiling — stop and flag them.
-#   9. Do not add dependencies not in interface_contract.allowed_new_deps.
+#   7. Implement ALL test functions listed in interface_contract.outputs —
+#      including tests marked with "# NEG:" comments (negative tests).
+#   8. For each verification_inputs case, your test assertions must check
+#      the EXACT expected output, not a weaker property.
+#   9. Do not make decisions listed in capability_ceiling — stop and flag them.
+#  10. Do not add dependencies not in interface_contract.allowed_new_deps.
 #
 # BEFORE SUBMITTING (transitioning to NEEDS_REVIEW):
-#  10. Run every command in definition_of_done.automated. All must exit 0.
-#  11. Append to progress.txt using the gotcha entry format.
+#  11. Run every command in definition_of_done.automated. All must exit 0.
+#  12. Append to progress.txt using the gotcha entry format.
 #      Write "[chunk-id] No gotchas." if none — never skip this step.
-#  12. Fill in handoff: status_note, files_modified, open_questions,
+#  13. Fill in handoff: status_note, files_modified, open_questions,
 #      progress_log_updated: true.
-#  13. Set chunk status to NEEDS_REVIEW.
+#  14. Set chunk status to NEEDS_REVIEW.
 #
 # DO NOT:
 #   - Process more than one chunk at a time.
-#   - Start a chunk before all depends_on chunks are APPROVED.
-#   - Modify APPROVED chunks.
+#   - Start a chunk before all depends_on chunks are DONE.
+#   - Modify DONE chunks.
 #   - Invent missing inputs. Stop and ask.
 # =============================================================================
 ```

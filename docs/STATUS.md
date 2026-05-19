@@ -1,12 +1,15 @@
 # Tank — Project Status
 
-Last updated: 2026-05-17
+Last updated: 2026-05-19
 
-## Current State: Pre-Implementation
+## Current State: Implementation Complete
 
-Architecture and design are complete. No source code exists yet.
+Phase 1 / MVP source code is implemented and all tests pass.
+Architecture and design documents remain the canonical reference.
 
 ## What Exists
+
+### Documentation
 
 | Document | Purpose |
 |---|---|
@@ -18,51 +21,43 @@ Architecture and design are complete. No source code exists yet.
 | `STATUS.md` | This file |
 | `glossary.md` | Definitions of all Tank-specific terminology |
 
-## What Does Not Exist
+### Source Code
 
-- `pyproject.toml` and project scaffold
-- Any Python source code (`src/tank/`)
-- Test suite (`tests/`)
-- Test fixtures (`tests/fixtures/`)
-- CI/CD configuration
-- README.md (planned — content and tone under discussion)
+| Component | Files |
+|---|---|
+| `src/tank/` | Core package — 24 Python modules across builder, CLI, errors, policy, search, server, storage, validator |
+| `tests/` | 141 tests covering builder, CLI, errors, integration, policy, search, server, storage, validator |
+| `tests/fixtures/` | `malformed_packs/`, `sample_docs/` — static test data |
+| `pyproject.toml` | Project config, dependencies, entry points |
+| `README.md` | Project overview |
 
-## What Is Fully Specified (Ready to Build)
+### Test Results
 
-All of Phase 1 / MVP:
+- **141/141 tests passing** (pytest)
+- **mypy**: 1 minor error in `src/tank/builder/build.py:133` (`dict` invariance)
+- **CI/CD**: Not yet configured
 
-- [ ] Project scaffold (`pyproject.toml`, `src/tank/`, `tests/`)
-- [ ] Base `TankError` exception class
-- [ ] Content normalizer (`tank.builder.normalizer`)
-- [ ] Structural chunking integration with chunkana (`tank.builder.chunking`)
-- [ ] Heuristic summary generator
-- [ ] Manifest construction and `pack_digest` computation (`tank.builder.manifest`)
-- [ ] Build orchestrator (`tank.builder.build`)
-- [ ] Archive safety validator — 8-step sequence (`tank.validator.verify`)
-- [ ] Policy engine — `policy.toml` loading and lifecycle enforcement (`tank.policy.engine`)
-- [ ] SQLite storage — schema creation, WAL mode, migrations (`tank.storage.db`)
-- [ ] Data models — Pack, Chunk, Page dataclasses (`tank.storage.models`)
-- [ ] FTS5 search with BM25 ranking and attribution (`tank.search.fts`)
-- [ ] MCP server — `query-docs` and `resolve-deps` tools (`tank.server`)
-- [ ] CLI commands — `tank build`, `tank verify`, `tank pull`, `tank query`, `tank inspect`
-- [ ] Lockfile management (`.tank/index.lock`)
+### What Is Implemented
 
-## Implementation Order (Suggested)
+All Phase 1 / MVP components:
 
-Build from the inside out — core libraries first, then CLI and server as thin wrappers:
+- [x] Project scaffold (`pyproject.toml`, `src/tank/`, `tests/`)
+- [x] Base `TankError` exception class (`tank/errors.py`)
+- [x] Content normalizer (`tank.builder.normalizer`)
+- [x] Structural chunking integration with chunkana (`tank.builder.chunking`)
+- [x] Heuristic summary generator
+- [x] Manifest construction and `pack_digest` computation (`tank.builder.manifest`)
+- [x] Build orchestrator (`tank.builder.build`)
+- [x] Archive safety validator — 8-step sequence (`tank.validator.verify`)
+- [x] Policy engine — `policy.toml` loading and lifecycle enforcement (`tank.policy.engine`)
+- [x] SQLite storage — schema creation, WAL mode, migrations (`tank.storage.db`)
+- [x] Data models — Pack, Chunk, Page dataclasses (`tank.storage.models`)
+- [x] FTS5 search with BM25 ranking and attribution (`tank.search.fts`)
+- [x] MCP server — `query-docs` and `resolve-deps` tools (`tank.server`)
+- [x] CLI commands — `tank build`, `tank verify`, `tank pull`, `tank query`, `tank inspect`
+- [x] Lockfile management (`.tank/index.lock`)
 
-1. **Normalizer** — everything depends on this; it's the hash stability guarantee
-2. **Storage layer** — schema, models, connection management
-3. **Builder** — chunking, summary generation, manifest, archive assembly
-4. **Validator** — 8-step verification sequence
-5. **Policy engine** — TOML loading, lifecycle enforcement
-6. **Search** — FTS5 query with attribution
-7. **CLI** — thin wrappers over core libraries
-8. **MCP server** — expose search and resolve-deps as tools
-
-Each component is developed TDD: write failing tests first, implement to pass, refactor.
-
-## What Is Deferred
+### What Is Deferred
 
 - Phase 2: URL crawling, registry, lifecycle promotion, staleness detection
 - Phase 3: BGE-M3 embeddings, hybrid search, RRF fusion
