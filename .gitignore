@@ -30,6 +30,9 @@ htmlcov/
 # Tank runtime artifacts
 .tank/
 
+# Built packs (release artifacts, not stored in repo)
+packs/
+
 # Build inputs (downloaded source files)
 source/
 
