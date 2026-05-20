@@ -7,8 +7,8 @@ import zipfile
 from pathlib import Path
 
 # Fixed ZIP timestamp so both archive writes produce identical ZipInfo metadata,
-# making pack_digest reproducible by the verifier.
-_ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
+# making pack_digest reproducible by the verifier. Must never change.
+_ZIP_EPOCH = (2021, 8, 8, 0, 0, 0)
 
 from tank.builder.chunking import RawChunk, chunk_file, discover_files, generate_summary
 from tank.builder.manifest import (
