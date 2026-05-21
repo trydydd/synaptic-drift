@@ -32,7 +32,6 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -283,8 +282,10 @@ def test_webfetch_vs_tank(bench_db: Database) -> None:
     print(f"  query (FTS5) : {FTS5_QUERY}")
     print()
     print(f"  {'Approach':<35} {'tokens':>7}  {'vs WebFetch':>11}  {'saved':>7}")
-    print(f"  {'-'*35} {'-'*7}  {'-'*11}  {'-'*7}")
-    print(f"  {'WebFetch (full page)':<35} {webfetch_tokens:>7}  {'100%':>11}  {'—':>7}")
+    print(f"  {'-' * 35} {'-' * 7}  {'-' * 11}  {'-' * 7}")
+    print(
+        f"  {'WebFetch (full page)':<35} {webfetch_tokens:>7}  {'100%':>11}  {'—':>7}"
+    )
     pct = results_payload["tank_single_step_full"]["pct_of_webfetch"]
     saved = results_payload["tank_single_step_full"]["pct_saved"]
     print(
@@ -297,9 +298,7 @@ def test_webfetch_vs_tank(bench_db: Database) -> None:
         f"  {'Tank two-step (agentless)':<35} {two_step_total:>7}"
         f"  {pct2:>10}%  {saved2:>6}%"
     )
-    print(
-        f"    ↳ step 1 summary scan                {summary_tokens:>7}"
-    )
+    print(f"    ↳ step 1 summary scan                {summary_tokens:>7}")
     print(
         f"    ↳ step 2 full fetch ({len(fetch_hits)} chunks)        {fetch_tokens:>7}"
     )
@@ -310,12 +309,8 @@ def test_webfetch_vs_tank(bench_db: Database) -> None:
         summary_short = (c["summary"] or "")[:60]
         print(f"    {c['chunk_id']:>5}  {c['content_tokens']:>7}  {summary_short}")
     print()
-    print(
-        "  ⚠️  Two-step is AGENTLESS: all matched chunks fetched unconditionally."
-    )
-    print(
-        "     A real agent selecting only relevant chunks after reading summaries"
-    )
+    print("  ⚠️  Two-step is AGENTLESS: all matched chunks fetched unconditionally.")
+    print("     A real agent selecting only relevant chunks after reading summaries")
     print("     would reduce token cost further. That path is not yet benchmarked.")
     print(f"\n  Results written to {out_path}")
     print("────────────────────────────────────────────────────────────────\n")
