@@ -4,19 +4,26 @@
 
 **Theme**: Get on PyPI. Make it installable. Let people try it.
 
-**Status**: Tagged. PyPI publish pending. Bugs below deferred to v0.1.1.
+**Status**: Tagged. PyPI publish pending.
+
+- [x] mypy error in `src/tank/builder/build.py:133`
+- [ ] MCP server configuration examples for Claude Code, Cursor, VS Code
+- [ ] Tag and release v0.1.0 on PyPI (`pip install tank`, `pip install tank[build]`)
+
+---
+
+## v0.1.1 — "Bug Fixes + Benchmarks"
+
+**Theme**: Fix data integrity bugs found post-tag; ship benchmark infrastructure.
 
 - [x] Polish README — "implementation is beginning" replaced with accurate status
 - [x] Expose `limit` parameter on `query-docs` MCP tool and `query_docs()`
 - [x] Token overhead benchmark harness — `tests/benchmarks/test_token_overhead.py` with baseline at `tests/benchmarks/results/v0.1.0.json`
-- [x] mypy error in `src/tank/builder/build.py:133` *(minor unused `type: ignore` remains in `chunking.py:8`)*
 - [x] GitHub Actions benchmark workflow — PR delta comparison via `tests/benchmarks/compare.py`
-- [ ] Fix `src/tank/storage/db.py:121-126` — page ID foreign key integrity on import *(deferred to v0.1.1)*
-- [ ] Fix `src/tank/search/fts.py:76` — silent exception swallowing; all search errors return `[]` *(deferred to v0.1.1)*
-- [ ] Fix `src/tank/cli/pull.py:39` — hardcoded `doc_version_status="imported"` instead of reading from manifest *(deferred to v0.1.1)*
-- [ ] Implement or remove unused `max_tokens` parameter in `src/tank/server.py` *(deferred to v0.1.1)*
-- [ ] MCP server configuration examples for Claude Code, Cursor, VS Code
-- [ ] Tag and release v0.1.0 on PyPI (`pip install tank`, `pip install tank[build]`)
+- [ ] Fix `src/tank/storage/db.py:121-126` — page ID foreign key integrity on import
+- [ ] Fix `src/tank/search/fts.py:76` — silent exception swallowing; all search errors return `[]`
+- [ ] Fix `src/tank/cli/pull.py:39` — hardcoded `doc_version_status="imported"` instead of reading from manifest
+- [ ] Implement or remove unused `max_tokens` parameter in `src/tank/server.py`
 
 ---
 
