@@ -38,7 +38,7 @@ These are enterprise differentiators. Tank will not win the individual developer
 
 ### llms.txt: Tank's crawl on-ramp, not a competitor
 
-llms.txt is a web convention with two files: `llms.txt` (an index of documentation links) and `llms-full.txt` (the entire documentation concatenated into a single Markdown file). Adoption is growing fast — hundreds of libraries already publish one or both.
+llms.txt is a web convention with two files: `llms.txt` (an index of documentation links) and `llms-full.txt` (the entire documentation concatenated into a single Markdown file). Adoption is growing among developer tools — hundreds of libraries already publish one or both, though a 2026 study found only ~10% uptake across 300K domains; growth is concentrated in developer tooling (Cursor, Cline, MCP servers) rather than broad web adoption.
 
 This is Tank's cheapest path to web-sourced documentation. `llms-full.txt` is a single HTTP GET away from being a `tank build` input — no crawler, no sitemap parsing, no boilerplate stripping. `llms.txt` is a structured list of URLs to fetch. Together they cover the "crawl" use case for the vast majority of public libraries without any of the Crawl4AI complexity.
 
@@ -136,6 +136,23 @@ The plan to embed BGE-M3 dense/sparse vectors in `.ctx` packs is architecturally
 
 If embeddings are truly needed later, compute them at `tank pull` time (import-side), not at `tank build` time (export-side). Store them in `index.db`, not in the `.ctx` file. This preserves pack portability and lets each consumer use their preferred embedding model.
 
+The right sequencing: FTS5 tuning is the v0.2.0 priority. Import-side embeddings are the v1.1 contingency — revisit only if real user feedback shows tuned FTS5 is insufficient for semantic queries.
+
+### FTS5 quality — tune before dismissing BM25.
+
+**Confidence: HIGH**
+
+The current FTS5 implementation uses roughly 30–40% of what FTS5 supports: raw query passthrough, uniform BM25 weights, default tokenizer, and `heading_path` stored but *not indexed* in FTS5 — the strongest relevance signal in documentation search is wasted. The right conclusion is not "FTS5 is good enough, skip embeddings" — it's "we haven't tried a properly tuned FTS5 yet."
+
+Four improvements, ordered by impact, all v0.2.0 scope:
+
+1. **Add `heading_path` to FTS5 with 2.5× weight** — schema change to `db.py:48`, weight change in `fts.py:62`. Headings are the strongest relevance signal.
+2. **Tune BM25 column weights** — change `bm25(chunks_fts, 1.0, 1.0, 1.0)` to approximately `bm25(chunks_fts, 2.5, 1.5, 1.0)` (heading > summary > content).
+3. **Query preprocessing** — stopword filtering and term normalization. Currently "How do I configure the authentication system?" wastes BM25 capacity on "how", "do", "I", "the".
+4. **Synonym expansion** — a small static dict: `auth` → `authentication`, `JWT` → `JSON Web Token`. Technical documentation has predictable vocabulary.
+
+Measure search quality before and after. Only escalate to embeddings if tuned FTS5 still fails for real user queries.
+
 ### The registry: Right idea, wrong priority for v1.0.0.
 
 **Confidence: MEDIUM**
@@ -146,7 +163,7 @@ A federated registry (`tank push`, `tank pull <pkg@version>` from a remote) is a
 
 **Confidence: MEDIUM**
 
-`docs/recommendations.md` makes a case for a Rust core via PyO3 in Phase 2. The performance case is weak: FTS5 queries are sub-10ms in Python, the validator runs once per pack import, and normalization is fast enough for any realistic documentation set. The security case (Rust for the archive validator) is theoretically sound but practically irrelevant until Tank is processing untrusted packs from a public registry — which doesn't exist yet.
+`docs/recommendations.md` makes a case for a Rust core via PyO3 in Phase 2. The performance case is weak: the validator runs once per pack import and normalization is fast enough for any realistic documentation set. FTS5 query latency has not been formally benchmarked — profile before optimizing. The security case (Rust for the archive validator) is theoretically sound but practically irrelevant until Tank is processing untrusted packs from a public registry — which doesn't exist yet.
 
 The engineering cost of maintaining a PyO3 build (cross-platform wheels, CI complexity, contributor barrier) is high for a small team. Revisit only if profiling shows Python is a bottleneck for a real user workload, or when a public registry makes the security argument concrete.
 
@@ -162,18 +179,24 @@ The engineering cost of maintaining a PyO3 build (cross-platform wheels, CI comp
 
 **Theme**: Get on PyPI. Make it installable. Let people try it.
 
+**Status**: Tagged. PyPI publish pending. Bugs below deferred to v0.1.1.
+
 **Checklist**:
-- [ ] Fix the one mypy error in `src/tank/builder/build.py:133`
-- [ ] Fix `src/tank/cli/pull.py:39` — reads `doc_version_status="imported"` instead of reading from manifest (bug, see Section VIII)
-- [ ] Implement or remove unused `max_tokens` parameter in `src/tank/server.py:121` (see Section VIII)
-- [ ] Polish README with a 60-second quickstart (build from local docs dir, query via CLI and MCP)
+- [x] Polish README — "implementation is beginning" replaced with accurate status *(done)*
+- [x] Expose `limit` parameter on `query-docs` MCP tool and `query_docs()` *(done — bug found during review)*
+- [x] Token overhead benchmark harness — `tests/benchmarks/test_token_overhead.py` with baseline at `tests/benchmarks/results/v0.1.0.json` *(done)*
+- [x] mypy error in `src/tank/builder/build.py:133` *(fixed — minor unused `type: ignore` remains in `chunking.py:8`)*
+- [x] GitHub Actions benchmark workflow — PR delta comparison via `tests/benchmarks/compare.py` *(done)*
+- [ ] Fix `src/tank/storage/db.py:121-126` — page ID foreign key integrity on import *(deferred to v0.1.1)*
+- [ ] Fix `src/tank/search/fts.py:76` — silent exception swallowing; all search errors return `[]` *(deferred to v0.1.1)*
+- [ ] Fix `src/tank/cli/pull.py:39` — hardcoded `doc_version_status="imported"` instead of reading from manifest *(deferred to v0.1.1)*
+- [ ] Implement or remove unused `max_tokens` parameter in `src/tank/server.py` *(deferred to v0.1.1)*
 - [ ] MCP server configuration examples for Claude Code, Cursor, VS Code
-- [ ] GitHub Actions workflow: `tank build` + `tank verify` as a PR check (demonstrate CI/CD artifact pattern)
 - [ ] Tag and release v0.1.0 on PyPI (`pip install tank`, `pip install tank[build]`)
 
 **Why this order**: Nothing else matters until the package is installable. Fix the bugs first so the initial release is clean. The CI/CD workflow demonstrates the "documentation as build artifact" narrative from day one.
 
-**Key files**: `pyproject.toml` (version, classifiers, URLs), `README.md`, `.github/workflows/`, `src/tank/builder/build.py:133`, `src/tank/cli/pull.py`, `src/tank/server.py`
+**Key files**: `pyproject.toml` (version, classifiers, URLs), `README.md`, `.github/workflows/`, `src/tank/cli/pull.py`, `src/tank/server.py`
 
 ### v0.2.0 — "First Users" (Month 3)
 
@@ -193,6 +216,12 @@ The engineering cost of maintaining a PyO3 build (cross-platform wheels, CI comp
 - [ ] **Cross-platform path handling** — normalize to forward slashes, reject backslashes/UNC in validator (gap #6). Modify `src/tank/validator/verify.py`
 - [ ] **Error message polish** — every error path produces an actionable message. Audit all `TankError` subclass usage
 - [ ] **Lockfile in git** — document committing `.tank/index.lock` for reproducible team setups
+- [ ] **FTS5 search quality** — four targeted improvements (see Section III):
+  - Add `heading_path` column to `chunks_fts` with 2.5× weight (`db.py:48`, `fts.py:62`)
+  - Tune BM25 weights: heading 2.5× > summary 1.5× > content 1.0×
+  - Query preprocessing: stopword filtering, term normalization
+  - Synonym expansion: `auth` → `authentication`, `JWT` → `JSON Web Token`, etc.
+- [ ] **Validator optimization** — refactor `_read_archive_bytes()` to avoid full in-memory ZIP reconstruction for digest computation; near the 500MB limit this allocates 500MB+ and recompresses everything. Hash entries in a defined order instead.
 
 **Why this order**: `tank init` is the single most important feature for adoption. `llms-full.txt` support unlocks pack building for hundreds of libraries with minimal code. Pre-built packs make `tank init` actually useful. The other items fix friction that blocks second-time usage.
 
@@ -230,6 +259,20 @@ The engineering cost of maintaining a PyO3 build (cross-platform wheels, CI comp
 - [ ] **Comprehensive documentation** — man pages, API reference, enterprise deployment guide
 
 **Why this order**: Schema migrations must land first — they're a prerequisite for every feature that touches the database. Signature verification is the enterprise trust blocker. You can't call it 1.0 if upgrading between versions might break the database or if you can't cryptographically verify pack provenance.
+
+### v1.1 — "Smarter Search" (contingency, Month 18+)
+
+**Theme**: Hybrid search if FTS5 tuning proves insufficient for real user queries. Gate on evidence, not schedule.
+
+**Trigger condition**: Real user feedback demonstrates vocabulary-mismatch failures on semantic queries ("how do I log in?" when docs say "authentication") that tuned FTS5 cannot address.
+
+**Checklist**:
+- [ ] **Import-side embeddings** — BGE-M3 dense + sparse vectors computed at `tank pull` time, stored in `index.db`. Pack format unchanged — no embedding vectors in `.ctx` files.
+- [ ] Hybrid search: dense cosine + BGE-M3 sparse + FTS5, fused with Reciprocal Rank Fusion (RRF)
+- [ ] `tank[embeddings]` optional dependency group (`pip install tank[embeddings]`)
+- [ ] Re-embedding on model change (stored chunk text → new vectors, no re-pull required)
+
+**Why contingency**: Pack-side embeddings (the original Phase 3 plan) couple the format to a specific model and bloat `.ctx` files with vectors that are discarded if the consumer uses a different model. Import-side solves both problems. But properly tuned FTS5 — heading_path indexing, BM25 weight tuning, query preprocessing — may be sufficient for Tank's use case: documentation retrieval with technical vocabulary where exact-match queries dominate. Build this only if the evidence demands it.
 
 ---
 
@@ -271,7 +314,7 @@ The engineering cost of maintaining a PyO3 build (cross-platform wheels, CI comp
 
 4. **Community vs. curated packs**: Should anyone be able to publish packs to the registry (like npm), or should it be curated (like Homebrew core)? Curated is safer but doesn't scale. Community is riskier but creates a flywheel. A hybrid (curated "verified" tier + community "unverified" tier) is likely right but adds complexity. **Must decide before v0.3.0.**
 
-5. **MCP token overhead**: Research cited in the competitive analysis says MCP consumes 40-50% of context windows before agents do work. Tank's progressive disclosure pattern mitigates this, but the team should benchmark actual token usage of `query-docs` calls in real agent sessions and publish the numbers. If Tank demonstrably uses less context than alternatives, that's a marketing asset. **Should measure before v0.2.0 launch.**
+5. **MCP token overhead**: ~~Should measure before v0.2.0 launch.~~ **Done.** Industry benchmarks (Scalekit, Apideck, StackOne) show MCP consuming 4–32× more tokens than CLI equivalents. Tank's benchmark harness (`tests/benchmarks/test_token_overhead.py`) measures schema overhead at 260 tokens (0.13% of 200K context); progressive disclosure saves 52% vs. naive full fetch. Baseline committed at `tests/benchmarks/results/v0.1.0.json` and tracked per-release via `tests/benchmarks/compare.py`. Numbers are available for publication.
 
 6. **Target acquirer alignment**: The feature roadmap should be shaped by who might acquire Tank. Sourcegraph values enterprise code intelligence. GitHub values developer ecosystem integration. Cursor values MCP-native tools. JetBrains values IDE-integrated documentation. The team should pick 1-2 target acquirers and align the v0.3.0-v1.0.0 roadmap to their gaps. **Strategic decision needed now.**
 
@@ -290,7 +333,7 @@ From the 10 gaps in `recommendations.md`, here's what matters vs. what's noise:
 | 5. Observability | **v1.0.0 item** | Essential for enterprise adoption and debugging in production. |
 | 6. Cross-platform paths | **v0.2.0 item** | Windows users will hit this immediately. Fix early. |
 | 7. Chunk size tuning | **v0.2.0 item** | Directly affects search quality. Low-effort, high-impact. |
-| 8. Query caching | **Noise** | Sub-10ms queries don't need caching. Premature optimization. |
+| 8. Query caching | **Noise** | Query latency is not a bottleneck at current scale. Premature optimization. |
 | 9. CI/CD guidance | **v0.1.0 item** | The "docs as artifact" narrative needs a working CI example from day one. |
 | 10. Multi-directory handling | **Already implemented** | `discover_files()` in `chunking.py` recursively walks and sorts. The gap is resolved. |
 
@@ -298,13 +341,15 @@ From the 10 gaps in `recommendations.md`, here's what matters vs. what's noise:
 
 ## VIII. Contradictions Found Between Prompt and Repository
 
-1. **Prompt says "v0.1.0 is the next tag to ship, not the current capability level."** Repository confirms: `pyproject.toml` says `version = "0.1.0"` but no git tags or PyPI releases exist. Consistent.
+1. **Prompt says "v0.1.0 is the next tag to ship, not the current capability level."** Repository confirms: `pyproject.toml` says `version = "0.1.0"`. v0.1.0 git tag now exists; PyPI publish still pending.
 
-2. **`README.md` says "implementation is beginning"** but `STATUS.md` says "Implementation Complete." The README is stale — it should be updated for v0.1.0 release.
+2. ~~**`README.md` says "implementation is beginning"**~~ **Fixed.** README now says "Phase 1 / MVP is code-complete with a full test suite (184 tests)."
 
-3. **`architecture.md` lists `doc_version_status` values as `stable / prerelease / archived / unknown`** but `cli/pull.py:39` hardcodes `doc_version_status="imported"` — a value not in the schema. This is a bug: pull should read `doc_version_status` from the manifest, not invent a value.
+3. **`architecture.md` lists `doc_version_status` values as `stable / prerelease / archived / unknown`** but `cli/pull.py:39` hardcodes `doc_version_status="imported"` — a value not in the schema. This is a bug: pull should read `doc_version_status` from the manifest, not invent a value. Deferred to v0.1.1.
 
-4. **`max_tokens` parameter**: `server.py:121` accepts `max_tokens` on `query-docs` but never uses it. The architecture says it's a "budget cap for the response" but the implementation ignores it entirely. This should either be implemented or removed before v0.1.0.
+4. **`max_tokens` parameter**: `server.py` accepts `max_tokens` on `query-docs` but never uses it. Deferred to v0.1.1 (implement or remove). `limit: int = 10` was added as a separate fix and is now implemented.
+
+5. **Page ID foreign key integrity** (`db.py:121-126`): `import_pack()` omits the `id` column from the pages INSERT, so SQLite generates new IDs that don't match the `page_id` values chunks carry from the `.ctx` pack. After importing a second pack, chunk `page_id` references point to wrong or nonexistent rows. Found during review; deferred to v0.1.1.
 
 ---
 
