@@ -22,7 +22,8 @@
 - [x] GitHub Actions benchmark workflow — PR delta comparison via `tests/benchmarks/compare.py`
 - [x] Fix `src/tank/storage/db.py:121-126` — page ID foreign key integrity on import
 - [x] Fix `src/tank/search/fts.py:76` — silent exception swallowing; all search errors return `[]`
-- [ ] Fix `src/tank/cli/pull.py:39` — hardcoded `doc_version_status="imported"` instead of reading from manifest
+- [x] Fix `src/tank/cli/pull.py:39` — hardcoded `doc_version_status="imported"` instead of reading from manifest
+- [ ] Fix `src/tank/builder/manifest.py:43` — `doc_version_status` hardcoded to `"stable"`; accept it as a parameter to `build_manifest()`
 - [ ] Implement or remove unused `max_tokens` parameter in `src/tank/server.py`
 
 ---
@@ -30,6 +31,8 @@
 ## v0.2.0 — "First Users"
 
 **Theme**: Make it effortless to start. Polish the rough edges that stop adoption.
+
+- [ ] **`schemas/manifest.v2.schema.json`** — machine-readable JSON Schema as single source of truth for manifest fields; wire verifier to validate against it
 
 - [ ] **`tank init`** — scan project deps, download pre-built packs, configure MCP server
   - New module: `src/tank/cli/init.py`
