@@ -431,7 +431,7 @@ def test_load_valid_file_returns_dict(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_main_exit_0_on_pass(tmp_path, monkeypatch) -> None:
+def test_main_exit_0_on_pass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     b = _make_result()
     c = _make_result()
     b_path = tmp_path / "baseline.json"
@@ -444,7 +444,7 @@ def test_main_exit_0_on_pass(tmp_path, monkeypatch) -> None:
     assert exc.value.code == 0
 
 
-def test_main_exit_1_on_warn(tmp_path, monkeypatch) -> None:
+def test_main_exit_1_on_warn(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     b = _make_result(schema_total=100)
     c = _make_result(schema_total=130)  # +30% > 20% threshold
     b_path = tmp_path / "baseline.json"
@@ -457,14 +457,16 @@ def test_main_exit_1_on_warn(tmp_path, monkeypatch) -> None:
     assert exc.value.code == 1
 
 
-def test_main_exit_2_on_wrong_arg_count(monkeypatch) -> None:
+def test_main_exit_2_on_wrong_arg_count(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", ["compare.py"])
     with pytest.raises(SystemExit) as exc:
         main()
     assert exc.value.code == 2
 
 
-def test_main_exit_2_on_missing_file(tmp_path, monkeypatch) -> None:
+def test_main_exit_2_on_missing_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(
         sys,
         "argv",
@@ -479,7 +481,9 @@ def test_main_exit_2_on_missing_file(tmp_path, monkeypatch) -> None:
     assert exc.value.code == 2
 
 
-def test_main_markdown_flag_does_not_change_exit_code(tmp_path, monkeypatch) -> None:
+def test_main_markdown_flag_does_not_change_exit_code(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     b = _make_result()
     c = _make_result()
     b_path = tmp_path / "baseline.json"

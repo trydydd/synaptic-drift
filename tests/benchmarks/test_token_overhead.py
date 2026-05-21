@@ -24,6 +24,7 @@ import json
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -642,11 +643,11 @@ def bench_db(tmp_path_factory: pytest.TempPathFactory) -> Database:
 # ---------------------------------------------------------------------------
 
 
-def _response_tokens(result: dict) -> int:
+def _response_tokens(result: dict[str, Any]) -> int:
     return _count_tokens(json.dumps(result))
 
 
-def _schema_measurements() -> dict:
+def _schema_measurements() -> dict[str, Any]:
     server = create_server()
     tools = server._tool_manager.list_tools()
     per_tool = []
@@ -698,7 +699,7 @@ def test_token_overhead(bench_db: Database) -> None:
     )
 
     # Responses at different result counts via the public API.
-    response_data: dict[str, dict] = {}
+    response_data: dict[str, dict[str, Any]] = {}
     for detail in ("summary", "full"):
         for n in (5, 10, 20):
             result = _query_docs(bench_db, broad_query, detail=detail, limit=n)
@@ -729,7 +730,7 @@ def test_token_overhead(bench_db: Database) -> None:
         else 0.0
     )
 
-    results_payload = {
+    results_payload: dict[str, Any] = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "git_commit": _git_commit(),
         "tank_version": tank.__version__,

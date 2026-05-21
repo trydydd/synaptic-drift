@@ -51,7 +51,7 @@ def _load(path: str) -> dict[str, Any]:
     if not p.exists():
         print(f"error: file not found: {path}", file=sys.stderr)
         sys.exit(2)
-    return json.loads(p.read_text())
+    return dict[str, Any](json.loads(p.read_text()))
 
 
 def _pct_delta(before: float, after: float) -> float | None:
@@ -81,7 +81,7 @@ def _fmt_pp(v: float, precision: int = 1) -> str:
 # ---------------------------------------------------------------------------
 
 
-def compare(baseline: dict, candidate: dict) -> dict[str, Any]:
+def compare(baseline: dict[str, Any], candidate: dict[str, Any]) -> dict[str, Any]:
     """Return a structured comparison dict used by both formatters."""
     warnings: list[str] = []
 
@@ -209,7 +209,7 @@ def _status(warn: bool, has_delta: bool = True) -> str:
     return _STATUS_WARN if warn else _STATUS_OK
 
 
-def format_text(c: dict) -> str:
+def format_text(c: dict[str, Any]) -> str:
     lines: list[str] = []
 
     lines.append("── Tank benchmark comparison ────────────────────────────────────")
@@ -325,7 +325,7 @@ def _md_delta_pp(v: float, warn: bool = False) -> str:
     return f"{s} {_md_status(warn)}" if warn else s
 
 
-def format_markdown(c: dict) -> str:
+def format_markdown(c: dict[str, Any]) -> str:
     lines: list[str] = []
 
     lines.append("<!-- tank-benchmark -->")
