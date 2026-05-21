@@ -118,14 +118,24 @@ class Database:
                 ),
             )
 
+            page_id_map: dict[int, int] = {}
             for page in pages:
                 cursor.execute(
                     "INSERT INTO pages (package, version, url, content_hash) "
                     "VALUES (?, ?, ?, ?)",
                     (page.package, page.version, page.url, page.content_hash),
                 )
+                db_id = cursor.lastrowid
+                if db_id is None:
+                    raise RuntimeError("INSERT into pages did not return a row ID")
+                page_id_map[page.id] = db_id
 
             for chunk in chunks:
+                mapped_page_id = (
+                    page_id_map.get(chunk.page_id)
+                    if chunk.page_id is not None
+                    else None
+                )
                 cursor.execute(
                     "INSERT INTO chunks (package, version, page_id, heading_path, "
                     "summary, content, token_count, source_url, source_commit, content_hash) "
@@ -133,7 +143,7 @@ class Database:
                     (
                         chunk.package,
                         chunk.version,
-                        chunk.page_id,
+                        mapped_page_id,
                         chunk.heading_path,
                         chunk.summary,
                         chunk.content,
