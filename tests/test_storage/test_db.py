@@ -209,6 +209,33 @@ def test_fts5_trigger_cleans_on_delete(db: Database) -> None:
     assert rows == 0
 
 
+# -- page ID remapping across packs --
+
+
+def test_import_pack_page_ids_remapped_for_second_pack(db: Database) -> None:
+    # Both packs use page id=1 internally (pack-local IDs from the .ctx file).
+    # After import the second pack's chunk must reference its own page, not pack 1's.
+    pack1 = _make_pack(name="lib-a", version="1.0.0")
+    pages1 = [Page(id=1, package="lib-a", version="1.0.0", url="docs/a.md")]
+    chunks1 = [Chunk(id=1, package="lib-a", version="1.0.0", content="lib-a content", page_id=1)]
+    db.import_pack(pack1, pages1, chunks1)
+
+    pack2 = _make_pack(name="lib-b", version="1.0.0")
+    pages2 = [Page(id=1, package="lib-b", version="1.0.0", url="docs/b.md")]
+    chunks2 = [Chunk(id=1, package="lib-b", version="1.0.0", content="lib-b content", page_id=1)]
+    db.import_pack(pack2, pages2, chunks2)
+
+    con = sqlite3.connect(db._db_path)
+    lib_b_page_id = con.execute(
+        "SELECT id FROM pages WHERE package = 'lib-b' AND url = 'docs/b.md'"
+    ).fetchone()[0]
+    lib_b_chunk_page_id = con.execute(
+        "SELECT page_id FROM chunks WHERE package = 'lib-b'"
+    ).fetchone()[0]
+    con.close()
+    assert lib_b_chunk_page_id == lib_b_page_id
+
+
 # -- edge cases --
 
 
