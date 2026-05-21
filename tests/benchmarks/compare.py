@@ -568,12 +568,16 @@ def format_markdown_webfetch(baseline: dict[str, Any], candidate: dict[str, Any]
     lines.append("| Metric | baseline | PR | change |")
     lines.append("|---|---:|---:|:---|")
     lines.append(
-        f"| Single-step saving vs WebFetch | {b_single['pct_saved']}% "
-        f"| {c_single['pct_saved']}% | {_md_delta_pp(single_delta)} |"
+        f"| Single-step: tokens fewer than WebFetch "
+        f"| {b_single['tokens_saved']} tok · {b_single['pct_saved']}% "
+        f"| {c_single['tokens_saved']} tok · {c_single['pct_saved']}% "
+        f"| {_md_delta_pp(single_delta)} |"
     )
     lines.append(
-        f"| Two-step saving (agentless) | {b_two['pct_saved']}% "
-        f"| {c_two['pct_saved']}% | {_md_delta_pp(two_delta)} |"
+        f"| Two-step (agentless): tokens fewer than WebFetch "
+        f"| {b_two['tokens_saved']} tok · {b_two['pct_saved']}% "
+        f"| {c_two['tokens_saved']} tok · {c_two['pct_saved']}% "
+        f"| {_md_delta_pp(two_delta)} |"
     )
 
     lines.append("")
@@ -623,12 +627,16 @@ def format_markdown_webfetch_standalone(data: dict[str, Any]) -> str:
         f"· source: [{data['source_url'].split('/')[-1]}]({data['source_url']})"
     )
     lines.append("")
-    lines.append("| Approach | tokens | saving vs WebFetch |")
+    lines.append("| Approach | tokens | tokens fewer than WebFetch |")
     lines.append("|---|---:|---:|")
     lines.append(f"| WebFetch (full page) | {wf_tokens} | — |")
-    lines.append(f"| Tank single-step | {single['tokens']} | {single['pct_saved']}% |")
     lines.append(
-        f"| Tank two-step (agentless) | {two['total_tokens']} | {two['pct_saved']}% |"
+        f"| Tank single-step | {single['tokens']} "
+        f"| {single['tokens_saved']} ({single['pct_saved']}%) |"
+    )
+    lines.append(
+        f"| Tank two-step (agentless) | {two['total_tokens']} "
+        f"| {two['tokens_saved']} ({two['pct_saved']}%) |"
     )
 
     lines.append("")
