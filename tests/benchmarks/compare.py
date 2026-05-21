@@ -544,9 +544,152 @@ def format_markdown_standalone(data: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
+def format_markdown_webfetch(baseline: dict[str, Any], candidate: dict[str, Any]) -> str:
+    """Append-only webfetch section for a PR comment that has a baseline."""
+    lines: list[str] = []
+
+    b_single = baseline["tank_single_step_full"]
+    c_single = candidate["tank_single_step_full"]
+    b_two = baseline["tank_two_step_agentless"]
+    c_two = candidate["tank_two_step_agentless"]
+
+    single_delta = _pp_delta(b_single["pct_saved"], c_single["pct_saved"])
+    two_delta = _pp_delta(b_two["pct_saved"], c_two["pct_saved"])
+
+    lines.append("---")
+    lines.append("")
+    lines.append("### 🔍 WebFetch vs Tank")
+    lines.append("")
+    lines.append(
+        f"Query: `{candidate['fts5_query']}` "
+        f"· source: [{candidate['source_url'].split('/')[-1]}]({candidate['source_url']})"
+    )
+    lines.append("")
+    lines.append("| Metric | baseline | PR | change |")
+    lines.append("|---|---:|---:|:---|")
+    lines.append(
+        f"| Single-step saving vs WebFetch | {b_single['pct_saved']}% "
+        f"| {c_single['pct_saved']}% | {_md_delta_pp(single_delta)} |"
+    )
+    lines.append(
+        f"| Two-step saving (agentless) | {b_two['pct_saved']}% "
+        f"| {c_two['pct_saved']}% | {_md_delta_pp(two_delta)} |"
+    )
+
+    lines.append("")
+    lines.append("<details>")
+    lines.append("<summary>Detail</summary>")
+    lines.append("")
+    lines.append("| Approach | baseline | PR | Δ tokens |")
+    lines.append("|---|---:|---:|---:|")
+    b_wf = baseline["webfetch"]["tokens"]
+    c_wf = candidate["webfetch"]["tokens"]
+    lines.append(
+        f"| WebFetch (full page) | {b_wf} tok | {c_wf} tok "
+        f"| {_md_delta_pct(_pct_delta(b_wf, c_wf))} |"
+    )
+    lines.append(
+        f"| Tank single-step | {b_single['tokens']} tok | {c_single['tokens']} tok "
+        f"| {_md_delta_pct(_pct_delta(b_single['tokens'], c_single['tokens']))} |"
+    )
+    lines.append(
+        f"| Tank two-step (agentless) | {b_two['total_tokens']} tok "
+        f"| {c_two['total_tokens']} tok "
+        f"| {_md_delta_pct(_pct_delta(b_two['total_tokens'], c_two['total_tokens']))} |"
+    )
+    lines.append("")
+
+    lines.append(_md_webfetch_chunk_breakdown(candidate))
+
+    lines.append("</details>")
+
+    return "\n".join(lines)
+
+
+def format_markdown_webfetch_standalone(data: dict[str, Any]) -> str:
+    """Append-only webfetch section for a PR comment with no baseline."""
+    lines: list[str] = []
+
+    single = data["tank_single_step_full"]
+    two = data["tank_two_step_agentless"]
+    wf_tokens = data["webfetch"]["tokens"]
+
+    lines.append("---")
+    lines.append("")
+    lines.append("### 🔍 WebFetch vs Tank")
+    lines.append("")
+    lines.append(
+        f"Query: `{data['fts5_query']}` "
+        f"· source: [{data['source_url'].split('/')[-1]}]({data['source_url']})"
+    )
+    lines.append("")
+    lines.append("| Approach | tokens | saving vs WebFetch |")
+    lines.append("|---|---:|---:|")
+    lines.append(f"| WebFetch (full page) | {wf_tokens} | — |")
+    lines.append(f"| Tank single-step | {single['tokens']} | {single['pct_saved']}% |")
+    lines.append(
+        f"| Tank two-step (agentless) | {two['total_tokens']} | {two['pct_saved']}% |"
+    )
+
+    lines.append("")
+    lines.append("<details>")
+    lines.append("<summary>Detail</summary>")
+    lines.append("")
+    lines.append("| | tokens |")
+    lines.append("|---|---:|")
+    lines.append(f"| step 1: summary scan | {two['step1_summary_tokens']} |")
+    lines.append(f"| step 2: full fetch | {two['step2_full_tokens']} |")
+    lines.append("")
+
+    lines.append(_md_webfetch_chunk_breakdown(data))
+
+    lines.append("</details>")
+
+    return "\n".join(lines)
+
+
+def _md_webfetch_chunk_breakdown(data: dict[str, Any]) -> str:
+    breakdown = data["tank_two_step_agentless"].get("chunk_breakdown", [])
+    if not breakdown:
+        return ""
+    lines = [
+        "**Chunks returned**",
+        "",
+        "| chunk | tokens | heading | summary |",
+        "|---|---:|---|---|",
+    ]
+    for c in breakdown:
+        hp = (c.get("heading_path") or "").split(" / ")[-1]
+        summary = (c.get("summary") or "")[:60]
+        lines.append(
+            f"| {c['chunk_id']} | {c['content_tokens']} | {hp} | {summary} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def main() -> None:
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     flags = [a for a in sys.argv[1:] if a.startswith("--")]
+
+    if "--webfetch" in flags:
+        if "--standalone" in flags or len(args) == 1:
+            if len(args) != 1:
+                print(
+                    "usage: compare.py <webfetch.json> --webfetch --standalone",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+            print(format_markdown_webfetch_standalone(_load(args[0])))
+        else:
+            if len(args) != 2:
+                print(
+                    "usage: compare.py <baseline.json> <candidate.json> --webfetch",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+            print(format_markdown_webfetch(_load(args[0]), _load(args[1])))
+        sys.exit(0)
 
     if "--standalone" in flags:
         if len(args) != 1:
