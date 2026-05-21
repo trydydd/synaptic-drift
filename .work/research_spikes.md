@@ -229,3 +229,83 @@ The `heading_path` field is already computed before `_generate_summary` is calle
 - `docs/ranking.md` — BM25 ranking strategy and greedy budget enforcement
 - `docs/chunking.md` — chunkana defaults, chunk size ranges, token implications
 - `docs/architecture.md` — `query-docs` tool surface documentation
+
+---
+
+## Chunker Replacement — Heading-Based Splitting
+
+### Problem
+
+chunkana's size-based splitting produces chunks that span multiple sections. In the
+fastmcp benchmark, chunk 5 covers six `###` sections (Choosing the Right Transport,
+FastMCP CLI, Dependency Management, Passing Arguments to Servers, Auto-Reload,
+Async Usage) in a single 932-token chunk. FTS5 matches it on incidental keyword
+overlap ("transport", "run"), not relevance. An agent reading summaries has no way
+to know the chunk is mostly off-topic for a stdio configuration query.
+
+The root cause is that chunkana doesn't split at heading boundaries at all heading
+levels. Its `structural` strategy splits only at `##` level, keeping all `###`
+subsections together — producing coarser chunks than the default, not finer.
+`header_path` is always `[]`; section headings are only available after the fact in
+`section_tags`, which Tank now reads as a workaround for `heading_path` construction.
+
+### What we need
+
+- Split at heading boundaries (`##`, `###`, and deeper) as the primary split point
+- Treat fenced code blocks as atomic — never split mid-fence
+- If a section exceeds a size threshold, split at paragraph boundaries within it
+- `heading_path` accurate by construction, not inferred from `section_tags[0]`
+
+### chunkana verdict
+
+Does not support heading-based splitting at arbitrary depth. `strategy_override="structural"`
+splits at `##` only. No config combination produces one-chunk-per-section behaviour.
+The `section_tags` workaround is the ceiling of what chunkana can give us.
+
+### semchunk (isaacus-dev/semchunk) — evaluated and ruled out
+
+semchunk is a general-purpose recursive delimiter splitter. It splits on newlines,
+whitespace, and sentence terminators until chunks reach a target token count. There
+is no markdown heading awareness — a `###` boundary is not a privileged split point.
+It solves a different problem (same-sized chunks for embedding pipelines) and would
+reproduce the multi-section chunk problem. Token-counter-driven rather than
+structure-driven; requires a tokenizer dependency at build time. Ruled out.
+
+### Custom chunker
+
+A documentation-specific markdown chunker is a small, well-scoped piece of code.
+The core logic is:
+
+1. Parse the document line by line, tracking heading level and fenced code block state
+2. On each heading line outside a code fence: emit the current chunk, start a new one
+3. Within a chunk, if size exceeds threshold: split at the nearest paragraph boundary
+4. Build `heading_path` directly from the heading hierarchy during the walk
+
+Estimated scope: ~150 lines. The edge cases are well-defined (preamble before first
+heading, sections with only a code block, deeply nested headings, very large sections).
+
+**Payoff**: every chunk maps to exactly one section, `heading_path` is correct by
+construction, the summary heuristic improvement (heading prefix + first sentence) works
+cleanly, and multi-section chunks like chunk 5 disappear.
+
+### ⚠️ Before building — survey existing markdown chunkers
+
+Before writing a custom chunker, audit available libraries for a production-ready
+markdown-structure-aware implementation that fits the problem space. Criteria:
+
+- Splits at heading boundaries at all levels (`##`, `###`, etc.)
+- Treats fenced code blocks as atomic
+- No heavy dependencies (no PyTorch, no LLM calls at build time)
+- Actively maintained
+- Handles the edge cases above with existing tests
+
+Known candidates to evaluate: none identified yet. semchunk and chunkana have been
+ruled out. Any replacement must be benchmarked against the fastmcp fixture to confirm
+it resolves the multi-section chunk problem before adoption.
+
+### Timing
+
+Lower priority than the `search-docs` / `fetch-docs` endpoint split. The chunker
+affects build quality; the endpoint split affects agent behaviour and is a breaking
+change that should land first. Revisit when the endpoint redesign is complete.
+
