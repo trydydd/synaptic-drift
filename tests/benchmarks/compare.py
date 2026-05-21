@@ -232,7 +232,7 @@ def format_text(c: dict[str, Any]) -> str:
         f"    {'TOTAL':22s}  {s['before']:>6} → {s['after']:>6}  {total_d:>8}  {status}"
     )
     lines.append(
-        f"    {'% of 200K ctx':22s}  {s['pct_200k_before']:.3f}% → {s['pct_200k_after']:.3f}%"
+        f"    {'% of 200K context':22s}  {s['pct_200k_before']:.3f}% → {s['pct_200k_after']:.3f}%"
     )
 
     # Responses
@@ -370,7 +370,7 @@ def format_markdown(c: dict[str, Any]) -> str:
     lines.append("| Metric | baseline | PR | change |")
     lines.append("|---|---:|---:|:---|")
     lines.append(
-        f"| Tool schema cost | {s['before']} tok · {s['pct_200k_before']:.3f}% of 200K ctx "
+        f"| Tool schema cost | {s['before']} tok · {s['pct_200k_before']:.3f}% of 200K context "
         f"| {s['after']} tok · {s['pct_200k_after']:.3f}%"
         f" | {_md_delta_pct(s['delta_pct'], s['warn'])}{schema_warn_badge} |"
     )
@@ -482,7 +482,7 @@ def format_markdown_standalone(data: dict[str, Any]) -> str:
     lines.append("|---|---:|")
     lines.append(
         f"| Tool schema cost | {schema['total_tokens']} tok "
-        f"({schema['pct_of_200k_context']:.3f}% of 200K ctx) |"
+        f"({schema['pct_of_200k_context']:.3f}% of 200K context) |"
     )
     lines.append(f"| Summary tokens/result | {summary_tpr} |")
     pd_badge = f" {_md_status(pd_warn)}" if pd_warn else ""
