@@ -1,5 +1,12 @@
 # Tank — Semver Roadmap
 
+## Current Focus — v0.1.0
+
+- [ ] MCP server configuration examples for Claude Code, Cursor, VS Code
+- [ ] Tag and release v0.1.0 on PyPI — release workflow exists and produces artifacts (wheel, sdist, `.ctx` packs) but has no `twine upload` / `pypi-publish` step
+
+---
+
 ## v0.1.0 — "Ship It"
 
 **Theme**: Get on PyPI. Make it installable. Let people try it.
@@ -8,7 +15,7 @@
 
 - [x] mypy error in `src/tank/builder/build.py:133`
 - [ ] MCP server configuration examples for Claude Code, Cursor, VS Code
-- [ ] Tag and release v0.1.0 on PyPI (`pip install tank`, `pip install tank[build]`)
+- [ ] Tag and release v0.1.0 on PyPI (`pip install tank`, `pip install tank[build]`) — release workflow exists but has no `twine upload` / `pypi-publish` step
 
 ---
 
