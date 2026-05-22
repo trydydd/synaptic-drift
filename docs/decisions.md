@@ -234,21 +234,21 @@ STDIO Transport (Default): STDIO (Standard Input/Output) is the default transpor
 
 ---
 
-## D15: Pack #2 — httpx@0.28.1
+## D15: Pack #2 — mcp@2025-11-25
 
-**Decision**: ship httpx@0.28.1 as the v0.1.1 release artifact alongside fastmcp@3.3.0.
+**Decision**: ship the Model Context Protocol spec (`mcp@2025-11-25`) as the v0.1.1 release artifact alongside fastmcp@3.3.0.
 
-**Rationale**: httpx is directly needed for the v0.2.0 URL fetch feature (`tank build --source <url>/llms-full.txt`) and the v0.3.0 llms.txt crawler — indexing it demonstrates Tank's value on a dependency that agents working on Tank itself will query. The docs are well-structured Markdown (~23 files, ~150–250 estimated chunks) with good heading coverage and code examples throughout.
+**Rationale**: Tank depends on `mcp` directly, and the MCP layer refactor (D12/S3) is the largest single v0.2.0 work item — agents implementing the `search-docs`/`fetch-docs` split will query this pack constantly. `modelcontextprotocol.io` publishes `llms-full.txt`, making it buildable today without a crawler or HTML extraction.
 
 **Alternatives considered**:
-- **requests**: simpler, sync-only. Rejected because httpx covers the same use case and the async path matters for v0.3.0.
-- **FastAPI / Pydantic**: widely used but their doc sites don't publish llms-full.txt and the Markdown sources are less cleanly separated from site scaffolding.
-- **Click**: Tank's CLI framework, relevant, but Click's docs are sparse compared to httpx's.
+- **httpx@0.28.1**: still pre-1.0 (0.x), no API stability commitment. Rejected.
+- **requests**: stable (2.x), good candidate for HTTP client docs, but uses RST source and no llms-full.txt — requires S6 HTML extraction work first.
+- **click / rich**: Tank's other deps, but their docs are sparse and less queried by agents.
 
-**Source**: no llms-full.txt published. Build from GitHub Markdown docs:
+**Source**: `modelcontextprotocol.io/llms-full.txt` (spec version 2025-11-25). Build command (download locally until v0.2.0 URL fetch lands):
 ```
-git clone https://github.com/encode/httpx --depth=1 --branch 0.28.1 /tmp/httpx-src
-tank build httpx@0.28.1 --source /tmp/httpx-src/docs --output ./packs
+mkdir /tmp/mcp-docs && curl -o /tmp/mcp-docs/mcp.md https://modelcontextprotocol.io/llms-full.txt
+tank build mcp@2025-11-25 --source /tmp/mcp-docs --output ./packs
 ```
 
 **Revisit when**: never — this is a release artifact decision. Future packs follow the same evaluation process.
