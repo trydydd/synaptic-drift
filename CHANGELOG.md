@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - CI workflow (lint, typecheck, test) on all pushes and pull requests
 - Release workflow: runs full test suite (including network tests), builds wheel/sdist, fetches docs source, and publishes a GitHub release with all artifacts
+- `cut-release.yml` — manually triggered GitHub Actions workflow (Actions → Cut Release → Run workflow); accepts `patch / minor / major`, runs pre-flight checks, bumps version, commits, and pushes the tag to trigger the Release workflow
 - Network integration test for the full FastMCP build + query pipeline
 - `bump-my-version` in dev dependencies; `[tool.bumpversion]` config in `pyproject.toml`
-- `scripts/release.sh` — one-command release: pre-flight checks, version bump, tag, push
+- `scripts/release.sh` — local equivalent of Cut Release for dev machines with a 3.12 venv
 
 ### Fixed
 - `pack_digest` verification: ZIP entry timestamps are now pinned to a fixed epoch (`2021-08-08`) so the archive is reproducible across machines and the digest can be independently verified
