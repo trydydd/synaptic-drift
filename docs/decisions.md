@@ -134,25 +134,21 @@ Each entry records: the decision, the alternatives considered, why we chose what
 
 ---
 
-## D11: FTS5 Configuration — Minimal for MVP, Tuning Deferred
+## D11: FTS5 Configuration — Minimal for MVP, Tuning Partially Implemented (v0.2.0)
 
-**Decision**: ship MVP with a minimal FTS5 configuration: raw query passthrough, uniform BM25 column weights, default tokenizer, and `heading_path` stored in the `chunks` table but not indexed in FTS5.
+**Original MVP decision**: ship with raw query passthrough, uniform BM25 column weights, default tokenizer, and `heading_path` stored in `chunks` but not indexed in FTS5.
 
-**What this means in practice**: the MVP implementation uses roughly 30–40% of FTS5's available capability. Specifically:
+**v0.2.0 status**:
 
-- `fts.py` passes queries directly to `MATCH` with no preprocessing — stopwords, articles, and filler terms consume BM25 capacity
-- BM25 column weights are uniform `(1.0, 1.0, 1.0)` — `summary` and `content` are weighted identically
-- Default tokenizer — no stemming, no code-aware tokenization, no prefix matching
-- `heading_path` is the strongest relevance signal in documentation search and is not indexed
+- ✅ **`heading_path` added to `chunks_fts`** — `db.py:48-52` creates the FTS5 table with `heading_path` as the first column; both triggers updated to include it. `section_tags[0]` from chunkana provides the `##`-level heading; `###` depth requires D14 (custom chunker).
+- ✅ **BM25 column weights tuned** — `fts.py:67` uses `bm25(chunks_fts, 2.5, 1.5, 1.0)` (heading 2.5×, summary 1.5×, content 1.0×). Weight only activates when `heading_path` is non-null; FTS5 treats NULL as empty string for fallback-chunked documents.
+- ⬜ **Query preprocessing** — stopword filtering, term normalisation. Still deferred.
+- ⬜ **Synonym expansion** — `auth` → `authentication`, `JWT` → `JSON Web Token`. Still deferred.
+- ⬜ **Custom tokenizer** — porter stemmer or unicode61 with diacritics removal. Still deferred; low-priority for technical docs where exact terms dominate.
 
-**Alternatives considered (deferred, not rejected)**:
+**Schema commitment note**: indexing `heading_path` in FTS5 means future chunker changes (D14) that alter how `heading_path` is computed will require rebuilding the FTS5 index (or a migration). This is acceptable — the index can be rebuilt from the `chunks` table on schema version bump.
 
-- **Column weighting** — `bm25(chunks_fts, 2.5, 1.5, 1.0)` with heading > summary > content. Deferred: requires adding `heading_path` to the FTS5 virtual table, which is a schema migration.
-- **Query preprocessing** — stopword filtering, term normalisation. Deferred: adds code with no correctness risk but material quality impact; belongs in v0.2.0 where FTS5 tuning is scoped.
-- **Prefix queries and synonym expansion** — `auth*` matching `authentication`; a small static dict for common technical abbreviations. Deferred: same scope.
-- **Custom tokenizer** — porter stemmer or unicode61 with diacritics removal. Deferred: low-priority for technical documentation where exact terms dominate.
-
-**Revisit when**: v0.2.0 FTS5 tuning work begins. The four improvements are ordered by impact: (1) add `heading_path` to `chunks_fts` with 2.5× weight, (2) tune BM25 column weights, (3) query preprocessing, (4) synonym expansion. Measure search quality before and after before considering embeddings.
+**Remaining work**: query preprocessing and synonym expansion are the next two improvements, ordered by impact. Measure search quality against the fastmcp benchmark before considering embeddings.
 
 ---
 
