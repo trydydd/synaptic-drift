@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-05-21T18:39:07.625887+00:00",
-  "git_commit": "b0516e6",
+  "timestamp": "2026-05-24T23:26:35.322480+00:00",
+  "git_commit": "5178def",
   "tank_version": "0.1.0",
   "token_counter": "len_div_4",
   "corpus": {
@@ -9,59 +9,59 @@
     "avg_content_chars": 939
   },
   "schema": {
-    "total_tokens": 260,
+    "total_tokens": 293,
     "tools": [
       {
-        "name": "resolve-deps",
-        "tokens": 75,
-        "chars": 301
+        "name": "search",
+        "tokens": 195,
+        "chars": 782
       },
       {
-        "name": "query-docs",
-        "tokens": 185,
-        "chars": 743
+        "name": "fetch",
+        "tokens": 98,
+        "chars": 392
       }
     ],
-    "pct_of_200k_context": 0.13,
-    "pct_of_128k_context": 0.203
+    "pct_of_200k_context": 0.146,
+    "pct_of_128k_context": 0.229
   },
   "responses": {
     "summary_n5": {
-      "tokens": 563,
+      "tokens": 559,
       "actual_results": 5,
-      "tokens_per_result": 113
-    },
-    "summary_n10": {
-      "tokens": 1122,
-      "actual_results": 10,
-      "tokens_per_result": 112
-    },
-    "summary_n20": {
-      "tokens": 2012,
-      "actual_results": 18,
       "tokens_per_result": 112
     },
     "full_n5": {
-      "tokens": 1810,
+      "tokens": 1714,
       "actual_results": 5,
-      "tokens_per_result": 362
+      "tokens_per_result": 343
+    },
+    "summary_n10": {
+      "tokens": 1115,
+      "actual_results": 10,
+      "tokens_per_result": 112
     },
     "full_n10": {
-      "tokens": 3542,
+      "tokens": 3465,
       "actual_results": 10,
-      "tokens_per_result": 354
+      "tokens_per_result": 346
+    },
+    "summary_n20": {
+      "tokens": 2010,
+      "actual_results": 18,
+      "tokens_per_result": 112
     },
     "full_n20": {
-      "tokens": 6405,
+      "tokens": 6341,
       "actual_results": 18,
-      "tokens_per_result": 356
+      "tokens_per_result": 352
     }
   },
   "progressive_disclosure": {
-    "step1_summary_all_tokens": 2012,
-    "step2_full_top3_tokens": 1047,
-    "total_tokens": 3059,
-    "vs_naive_full_n20_tokens": 6405,
-    "saving_pct": 52.2
+    "step1_summary_all_tokens": 2010,
+    "step2_full_top3_tokens": 1033,
+    "total_tokens": 3043,
+    "vs_naive_full_n20_tokens": 6341,
+    "saving_pct": 52.0
   }
 }

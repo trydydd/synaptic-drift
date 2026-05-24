@@ -4,13 +4,11 @@ How to wire the Tank MCP server into Claude Code, Cursor, or VS Code so an AI ag
 
 ## Current state
 
-The MCP server is functional via stdio transport. Both tools (`query-docs`, `resolve-deps`) work against a local `.tank/index.db`.
+The MCP server is functional via stdio transport with two tools: `search` and `fetch`.
 
 **Known gaps (pre-v0.2.0):**
 
-- No `tank serve` CLI subcommand — invocation is `python -m tank.server` (works, just undiscoverable from `tank --help`)
-- HTTP transport code exists (`run_http()` in `src/tank/server.py`) but is not wired to any CLI flag — stdio only for now
-- `query-docs` does not accept a `project_path` argument; `resolve-deps` does. Both open `.tank/index.db` but only `resolve-deps` lets you override the base directory. Consequence: `query-docs` always resolves relative to the process working directory.
+- HTTP transport code exists (`run_http()` in `src/tank/server.py`) but is not wired to any CLI flag — stdio only for now.
 
 ## Prerequisites
 
@@ -34,21 +32,21 @@ The server opens `.tank/index.db` relative to its working directory. It must be 
 
 ### Claude Code
 
-Project-scoped config at `.claude/mcp_servers.json` (checked into the repo so all contributors get it automatically):
+Project-scoped config at `.claude/mcp.json` (check it in so all contributors get it automatically):
 
 ```json
 {
   "mcpServers": {
     "tank": {
-      "command": "python",
-      "args": ["-m", "tank.server"],
+      "command": "tank",
+      "args": ["serve"],
       "cwd": "${workspaceFolder}"
     }
   }
 }
 ```
 
-Or add to your global `~/.claude/mcp_servers.json` if you prefer not to check it in.
+Or add to your global `~/.claude/mcp.json` if you prefer not to check it in.
 
 ### Cursor
 
@@ -58,8 +56,8 @@ Or add to your global `~/.claude/mcp_servers.json` if you prefer not to check it
 {
   "mcpServers": {
     "tank": {
-      "command": "python",
-      "args": ["-m", "tank.server"],
+      "command": "tank",
+      "args": ["serve"],
       "cwd": "${workspaceFolder}"
     }
   }
@@ -75,8 +73,8 @@ Or add to your global `~/.claude/mcp_servers.json` if you prefer not to check it
   "servers": {
     "tank": {
       "type": "stdio",
-      "command": "python",
-      "args": ["-m", "tank.server"],
+      "command": "tank",
+      "args": ["serve"],
       "cwd": "${workspaceFolder}"
     }
   }
@@ -85,14 +83,14 @@ Or add to your global `~/.claude/mcp_servers.json` if you prefer not to check it
 
 ### Using a virtualenv
 
-If Tank is installed in a project-local virtualenv rather than the system Python, point directly at that interpreter:
+If Tank is installed in a project-local virtualenv rather than the system Python, point directly at the venv binary:
 
 ```json
 {
   "mcpServers": {
     "tank": {
-      "command": "${workspaceFolder}/.venv/bin/python",
-      "args": ["-m", "tank.server"],
+      "command": "${workspaceFolder}/.venv/bin/tank",
+      "args": ["serve"],
       "cwd": "${workspaceFolder}"
     }
   }
@@ -101,78 +99,78 @@ If Tank is installed in a project-local virtualenv rather than the system Python
 
 ## Tools
 
-### `resolve-deps`
+### `search`
 
-Returns the list of packs currently in the index with their lifecycle state. Cheap to call (single SQLite read). Useful as a session health check.
+FTS5 full-text search across indexed documentation. Returns chunk summaries and IDs — **content is not included**. Use the returned `chunk_id` values to fetch full content via the `fetch` tool.
 
 **Parameters:**
 
 | parameter | type | default | description |
 |---|---|---|---|
-| `project_path` | string | cwd | Base directory containing `.tank/index.db` |
+| `query` | string | — | Search terms (required). FTS5 is lexical — use keywords, not natural language sentences. |
+| `packages` | string[] | all | Scope results to specific package names. Returns `{"status": "not_indexed"}` if a requested package has no indexed pack. |
+| `limit` | integer | `10` | Maximum chunks returned from FTS5 (candidate pool size). |
+| `max_tokens` | integer | none | Accumulate chunks in BM25 rank order; stop before estimated token cost exceeds this budget. |
 
-**Example response:**
+**Result fields per chunk:**
 
-```json
-{
-  "status": "ok",
-  "packs": [
-    {
-      "package": "my-lib",
-      "version": "1.0.0",
-      "lifecycle_state": "approved",
-      "doc_version_status": "stable",
-      "chunks": 412,
-      "indexed_at": "2026-05-14T10:30:00Z"
-    }
-  ]
-}
-```
+| field | description |
+|---|---|
+| `chunk_id` | ID to pass to `fetch` |
+| `heading_path` | Section hierarchy (e.g. `"Configuration / Auth / OAuth2"`) |
+| `summary` | One-line description of the chunk's content |
+| `source_url` | Where this content came from |
+| `score` | BM25 relevance score (higher = better match) |
+| `lifecycle_warning` | Non-null if the pack is deprecated |
 
-If `lifecycle_state` is `"deprecated"`, treat results from that pack as potentially stale. Chunks from `"revoked"` packs are excluded from search results entirely.
+**Note on queries:** FTS5 matches on keywords, not meaning. Translate natural-language questions to key terms before calling (`"OAuth2 client credentials"` rather than `"how do I authenticate"`).
 
 ---
 
-### `query-docs`
+### `fetch`
 
-FTS5 full-text search across indexed documentation. All results include provenance fields (`source_url`, `content_hash`, `indexed_at`).
+Retrieve full chunk content by ID. Always call `search` first to get `chunk_id` values.
 
 **Parameters:**
 
 | parameter | type | default | description |
 |---|---|---|---|
-| `query` | string | `""` | Search terms (required unless `chunk_ids` is set) |
-| `packages` | string[] | all | Scope results to specific package names |
-| `detail` | string | `"summary"` | `"summary"` returns heading + one-line summary; `"full"` returns complete chunk content |
-| `limit` | integer | `10` | Maximum chunks returned from FTS5 (candidate pool size) |
-| `chunk_ids` | integer[] | — | Fetch specific chunks by ID, bypassing search |
-| `max_tokens` | integer | none | Accumulate chunks in BM25 rank order; stop before estimated token cost exceeds this budget |
+| `chunk_ids` | integer[] | — | Chunk IDs to retrieve (required). Obtain from `search` results. |
+| `max_tokens` | integer | none | Accumulate chunks in the order provided; stop before estimated token cost exceeds this budget. |
 
-If a package in `packages` is not indexed, the tool returns `{"status": "not_indexed"}` rather than silently returning empty results.
+**Result fields per chunk:**
 
-**Note on queries:** FTS5 is lexical — it matches on keywords, not meaning. Natural language questions often return 0 results. Translate the question to key terms before calling (`"OAuth2 client credentials"` rather than `"how do I authenticate"`).
+| field | description |
+|---|---|
+| `chunk_id` | ID of the chunk |
+| `heading_path` | Section hierarchy |
+| `summary` | One-line description |
+| `content` | Full chunk content |
+| `source_url` | Where this content came from |
+| `content_hash` | SHA-256 of the content for integrity checking |
+| `indexed_at` | When this pack was imported |
+
+Chunks from `revoked` packs are silently excluded from results.
 
 ## Recommended usage pattern
 
-**Step 1 — summary scan** (cheap: ~20–40 tokens per result):
+**Step 1 — summary scan** (cheap: ~20–40 tokens per chunk):
 
 ```json
 {
   "query": "stdio transport run",
   "packages": ["fastmcp"],
-  "detail": "summary",
   "limit": 15
 }
 ```
 
-Read the `heading_path` and `summary` fields. Identify the chunk IDs that look relevant.
+Read the `heading_path` and `summary` fields. Identify the `chunk_id` values that look relevant to the task.
 
 **Step 2 — targeted fetch** (pay only for what you need):
 
 ```json
 {
   "chunk_ids": [2, 3],
-  "detail": "full",
   "max_tokens": 8000
 }
 ```

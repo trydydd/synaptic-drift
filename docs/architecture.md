@@ -12,6 +12,19 @@ A local, enterprise-governed documentation pack system: build versioned `.ctx` p
 - **Fast**: sub-10ms queries against pre-indexed content via SQLite FTS5
 - **Token-efficient**: layered retrieval (summary scan → targeted full-content fetch) minimises context window usage without sacrificing accuracy
 
+## Design Context
+
+Tank is not the only tool that gives AI coding agents access to documentation. The competitive landscape explains why the design makes the trade-offs it does.
+
+| Tool | Approach | Why Tank differs |
+|---|---|---|
+| **Context7** (Upstash, ~55k GitHub stars) | Cloud-hosted MCP server; indexes thousands of public libraries; zero config | Tank is local-first — no cloud dependency, works offline, supports private/internal docs |
+| **Grounded Docs MCP / DevDocs MCP** | Open-source local doc crawlers, Docker-based | Tank adds cryptographic pack integrity, governance lifecycle states, and a portable verifiable format |
+| **Cursor / Copilot / JetBrains AI** | Editor-native context from open files, import graphs, project structure | Tank provides *external* library documentation — what the library you depend on actually says, not just what is in your project files |
+| **llms.txt** | Web convention exposing AI-readable doc summaries | Tank turns `llms.txt` into versioned, searchable, verifiable local packs |
+
+Tank's differentiated position is the set of requirements that cloud-first tools cannot meet: private and internal documentation that cannot leave the organisation; cryptographic proof that pack content has not been tampered with; enterprise policy governance over what documentation enters agent context; offline and air-gapped operation. These are enterprise requirements. Tank does not compete with Context7 for the individual developer market; the design optimises for teams and enterprises that need trust guarantees on the documentation their agents consume.
+
 ## MVP Definition
 
 The MVP loop is four commands:
@@ -31,71 +44,35 @@ Everything in this document that is not required to make this loop work is defer
 2. `tank verify` rejects packs whose `lifecycle_state` is not in the policy's `allowed_lifecycle_states`, and rejects archives containing path traversal, absolute paths, symlinks, device files, or hash mismatches.
 3. `tank pull` only completes after all verify checks pass; it imports chunks into `.tank/index.db` in a single atomic transaction.
 4. `tank query` returns BM25-ranked FTS5 results with full source attribution in under 10ms for an index of up to 100,000 chunks.
-5. The MCP server exposes `query-docs` and a read-only `resolve-deps` over stdio and includes attribution fields on every result.
+5. The MCP server exposes `search` (returns summaries and chunk IDs) and `fetch` (returns full content by chunk ID) over stdio, with attribution fields on every result.
 6. No outbound network is required.
 7. No embedding model is required.
 8. The test suite covers archive safety, manifest validation, import, and query attribution.
 
 ## MCP Tool Surface
 
-The server exposes two tools to the AI agent. (`index-deps` is deferred to Phase 2.)
+The server exposes two tools to the AI agent. (`index-deps` is deferred to Phase 2.) Launch the server with `tank serve` (stdio transport).
 
-### `resolve-deps`
+### `search`
 
-Read-only index health check. Scans `.tank/index.db` and returns the list of imported packs with their current state.
-
-**Input**: optional `project_path` (defaults to cwd, used to locate `.tank/index.db`)
-
-**Output**:
-```json
-{
-  "status": "ok",
-  "packs": [
-    {
-      "package": "my-lib",
-      "version": "1.0.0",
-      "lifecycle_state": "approved",
-      "doc_version_status": "stable",
-      "chunks": 412,
-      "indexed_at": "2026-05-14T10:30:00Z"
-    },
-    {
-      "package": "other-lib",
-      "version": "2.3.0",
-      "lifecycle_state": "deprecated",
-      "doc_version_status": "archived",
-      "chunks": 180,
-      "indexed_at": "2026-03-01T08:00:00Z"
-    }
-  ]
-}
-```
-
-This tool is effectively free to call (single SQLite read) and should be invoked at the start of every session as a health check. It surfaces deprecated or archived packs so the agent can warn the user before acting on stale documentation.
-
-### `query-docs`
-
-Full-text search across indexed documentation. Fast, read-only, only hits already-imported packs.
+FTS5 full-text search across indexed documentation. Returns summaries and chunk IDs only — **content is never included**. Use the returned `chunk_id` values with `fetch` to retrieve full content.
 
 **Input**:
 ```json
 {
-  "query": "how to configure OAuth2 in my-lib",
+  "query": "OAuth2 client credentials",
   "packages": ["my-lib"],
-  "detail": "summary",
   "limit": 10,
-  "chunk_ids": []
+  "max_tokens": 4000
 }
 ```
 
-- `query`: natural language question (required unless `chunk_ids` is provided)
-- `packages`: optional filter scoped to specific package names
-- `detail`: `"summary"` (default) returns heading path + one-line summary (~20–40 tokens each); `"full"` returns complete chunk content
-- `limit`: maximum number of chunks returned from the FTS5 query (default 10)
-- `chunk_ids`: optional list of specific chunk IDs to expand to full content, bypassing search
-- `max_tokens`: optional token budget; chunks are accumulated in BM25 rank order and the list is cut before the estimated cost would exceed the budget — whole chunks only, never truncated mid-text (see `docs/ranking.md`)
+- `query`: search terms (required). FTS5 is lexical — use keywords, not natural language sentences.
+- `packages`: optional filter scoped to specific package names. Returns `{"status": "not_indexed"}` if a requested package has no indexed pack.
+- `limit`: maximum chunks returned from FTS5 (default 10)
+- `max_tokens`: optional token budget; chunks accumulated in BM25 rank order, cut before estimated cost exceeds budget — whole chunks only (see `docs/ranking.md`)
 
-**Output** (each result includes full provenance):
+**Output**:
 ```json
 {
   "results": [
@@ -107,26 +84,57 @@ Full-text search across indexed documentation. Fast, read-only, only hits alread
       "doc_version_status": "stable",
       "heading_path": "Authentication / Configure OAuth2",
       "summary": "Configure OAuth2 client credentials flow",
+      "content": null,
       "source_url": "https://my-lib.example.com/auth",
-      "source_commit": "abc123def456",
-      "content_hash": "sha256:d4e5f6...",
-      "indexed_at": "2026-05-14T10:30:00Z",
       "score": 0.847
     }
   ]
 }
 ```
 
-If a queried package is not indexed, the tool returns an explicit `"not_indexed"` status rather than silently returning poor results.
+When a result's `lifecycle_state` is `"deprecated"`, the server sets `"lifecycle_warning"`. Chunks from `"revoked"` packs are excluded entirely.
 
-When a result's `lifecycle_state` is `"deprecated"`, the server adds `"lifecycle_warning": "This pack is deprecated; consider updating to a newer version"`. Chunks from `"revoked"` packs are excluded at query time regardless of when they were imported.
+### `fetch`
+
+Retrieve full chunk content by ID. Always call `search` first to obtain `chunk_id` values.
+
+**Input**:
+```json
+{
+  "chunk_ids": [412, 83],
+  "max_tokens": 8000
+}
+```
+
+- `chunk_ids`: list of chunk IDs to retrieve (required)
+- `max_tokens`: optional token budget (same greedy algorithm as `search`)
+
+**Output**:
+```json
+{
+  "results": [
+    {
+      "chunk_id": 412,
+      "package": "my-lib",
+      "version": "1.0.0",
+      "heading_path": "Authentication / Configure OAuth2",
+      "summary": "Configure OAuth2 client credentials flow",
+      "content": "## Configure OAuth2\n\nTo use OAuth2 client credentials...",
+      "source_url": "https://my-lib.example.com/auth",
+      "source_commit": "abc123def456",
+      "content_hash": "sha256:d4e5f6...",
+      "indexed_at": "2026-05-14T10:30:00Z"
+    }
+  ]
+}
+```
 
 **Typical agent workflow**:
-1. Call `query-docs` with `detail: "summary"` to scan what's available (~20–40 tokens per result).
-2. Pick the relevant chunk IDs from the summary list.
-3. Call `query-docs` again with `chunk_ids: [12, 47, 83]` and `detail: "full"` to retrieve only the needed content.
+1. Call `search` to scan available chunks cheaply (~20–40 tokens per result).
+2. Read `heading_path` and `summary` to identify the relevant `chunk_id` values.
+3. Call `fetch` with those IDs to retrieve full content.
 
-This two-step pattern keeps token usage minimal while preserving access to full content.
+This two-step pattern typically costs 28–84% fewer tokens than fetching a full web page covering the same topic.
 
 ## .ctx Pack Format
 
@@ -321,7 +329,7 @@ Documentation text in chunks is treated as untrusted source content. It is store
 | `deprecated` | Valid but a newer version exists | Allowed with warning |
 | `revoked` | Known-bad: tampered, incorrect, or security issue | Always rejected |
 
-`revoked` is enforced at query time as well as at import time. A pack imported before revocation will have its chunks excluded from all `query-docs` results once `lifecycle_state` is updated to `revoked` in the packages table.
+`revoked` is enforced at query time as well as at import time. A pack imported before revocation will have its chunks excluded from all `search` results once `lifecycle_state` is updated to `revoked` in the packages table.
 
 ### Policy file (policy.toml)
 
@@ -330,7 +338,7 @@ Documentation text in chunks is treated as untrusted source content. It is store
 
 [policy]
 require_signatures = false          # true = reject unsigned packs at verify time
-require_attribution = true          # include provenance in query-docs results
+require_attribution = true          # include provenance in results
 
 allowed_lifecycle_states = [
   "approved",
@@ -391,7 +399,7 @@ The normalization function used at `tank build` time and `tank verify` time must
 
 ### Pack-level lockfile (.tank/index.lock)
 
-A TOML record of imported packs, written by `tank pull` and readable by `resolve-deps`:
+A TOML record of imported packs, written by `tank pull`:
 
 ```toml
 [meta]
@@ -459,16 +467,17 @@ CREATE TABLE chunks (
 );
 
 -- FTS5 full-text index, BM25 ranking (primary search mechanism for MVP)
+-- Weights: heading_path 2.5×, summary 1.5×, content 1.0×
 CREATE VIRTUAL TABLE chunks_fts USING fts5(
-    summary, content,
+    heading_path, summary, content,
     content='chunks',
     content_rowid='id'
 );
 
 -- Keep FTS5 in sync with chunks
 CREATE TRIGGER chunks_ai AFTER INSERT ON chunks BEGIN
-    INSERT INTO chunks_fts(rowid, summary, content)
-    VALUES (new.id, new.summary, new.content);
+    INSERT INTO chunks_fts(rowid, heading_path, summary, content)
+    VALUES (new.id, new.heading_path, new.summary, new.content);
 END;
 CREATE TRIGGER chunks_ad AFTER DELETE ON chunks BEGIN
     INSERT INTO chunks_fts(chunks_fts, rowid, summary, content)
@@ -510,29 +519,26 @@ Package and version filters are applied as additional `AND c.package = ?` / `AND
 
 ### Performance target
 
-Under 10ms for queries against up to 100,000 indexed chunks on commodity hardware. FTS5's inverted index makes this straightforwardly achievable without tuning; BM25 is computed during traversal, not post-hoc.
+Target: sub-10ms queries against up to 100,000 indexed chunks on commodity hardware. FTS5's inverted index makes this achievable; BM25 is computed during traversal, not post-hoc. This target is unbenchmarked — see roadmap v0.2.0.
 
 ### Progressive disclosure
 
-Results are returned at two detail levels:
-
-1. **Summary** (default): `heading_path`, `summary`, `score`, `source_url`, `lifecycle_state`. ~20–40 tokens per result. The agent uses this to decide which chunks it actually needs.
-2. **Full**: all of the above plus `content`. The agent requests specific `chunk_ids` from the first pass.
-
-This two-step pattern is the primary mechanism for staying within the AI agent's token budget.
+Results flow through the two-tool API: `search` returns lightweight summaries and chunk IDs; `fetch` returns full content for the IDs the agent selects.
 
 ## Token Efficiency
 
-### Layered retrieval
+### Two-tool retrieval pattern
 
-1. **Summary layer** (returned by default): heading path + one-line summary per matching chunk. Roughly 20–40 tokens per result. The agent scans this to decide what it actually needs.
-2. **Full content** (on request): the agent requests specific chunks by ID via `chunk_ids` to get complete text.
+1. **`search`** — returns `heading_path`, `summary`, `score`, `source_url` per chunk. ~20–40 tokens per result. The agent scans this to decide what it actually needs.
+2. **`fetch`** — takes the `chunk_id` values selected from step 1 and returns full `content`. The agent pays only for the chunks it chose.
+
+This two-step pattern is the primary mechanism for staying within the AI agent's token budget. See `docs/MCP.md` for the recommended usage pattern.
 
 ### Token budget enforcement (`max_tokens`)
 
-When `max_tokens` is set on `query-docs`, a greedy post-ranking pass enforces a hard budget. After BM25 ranking, chunks are accumulated from highest score to lowest. A chunk is included only if its estimated cost does not push the running total over `max_tokens`. The cut always falls between whole chunks — content is never truncated mid-text.
+Both `search` and `fetch` accept an optional `max_tokens` budget. A greedy post-ranking pass enforces it: chunks are accumulated in BM25 rank order (for `search`) or provided order (for `fetch`). A chunk is included only if its estimated cost does not push the running total over `max_tokens`. The cut always falls between whole chunks — content is never truncated mid-text.
 
-Token cost estimation: `len(content) // 4` for `detail="full"`, `len(summary) // 4` for `detail="summary"`. This matches the `token_count` estimator written at build time and is intentionally approximate — suitable for budget planning, not byte-exact accounting.
+Token cost estimation: `len(summary) // 4` for `search`, `len(content) // 4` for `fetch`. Intentionally approximate — suitable for budget planning, not byte-exact accounting.
 
 The ranking strategy and the rationale for the greedy approach are documented in `docs/ranking.md`.
 
@@ -657,8 +663,9 @@ Standard MCP transport over stdin/stdout. Works with all MCP clients (Claude Des
 {
   "mcpServers": {
     "tank": {
-      "command": "python",
-      "args": ["-m", "tank.server"]
+      "command": "tank",
+      "args": ["serve"],
+      "cwd": "${workspaceFolder}"
     }
   }
 }
@@ -666,24 +673,9 @@ Standard MCP transport over stdin/stdout. Works with all MCP clients (Claude Des
 
 ### HTTP (local network)
 
-Streamable HTTP transport bound to localhost only. Useful for editors that prefer HTTP-based MCP, for running as a persistent background daemon, or for development and debugging.
+Streamable HTTP transport bound to localhost only. The implementation exists (`run_http()` in `src/tank/server.py`) but is not yet wired to a CLI flag — stdio is the only transport available from the command line.
 
-```bash
-python -m tank.server --http --port 8000 --path /mcp
-# Listens on 127.0.0.1:8000/mcp only
-```
-
-```json
-{
-  "mcpServers": {
-    "tank": {
-      "url": "http://127.0.0.1:8000/mcp"
-    }
-  }
-}
-```
-
-**Security**: the HTTP transport binds exclusively to `127.0.0.1`. It does not and will not bind to `0.0.0.0` or any external interface. This is a hard constraint, not a configuration option. For remote access (e.g. a team server), front it with a reverse proxy that handles authentication and TLS.
+**Security constraint** (when implemented): the HTTP transport will bind exclusively to `127.0.0.1`. It will not bind to `0.0.0.0` or any external interface. This is a hard constraint, not a configuration option. For remote access (e.g. a team server), front it with a reverse proxy that handles authentication and TLS.
 
 ## Technology Choices
 
@@ -716,7 +708,7 @@ tank/
 │   │
 │   │── # ── BASE PACKAGE (pip install tank) ─────────────────────
 │   │
-│   ├── server.py               # MCP server (query-docs, resolve-deps tools)
+│   ├── server.py               # MCP server (search, fetch tools; tank serve)
 │   │
 │   ├── search/
 │   │   ├── __init__.py
@@ -777,7 +769,7 @@ tank/
 ```toml
 [project.scripts]
 tank = "tank.cli.main:cli"
-# MCP server is invoked directly: python -m tank.server
+# MCP server launched via: tank serve
 
 [project.optional-dependencies]
 build = [
@@ -799,7 +791,7 @@ all = ["tank[build]", "tank[embeddings]", "pytest", "pytest-asyncio"]
 - `tank pull` (verify-then-import, atomic transaction)
 - `tank query` with FTS5/BM25 and full source attribution
 - `tank inspect` for debugging pack contents and the local index
-- MCP server: `query-docs` and read-only `resolve-deps`
+- MCP server: `search` (summaries + chunk IDs) and `fetch` (full content by ID)
 - SQLite schema with governance and attribution columns
 - Policy file (`policy.toml`) with lifecycle state and signature enforcement
 - `.tank/index.lock` as a human-readable record of imported packs
@@ -818,7 +810,7 @@ all = ["tank[build]", "tank[embeddings]", "pytest", "pytest-asyncio"]
 - Incremental re-crawl using HTTP ETags (`If-None-Match` / `If-Modified-Since`)
 - Remote registry: `tank publish`, `tank pull <package@version>` from registry URL
 - Lifecycle promotion workflow: `tank promote`, `tank revoke`
-- Staleness detection against project lockfiles (`resolve-deps` expanded to scan `requirements.txt`, `package.json`, `Cargo.toml`, etc.)
+- Staleness detection against project lockfiles (`index-deps` MCP tool scans `requirements.txt`, `package.json`, `Cargo.toml`, etc.)
 - Auto-discovery of dependency files in the project directory
 - Private and internal packages via `--auth` flag in `tank build`
 - Registry governance: signing, content hash verification on upload, reproducibility checks

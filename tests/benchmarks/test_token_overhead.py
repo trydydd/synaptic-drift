@@ -2,7 +2,7 @@
 
 Measures the token cost of:
   1. Tool schema injection — what every MCP session pays upfront
-  2. query-docs responses at detail='summary' and detail='full'
+  2. search responses (summaries only) and fetch responses (full content)
   3. The two-step progressive disclosure pattern vs. naive full fetch
 
 Token counting uses len(str) // 4 throughout, consistent with the project
@@ -30,7 +30,8 @@ import pytest
 
 import tank
 from tank.server import create_server
-from tank.server import query_docs as _query_docs
+from tank.server import fetch_docs as _fetch_docs
+from tank.server import search_docs as _search_docs
 from tank.storage.db import Database
 from tank.storage.models import Chunk, Pack, Page
 
@@ -699,27 +700,37 @@ def test_token_overhead(bench_db: Database) -> None:
     )
 
     # Responses at different result counts via the public API.
+    # summary_nN: cost of search_docs at limit=N.
+    # full_nN: cost of fetch_docs for the top N chunk IDs (two-step, agentless).
     response_data: dict[str, dict[str, Any]] = {}
-    for detail in ("summary", "full"):
-        for n in (5, 10, 20):
-            result = _query_docs(bench_db, broad_query, detail=detail, limit=n)
-            results = result.get("results", [])
-            tokens = _response_tokens(result)
-            key = f"{detail}_n{n}"
-            response_data[key] = {
-                "tokens": tokens,
-                "actual_results": len(results),
-                "tokens_per_result": round(tokens / max(len(results), 1)),
-            }
+    for n in (5, 10, 20):
+        s_result = _search_docs(bench_db, broad_query, limit=n)
+        s_results = s_result.get("results", [])
+        s_tokens = _response_tokens(s_result)
+        response_data[f"summary_n{n}"] = {
+            "tokens": s_tokens,
+            "actual_results": len(s_results),
+            "tokens_per_result": round(s_tokens / max(len(s_results), 1)),
+        }
+
+        top_ids_n = [r["chunk_id"] for r in s_results]
+        f_result = _fetch_docs(bench_db, top_ids_n)
+        f_results = f_result.get("results", [])
+        f_tokens = _response_tokens(f_result)
+        response_data[f"full_n{n}"] = {
+            "tokens": f_tokens,
+            "actual_results": len(f_results),
+            "tokens_per_result": round(f_tokens / max(len(f_results), 1)),
+        }
 
     # Two-step progressive disclosure session via the public API.
     # Step 1 — broad summary scan
-    step1 = _query_docs(bench_db, broad_query, detail="summary", limit=20)
+    step1 = _search_docs(bench_db, broad_query, limit=20)
     step1_tokens = _response_tokens(step1)
     top_ids = [r["chunk_id"] for r in step1.get("results", [])[:3]]
 
     # Step 2 — targeted full fetch of top 3 chunks
-    step2 = _query_docs(bench_db, "", chunk_ids=top_ids)
+    step2 = _fetch_docs(bench_db, top_ids)
     step2_tokens = _response_tokens(step2)
 
     two_step_total = step1_tokens + step2_tokens

@@ -20,12 +20,13 @@ All queries use SQLite FTS5's built-in BM25 implementation. BM25 is a lexical ra
 - Cross-chunk relevance reasoning — it ranks each chunk independently.
 - Preference for shorter, denser answers over longer ones with more keyword repetitions.
 
-The FTS5 index covers two columns, both weighted equally (`bm25(chunks_fts, 1.0, 1.0, 1.0)`):
+The FTS5 index covers three columns with differentiated BM25 weights (`bm25(chunks_fts, 2.5, 1.5, 1.0)`):
 
-| Column | Description |
-|---|---|
-| `summary` | One-line heuristic summary generated at build time |
-| `content` | Full chunk text |
+| Column | Weight | Description |
+|---|---|---|
+| `heading_path` | 2.5× | Section hierarchy (e.g. `"Authentication / Configure OAuth2"`). NULL for fallback-chunked documents; FTS5 treats NULL as empty string so the weight only activates when a heading is populated. |
+| `summary` | 1.5× | One-line heuristic summary generated at build time |
+| `content` | 1.0× | Full chunk text |
 
 Chunks from `revoked` packs are excluded at query time by a `WHERE p.lifecycle_state != 'revoked'` filter applied before ranking.
 
@@ -38,14 +39,12 @@ When the caller specifies `max_tokens`, a post-ranking pass enforces a token bud
 3. Include the chunk if its cost does not push the running total above `max_tokens`.
 4. Stop at the first chunk that would exceed the budget.
 
-**Token cost estimation by detail level:**
+**Token cost estimation by tool:**
 
-| `detail` | Text used for estimation |
+| Tool | Text used for estimation |
 |---|---|
-| `"summary"` | `len(summary) // 4` |
-| `"full"` | `len(content) // 4` |
-
-For the `chunk_ids` path (targeted retrieval), full content is always fetched, so `len(content) // 4` is used regardless of the `detail` parameter.
+| `search` | `len(summary) // 4` — summaries only, content is never included |
+| `fetch` | `len(content) // 4` — full content is always returned |
 
 **Properties of the greedy approach:**
 

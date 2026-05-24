@@ -131,3 +131,124 @@ Each entry records: the decision, the alternatives considered, why we chose what
 - **Programmatic fixtures only**: build all test data in code. Rejected because: archive validation tests need real `.ctx` files with known byte-level properties (corrupted archives, path traversal entries, bad signatures). These are hard to construct programmatically and easier to inspect as static files.
 
 **Revisit when**: the test suite grows large enough that fixture management becomes a problem.
+
+---
+
+## D11: FTS5 Configuration — Minimal for MVP, Tuning Partially Implemented (v0.2.0)
+
+**Original MVP decision**: ship with raw query passthrough, uniform BM25 column weights, default tokenizer, and `heading_path` stored in `chunks` but not indexed in FTS5.
+
+**v0.2.0 status**:
+
+- ✅ **`heading_path` added to `chunks_fts`** — `db.py:48-52` creates the FTS5 table with `heading_path` as the first column; both triggers updated to include it. `section_tags[0]` from chunkana provides the `##`-level heading; `###` depth requires D14 (custom chunker).
+- ✅ **BM25 column weights tuned** — `fts.py:67` uses `bm25(chunks_fts, 2.5, 1.5, 1.0)` (heading 2.5×, summary 1.5×, content 1.0×). Weight only activates when `heading_path` is non-null; FTS5 treats NULL as empty string for fallback-chunked documents.
+- ⬜ **Query preprocessing** — stopword filtering, term normalisation. Still deferred.
+- ⬜ **Synonym expansion** — `auth` → `authentication`, `JWT` → `JSON Web Token`. Still deferred.
+- ⬜ **Custom tokenizer** — porter stemmer or unicode61 with diacritics removal. Still deferred; low-priority for technical docs where exact terms dominate.
+
+**Schema commitment note**: indexing `heading_path` in FTS5 means future chunker changes (D14) that alter how `heading_path` is computed will require rebuilding the FTS5 index (or a migration). This is acceptable — the index can be rebuilt from the `chunks` table on schema version bump.
+
+**Remaining work**: query preprocessing and synonym expansion are the next two improvements, ordered by impact. Measure search quality against the fastmcp benchmark before considering embeddings.
+
+---
+
+## D12: MCP Tool Surface — Single Tool vs Split ✓ Implemented (v0.2.0)
+
+**Decision**: ship MVP with a single `query-docs` tool accepting a `detail` parameter (`"summary"` or `"full"`); split into separate `search`/`fetch` tools in v0.2.0.
+
+**The problem with the single-tool surface**: `detail="full"` sounds better than `detail="summary"` to an LLM agent. The parameter name nudged agents toward the expensive single-step path — fetching full content speculatively without a prior relevance pass — which is the footgun the two-step pattern is designed to prevent.
+
+**Resolution (v0.2.0)**:
+
+```
+search   query, packages, limit, max_tokens  → always returns summaries + chunk_ids only
+fetch    chunk_ids, max_tokens               → always returns full content by ID
+```
+
+This enforces the two-step pattern architecturally: `search` cannot return full content; `fetch` cannot do speculative full-content search. Eliminates the footgun without any stateful enforcement. Implemented in `src/tank/server.py`; documented in `docs/MCP.md`.
+
+**`max_tokens` default rationale**: `max_tokens` defaults to `None` (no budget enforcement) by design. A default of e.g. `4000` would silently trade away recall — with BM25 noise, the most relevant chunk can land at position 8 or 12, and a tight budget would exclude it with no signal to the agent. `limit` is the right knob for controlling result count; `max_tokens` is an explicit opt-in for agents with known token constraints.
+
+---
+
+## D13: Summary Heuristic — First Sentence vs Heading-Aware Generation
+
+**Decision**: generate summaries by extracting the first non-trivial sentence from chunk content.
+
+**The problem**: this fails when a chunk opens with a code block or a short bridging sentence rather than a topic-describing sentence. Observed in the fastmcp stdio benchmark:
+
+| Chunk | Summary generated | What the chunk actually covers |
+|---|---|---|
+| 2 | "You can now run this MCP server by executing `python my_server." | STDIO is the default transport |
+| 3 | "STDIO is ideal for: * Local development..." | STDIO transport section |
+| 5 | "We recommend using HTTP transport instead of SSE for all new projects." | SSE deprecation + CLI reload |
+
+Chunk 2's summary gives an agent scanning for "stdio configuration" no signal that this chunk is the relevant one. The missed chunk contains the correct answer.
+
+**Proposed fix (deferred)**: prefix the summary with the leaf heading node.
+
+```
+summary = "<leaf heading>: <first prose sentence>"
+```
+
+For chunk 2 under `### STDIO Transport (Default)`:
+```
+STDIO Transport (Default): STDIO (Standard Input/Output) is the default transport for FastMCP servers.
+```
+
+`heading_path` is already computed before `_generate_summary()` is called in `src/tank/builder/chunking.py`; it just isn't passed through. The change is additive — `summary` remains a plain string, no schema impact.
+
+**Edge cases**: preamble chunks (no heading) fall back to first-sentence behaviour; top-level chunks where heading equals the page title skip the prefix to avoid redundancy; headings over ~60 chars use only the leaf node; chunks opening with a list or code block skip to the next prose sentence.
+
+**Revisit when**: v0.2.0 chunker work begins. Depends on D14 — if chunkana is replaced with a heading-boundary chunker, `heading_path` will be accurate by construction and the prefix heuristic becomes more reliable.
+
+---
+
+## D14: Chunker — chunkana Replacement: Custom Chunker on markdown-it-py
+
+**MVP decision**: use chunkana for MVP structural chunking, accepting its limitations.
+
+**chunkana verdict**: does not support heading-based splitting at arbitrary depth. The `structural` strategy splits only at `##` level, keeping all `###` subsections together. `header_path` is always `[]`; Tank works around this by reading `section_tags[0]`, but this is the ceiling of what chunkana can provide. Observed impact: in the fastmcp benchmark, chunk 5 spans six `###` sections (932 tokens) and is matched by FTS5 on incidental keyword overlap rather than relevance.
+
+**Library survey (S1 — done)**: four production-stable (≥1.0.0) candidates evaluated:
+
+- **chunknorris 1.2.2** — meets all requirements (all heading levels, heading_path as ordered list by construction, code fences atomic, paragraph overflow splitting) but ships parsers for PDF, Word, Excel, and Jupyter Notebooks Tank will never use. PyMuPDF, pandas, matplotlib in the dependency tree. ~30MB install footprint for a markdown chunker.
+- **langchain-text-splitters 1.1.2 `MarkdownHeaderTextSplitter`** — code fences atomic, all heading levels configurable, but heading_path returns as a flat dict (requires reconstruction glue) and no paragraph overflow splitting. Requires `langchain-core`.
+- **semantic-text-splitter 0.30.1** — pre-1.0, no heading hierarchy output. Eliminated.
+- **chonkie 1.6.7** — delimiter-based, no structural heading tracking. Eliminated.
+
+**Decision**: build a custom chunker using `markdown-it-py` 3.0.0+ as the parsing backend.
+
+**Rationale**: neither off-the-shelf library is a clean drop-in. `markdown-it-py` is MIT-licensed, zero additional dependencies, actively maintained, and is already a widely-used CommonMark parser. The chunknorris markdown chunker is ~250 lines of reference implementation; Tank's equivalent with `markdown-it-py` tokens gives full control over heading_path construction, code-fence atomicity, and paragraph overflow with no dependency weight penalty. This aligns with Tank's local-first, minimal-dependency philosophy.
+
+**What the custom chunker must do**:
+- Split at heading boundaries at all levels (`#`, `##`, `###`, `####`, and deeper) as the primary split point
+- Treat fenced code blocks as atomic — never split mid-fence
+- Split oversized sections at paragraph boundaries when a section exceeds `max_chunk_tokens`
+- Build `heading_path` accurately by construction as a `/`-joined string of ancestor heading texts
+- Replace `src/tank/builder/chunking.py` — the `process_file()` function and `generate_summary()` call site
+
+**`semchunk` ruled out earlier**: general-purpose recursive delimiter splitter with no markdown heading awareness. Token-counter-driven rather than structure-driven.
+
+**See spike S7** for implementation scope and test approach.
+
+---
+
+## D15: Pack #2 — mcp@2025-11-25
+
+**Decision**: ship the Model Context Protocol spec (`mcp@2025-11-25`) as the v0.1.1 release artifact alongside fastmcp@3.3.0.
+
+**Rationale**: Tank depends on `mcp` directly, and the MCP tool split (D12) is the largest single v0.2.0 work item — agents using the `search`/`fetch` tools will query this pack constantly. `modelcontextprotocol.io` publishes `llms-full.txt`, making it buildable today without a crawler or HTML extraction.
+
+**Alternatives considered**:
+- **httpx@0.28.1**: still pre-1.0 (0.x), no API stability commitment. Rejected.
+- **requests**: stable (2.x), good candidate for HTTP client docs, but uses RST source and no llms-full.txt — requires S6 HTML extraction work first.
+- **click / rich**: Tank's other deps, but their docs are sparse and less queried by agents.
+
+**Source**: `modelcontextprotocol.io/llms-full.txt` (spec version 2025-11-25). Build command (download locally until v0.2.0 URL fetch lands):
+```
+mkdir /tmp/mcp-docs && curl -o /tmp/mcp-docs/mcp.md https://modelcontextprotocol.io/llms-full.txt
+tank build mcp@2025-11-25 --source /tmp/mcp-docs --output ./packs
+```
+
+**Revisit when**: never — this is a release artifact decision. Future packs follow the same evaluation process.
