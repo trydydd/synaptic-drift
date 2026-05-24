@@ -31,71 +31,35 @@ Everything in this document that is not required to make this loop work is defer
 2. `tank verify` rejects packs whose `lifecycle_state` is not in the policy's `allowed_lifecycle_states`, and rejects archives containing path traversal, absolute paths, symlinks, device files, or hash mismatches.
 3. `tank pull` only completes after all verify checks pass; it imports chunks into `.tank/index.db` in a single atomic transaction.
 4. `tank query` returns BM25-ranked FTS5 results with full source attribution in under 10ms for an index of up to 100,000 chunks.
-5. The MCP server exposes `query-docs` and a read-only `resolve-deps` over stdio and includes attribution fields on every result.
+5. The MCP server exposes `search` (returns summaries and chunk IDs) and `fetch` (returns full content by chunk ID) over stdio, with attribution fields on every result.
 6. No outbound network is required.
 7. No embedding model is required.
 8. The test suite covers archive safety, manifest validation, import, and query attribution.
 
 ## MCP Tool Surface
 
-The server exposes two tools to the AI agent. (`index-deps` is deferred to Phase 2.)
+The server exposes two tools to the AI agent. (`index-deps` is deferred to Phase 2.) Launch the server with `tank serve` (stdio transport).
 
-### `resolve-deps`
+### `search`
 
-Read-only index health check. Scans `.tank/index.db` and returns the list of imported packs with their current state.
-
-**Input**: optional `project_path` (defaults to cwd, used to locate `.tank/index.db`)
-
-**Output**:
-```json
-{
-  "status": "ok",
-  "packs": [
-    {
-      "package": "my-lib",
-      "version": "1.0.0",
-      "lifecycle_state": "approved",
-      "doc_version_status": "stable",
-      "chunks": 412,
-      "indexed_at": "2026-05-14T10:30:00Z"
-    },
-    {
-      "package": "other-lib",
-      "version": "2.3.0",
-      "lifecycle_state": "deprecated",
-      "doc_version_status": "archived",
-      "chunks": 180,
-      "indexed_at": "2026-03-01T08:00:00Z"
-    }
-  ]
-}
-```
-
-This tool is effectively free to call (single SQLite read) and should be invoked at the start of every session as a health check. It surfaces deprecated or archived packs so the agent can warn the user before acting on stale documentation.
-
-### `query-docs`
-
-Full-text search across indexed documentation. Fast, read-only, only hits already-imported packs.
+FTS5 full-text search across indexed documentation. Returns summaries and chunk IDs only — **content is never included**. Use the returned `chunk_id` values with `fetch` to retrieve full content.
 
 **Input**:
 ```json
 {
-  "query": "how to configure OAuth2 in my-lib",
+  "query": "OAuth2 client credentials",
   "packages": ["my-lib"],
-  "detail": "summary",
   "limit": 10,
-  "chunk_ids": []
+  "max_tokens": 4000
 }
 ```
 
-- `query`: natural language question (required unless `chunk_ids` is provided)
-- `packages`: optional filter scoped to specific package names
-- `detail`: `"summary"` (default) returns heading path + one-line summary (~20–40 tokens each); `"full"` returns complete chunk content
-- `limit`: maximum number of chunks returned from the FTS5 query (default 10)
-- `chunk_ids`: optional list of specific chunk IDs to expand to full content, bypassing search
-- `max_tokens`: optional token budget; chunks are accumulated in BM25 rank order and the list is cut before the estimated cost would exceed the budget — whole chunks only, never truncated mid-text (see `docs/ranking.md`)
+- `query`: search terms (required). FTS5 is lexical — use keywords, not natural language sentences.
+- `packages`: optional filter scoped to specific package names. Returns `{"status": "not_indexed"}` if a requested package has no indexed pack.
+- `limit`: maximum chunks returned from FTS5 (default 10)
+- `max_tokens`: optional token budget; chunks accumulated in BM25 rank order, cut before estimated cost exceeds budget — whole chunks only (see `docs/ranking.md`)
 
-**Output** (each result includes full provenance):
+**Output**:
 ```json
 {
   "results": [
@@ -107,26 +71,57 @@ Full-text search across indexed documentation. Fast, read-only, only hits alread
       "doc_version_status": "stable",
       "heading_path": "Authentication / Configure OAuth2",
       "summary": "Configure OAuth2 client credentials flow",
+      "content": null,
       "source_url": "https://my-lib.example.com/auth",
-      "source_commit": "abc123def456",
-      "content_hash": "sha256:d4e5f6...",
-      "indexed_at": "2026-05-14T10:30:00Z",
       "score": 0.847
     }
   ]
 }
 ```
 
-If a queried package is not indexed, the tool returns an explicit `"not_indexed"` status rather than silently returning poor results.
+When a result's `lifecycle_state` is `"deprecated"`, the server sets `"lifecycle_warning"`. Chunks from `"revoked"` packs are excluded entirely.
 
-When a result's `lifecycle_state` is `"deprecated"`, the server adds `"lifecycle_warning": "This pack is deprecated; consider updating to a newer version"`. Chunks from `"revoked"` packs are excluded at query time regardless of when they were imported.
+### `fetch`
+
+Retrieve full chunk content by ID. Always call `search` first to obtain `chunk_id` values.
+
+**Input**:
+```json
+{
+  "chunk_ids": [412, 83],
+  "max_tokens": 8000
+}
+```
+
+- `chunk_ids`: list of chunk IDs to retrieve (required)
+- `max_tokens`: optional token budget (same greedy algorithm as `search`)
+
+**Output**:
+```json
+{
+  "results": [
+    {
+      "chunk_id": 412,
+      "package": "my-lib",
+      "version": "1.0.0",
+      "heading_path": "Authentication / Configure OAuth2",
+      "summary": "Configure OAuth2 client credentials flow",
+      "content": "## Configure OAuth2\n\nTo use OAuth2 client credentials...",
+      "source_url": "https://my-lib.example.com/auth",
+      "source_commit": "abc123def456",
+      "content_hash": "sha256:d4e5f6...",
+      "indexed_at": "2026-05-14T10:30:00Z"
+    }
+  ]
+}
+```
 
 **Typical agent workflow**:
-1. Call `query-docs` with `detail: "summary"` to scan what's available (~20–40 tokens per result).
-2. Pick the relevant chunk IDs from the summary list.
-3. Call `query-docs` again with `chunk_ids: [12, 47, 83]` and `detail: "full"` to retrieve only the needed content.
+1. Call `search` to scan available chunks cheaply (~20–40 tokens per result).
+2. Read `heading_path` and `summary` to identify the relevant `chunk_id` values.
+3. Call `fetch` with those IDs to retrieve full content.
 
-This two-step pattern keeps token usage minimal while preserving access to full content.
+This two-step pattern typically costs 28–84% fewer tokens than fetching a full web page covering the same topic.
 
 ## .ctx Pack Format
 

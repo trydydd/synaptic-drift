@@ -1,6 +1,6 @@
 # Tank — Project Status
 
-Last updated: 2026-05-20
+Last updated: 2026-05-24
 
 ## Current State: Implementation Complete
 
@@ -33,7 +33,7 @@ Architecture and design documents remain the canonical reference.
 
 ### Test Results
 
-- **183/184 tests passing** (pytest; 1 skipped — FastMCP integration test requires running server)
+- **205/206 tests passing** (pytest; 1 skipped — FastMCP integration test requires running server)
 - **mypy**: 1 minor error in `src/tank/builder/chunking.py:8` (unused `type: ignore` on `chunkana` import)
 - **CI/CD**: Benchmark workflow configured (`.github/workflows/benchmark.yml`); release workflow configured; no deploy/publish step yet
 
@@ -53,8 +53,8 @@ All Phase 1 / MVP components:
 - [x] SQLite storage — schema creation, WAL mode, migrations (`tank.storage.db`)
 - [x] Data models — Pack, Chunk, Page dataclasses (`tank.storage.models`)
 - [x] FTS5 search with BM25 ranking and attribution (`tank.search.fts`)
-- [x] MCP server — `query-docs` (with `limit` parameter) and `resolve-deps` tools (`tank.server`)
-- [x] CLI commands — `tank build`, `tank verify`, `tank pull`, `tank query`, `tank inspect`
+- [x] MCP server — `search` (summaries + chunk IDs) and `fetch` (full content by ID) tools (`tank.server`)
+- [x] CLI commands — `tank build`, `tank verify`, `tank pull`, `tank query`, `tank inspect`, `tank serve`
 - [x] Lockfile management (`.tank/index.lock`)
 
 ### What Is Deferred
