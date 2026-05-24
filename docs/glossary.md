@@ -8,21 +8,25 @@ Definitions of Tank-specific terminology. Sorted alphabetically.
 
 **`.tank/` directory** — per-project directory storing Tank's local state: `index.db` (the SQLite database), `index.lock` (the lockfile), and optionally `policy.toml`.
 
-**BM25** — the ranking algorithm used by SQLite FTS5 for full-text search. Produces a relevance score based on term frequency and inverse document frequency. Used by `tank query` and the `search` MCP tool.
+**BM25** — the ranking algorithm used by SQLite FTS5 for full-text search. Produces a relevance score based on term frequency and inverse document frequency. Used by `tank query` and the `search` MCP tool. Column weights: `heading_path` 2.5×, `summary` 1.5×, `content` 1.0×.
 
 **chunk** — a unit of documentation content produced by structural chunking. Each chunk has an ID, belongs to a page, carries a `heading_path`, `summary`, `content`, `token_count`, `source_url`, and `content_hash`. Stored as one line in `chunks.jsonl` and one row in the `chunks` SQLite table.
 
 **chunk ID** — sequential integer assigned during build, starting at 1. Order is determined by lexicographic file sort (then document order within each file). The ID sequence determines `normalized_content_hash` computation.
 
-**chunkana** — third-party Python library (MIT license) used for structural Markdown chunking. Splits at heading boundaries while preserving code blocks and tables as atomic units. Provides `heading_path` metadata.
+**chunkana** — third-party Python library (MIT license) currently used for structural Markdown chunking. Splits at `##` heading boundaries while preserving code blocks and tables as atomic units. **Planned for replacement** by a custom `markdown-it-py`-backed chunker (see `docs/spikes.yaml` S7) that splits at all heading levels and builds accurate ancestral `heading_path` values.
+
+**chunks_fts** — the FTS5 virtual table in `index.db`. Columns: `heading_path` (2.5× BM25 weight), `summary` (1.5×), `content` (1.0×). Populated at import time. `rowid` joins to `chunks.id`. All `search` queries run against this table.
 
 **content_hash** — SHA-256 of a single chunk's content after normalization. Used to detect which specific chunks changed between pack versions. Distinct from `normalized_content_hash` (which covers all chunks together).
 
 **doc_version_status** — metadata field indicating the documentation's version state. Values: `stable`, `prerelease`, `archived`, `unknown`. Stored in `manifest.json` and the `packages` table. Used by policy to reject archived documentation.
 
-**FTS5** — SQLite's full-text search extension, version 5. Provides an inverted index with BM25 ranking. Tank's primary (and only, for MVP) search mechanism.
+**fetch** (MCP tool) — retrieves full chunk content by ID. Always called after `search`. Parameters: `chunk_ids` (list of integers from `search` results), `max_tokens` (optional budget). Chunks from revoked packs are silently excluded.
 
-**heading_path** — hierarchical path describing where a chunk sits in the document structure. Constructed as the file path prefix (minus extension, minus the `--source` directory name) joined with the heading hierarchy from the document. Example: file `docs/auth/oauth.md` with heading `## Client Credentials` produces `auth/oauth / OAuth2 / Client Credentials`.
+**FTS5** — SQLite's full-text search extension, version 5. Provides an inverted index with BM25 ranking. Tank's primary (and only, for MVP) search mechanism. The virtual table is `chunks_fts`.
+
+**heading_path** — hierarchical path describing where a chunk sits in the document structure. Format: `<relative_file_prefix> / <section_heading>`. The file prefix is the path relative to `--source`, minus extension (e.g. `auth/oauth`); the section heading is the first `##`-level heading chunkana found in the chunk. Example: `auth/oauth / Client Credentials`. The current implementation captures one heading level only. The planned custom chunker (S7) will extend this to a full ancestral hierarchy: `auth/oauth / OAuth2 / Client Credentials`.
 
 **index.db** — the SQLite database at `.tank/index.db`. Contains `packages`, `pages`, `chunks`, and `chunks_fts` tables. Source of truth for all imported documentation. One database per project.
 
@@ -30,13 +34,23 @@ Definitions of Tank-specific terminology. Sorted alphabetically.
 
 **lifecycle_state** — governance field tracking a pack's approval status. Values: `draft` (built, not reviewed), `approved` (reviewed and cleared), `deprecated` (valid but superseded), `revoked` (known-bad, excluded from all queries). Stored in `manifest.json` and the `packages` table. Enforced by policy at both import and query time.
 
+**lifecycle_warning** — field included in `search` and `fetch` results when the queried pack has `lifecycle_state = "deprecated"`. Value: `"This package is deprecated"`. Absent (not null) when the pack is approved. Agents should surface this to the user.
+
 **manifest.json** — the metadata file inside a `.ctx` pack. Contains governance fields (`lifecycle_state`, `owner`, `policy_profile`), integrity fields (`pack_digest`, `normalized_content_hash`), provenance fields (`source_url`, `source_commit`), and pack metadata (`package`, `version`, `chunks`, `pages`).
+
+**MCP** — Model Context Protocol. An open protocol for connecting AI assistants to external tools and data sources. Tank exposes its documentation index as an MCP server with two tools (`search` and `fetch`) over stdio transport. See `docs/MCP.md`.
 
 **normalization** — the text transformation applied to chunk content before hashing. Rules: collapse blank line runs, strip HTML boilerplate (MVP: basic tag removal), normalize Unicode whitespace to ASCII, preserve code blocks and tables verbatim. The same code path (`tank.builder.normalizer`) is used at both build and verify time. This is the hash stability guarantee.
 
 **normalized_content_hash** — SHA-256 of all chunk content strings, each normalized, concatenated in ascending chunk ID order with a `\n` separator. Changes only when text content changes (independent of metadata like heading paths or summaries). Stored in `manifest.json`. Verified at import time.
 
+**owner** — optional governance field in `manifest.json` identifying the team or person responsible for the pack (e.g. `"platform-team"`). Not enforced by the policy engine in MVP; informational only.
+
+**pack** — shorthand for a `.ctx` pack. See **`.ctx` pack`**.
+
 **pack_digest** — SHA-256 of the full `.ctx` archive bytes, computed with the `pack_digest` field value in `manifest.json` set to `""`. Detects any tampering of the archive (content or metadata). Verified at import time.
+
+**package** — the name component of a pack's identity, combined with `version` to form the unique identifier `package@version`. Set via `tank build <package>@<version>`. Stored in `manifest.json` and used as the primary lookup key in the `packages` table.
 
 **page** — one source file processed during build. Each file becomes one page entry in `pages.json` with an ID, URL (relative path for local builds), title, and `content_hash`. Chunks reference their parent page via `page_id`.
 
@@ -46,7 +60,11 @@ Definitions of Tank-specific terminology. Sorted alphabetically.
 
 **policy_profile** — optional name in `manifest.json` that associates a pack with a specific policy profile in the consumer's `policy.toml`. For MVP, policies are global (not per-profile). Profile-based policy is a Phase 2 consideration.
 
-**progressive disclosure** — the two-step query pattern. First call returns summaries (~20-40 tokens each) so the agent can decide what it needs. Second call retrieves full content for specific chunk IDs. Primary mechanism for token efficiency.
+**progressive disclosure** — the two-step query pattern. First call `search` to get summaries and chunk IDs (~20–40 tokens each). Then call `fetch` with the selected IDs to retrieve full content. Avoids paying for content the agent won't use.
+
+**search** (MCP tool) — FTS5 full-text search across indexed documentation. Returns `heading_path`, `summary`, `chunk_id`, and provenance fields — **never full content**. Parameters: `query`, `packages` (optional scope), `limit` (default 10), `max_tokens` (optional budget). Use the returned `chunk_id` values to call `fetch`.
+
+**source_commit** — optional provenance field on chunks and packs recording the git commit hash of the source repository at build time. `None` if not provided at `tank build`. Stored in `manifest.json` and the `chunks` table.
 
 **source_url** — provenance field on chunks and pages indicating where the content came from. For local builds: relative path from `--source` root (e.g. `docs/auth/oauth.md`). For Phase 2 web builds: full `https://` URL. Always populated, never null.
 
