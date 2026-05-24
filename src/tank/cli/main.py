@@ -11,6 +11,7 @@ from tank.cli.build import build
 from tank.cli.inspect import inspect_cmd
 from tank.cli.pull import pull
 from tank.cli.query import query
+from tank.cli.serve import serve
 from tank.cli.verify import verify_cmd
 
 console = Console()
@@ -46,3 +47,4 @@ cli.add_command(verify_cmd)
 cli.add_command(pull)
 cli.add_command(query)
 cli.add_command(inspect_cmd)
+cli.add_command(serve)

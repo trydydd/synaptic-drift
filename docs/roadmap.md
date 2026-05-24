@@ -7,7 +7,7 @@
 **Status**: Tagged. PyPI publish pending.
 
 - [x] mypy error in `src/tank/builder/build.py:133`
-- [ ] MCP server configuration examples for Claude Code, Cursor, VS Code
+- [x] MCP server configuration examples for Claude Code, Cursor, VS Code
 - [ ] Tag and release v0.1.0 on PyPI (`pip install tank`, `pip install tank[build]`)
 
 ---

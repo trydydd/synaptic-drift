@@ -80,8 +80,9 @@ Add Tank as an MCP server in your editor's configuration:
 {
   "mcpServers": {
     "tank": {
-      "command": "python",
-      "args": ["-m", "tank.server"]
+      "command": "tank",
+      "args": ["serve"],
+      "cwd": "${workspaceFolder}"
     }
   }
 }
