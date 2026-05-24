@@ -46,7 +46,7 @@ def _make_result(
     naive_tokens: int = 6405,
 ) -> dict[str, Any]:
     if tool_tokens is None:
-        tool_tokens = {"resolve-deps": 75, "query-docs": 185}
+        tool_tokens = {"summary": 185, "detail": 75}
     return {
         "git_commit": git_commit,
         "tank_version": tank_version,
@@ -297,10 +297,8 @@ def test_compare_multiple_thresholds_exceeded() -> None:
 
 
 def test_compare_tool_added_in_candidate() -> None:
-    b = _make_result(tool_tokens={"query-docs": 185, "resolve-deps": 75})
-    c = _make_result(
-        tool_tokens={"query-docs": 185, "resolve-deps": 75, "new-tool": 50}
-    )
+    b = _make_result(tool_tokens={"summary": 185, "detail": 75})
+    c = _make_result(tool_tokens={"summary": 185, "detail": 75, "new-tool": 50})
     result = compare(b, c)
     tools = {t["name"]: t for t in result["schema"]["tools"]}
     assert "new-tool" in tools
@@ -311,14 +309,14 @@ def test_compare_tool_added_in_candidate() -> None:
 
 
 def test_compare_tool_removed_in_candidate() -> None:
-    b = _make_result(tool_tokens={"query-docs": 185, "resolve-deps": 75})
-    c = _make_result(tool_tokens={"query-docs": 185})
+    b = _make_result(tool_tokens={"summary": 185, "detail": 75})
+    c = _make_result(tool_tokens={"summary": 185})
     result = compare(b, c)
     tools = {t["name"]: t for t in result["schema"]["tools"]}
-    assert "resolve-deps" in tools
-    assert tools["resolve-deps"]["before"] == 75
-    assert tools["resolve-deps"]["after"] == 0
-    assert tools["resolve-deps"]["delta_pct"] == pytest.approx(-100.0)
+    assert "detail" in tools
+    assert tools["detail"]["before"] == 75
+    assert tools["detail"]["after"] == 0
+    assert tools["detail"]["delta_pct"] == pytest.approx(-100.0)
 
 
 # ---------------------------------------------------------------------------

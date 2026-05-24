@@ -1,4 +1,4 @@
-"""MCP server with query-docs and resolve-deps tools.
+"""MCP server with summary and detail tools.
 
 Invokable as: python -m tank.server
 """
@@ -49,29 +49,26 @@ def resolve_deps(db: Database) -> dict[str, Any]:
     return {"status": "ok", "packs": packs}
 
 
-def query_docs(
+def search_summaries(
     db: Database,
     query: str,
     packages: list[str] | None = None,
-    detail: str = "summary",
-    chunk_ids: list[int] | None = None,
     limit: int = 10,
     max_tokens: int | None = None,
 ) -> dict[str, Any]:
-    """FTS5 search with attribution.
+    """FTS5 search returning chunk summaries only.
 
-    Supports summary/full detail levels and chunk_ids for targeted retrieval.
-    When max_tokens is set, results are accumulated in rank order and stopped
-    before the estimated token cost would exceed the budget. Chunks are never
-    partially truncated — the cut always falls between whole chunks.
+    Returns heading_path, summary, chunk_id, and provenance fields for each
+    matched chunk. Content is never included — call fetch_detail with the
+    chunk_ids you select to retrieve full text.
+
+    When packages contains a package that is not indexed, returns
+    {"status": "not_indexed"} rather than silently returning empty results.
+
+    When max_tokens is set, results are accumulated in BM25 rank order and
+    stopped before the estimated token cost (len(summary) // 4) would exceed
+    the budget. Whole chunks only — no partial truncation.
     """
-    if chunk_ids:
-        results = get_chunks_by_id(db, chunk_ids, detail="full")
-        hits = [_to_dict(r) for r in results]
-        if max_tokens is not None:
-            hits = _apply_token_budget(hits, max_tokens, "full")
-        return {"results": hits}
-
     if not query.strip():
         return {"results": []}
 
@@ -86,17 +83,39 @@ def query_docs(
 
     hits = [
         _to_dict(r)
-        for r in search(db, query, packages=packages, detail=detail, limit=limit)
+        for r in search(db, query, packages=packages, detail="summary", limit=limit)
     ]
     if max_tokens is not None:
-        hits = _apply_token_budget(hits, max_tokens, detail)
+        hits = _apply_token_budget(hits, max_tokens, "summary")
+    return {"results": hits}
+
+
+def fetch_detail(
+    db: Database,
+    chunk_ids: list[int],
+    max_tokens: int | None = None,
+) -> dict[str, Any]:
+    """Fetch full content for specific chunks by ID.
+
+    Returns complete content, heading_path, summary, and provenance fields for
+    each requested chunk. Revoked chunks are excluded even if their IDs are
+    provided directly.
+
+    When max_tokens is set, chunks are returned in ID order and stopped before
+    the estimated token cost (len(content) // 4) would exceed the budget.
+    Whole chunks only — no partial truncation.
+    """
+    results = get_chunks_by_id(db, chunk_ids, detail="full")
+    hits = [_to_dict(r) for r in results]
+    if max_tokens is not None:
+        hits = _apply_token_budget(hits, max_tokens, "full")
     return {"results": hits}
 
 
 def _apply_token_budget(
     hits: list[dict[str, Any]], max_tokens: int, detail: str
 ) -> list[dict[str, Any]]:
-    """Return the longest BM25-ranked prefix of hits that fits within max_tokens.
+    """Return the longest prefix of hits that fits within max_tokens.
 
     Token cost per chunk: len(content) // 4 for full detail,
     len(summary) // 4 for summary detail. Matches the token_count estimator
@@ -139,36 +158,28 @@ def _to_dict(r: SearchResult) -> dict[str, Any]:
 
 
 def _register_tools(mcp: FastMCP) -> None:
-    """Register query-docs and resolve-deps tools on the given server."""
+    """Register summary and detail tools on the given server."""
 
-    @mcp.tool(name="resolve-deps")
-    def resolve_deps_tool(project_path: str | None = None) -> str:
-        """Read-only index health check — list of imported packs."""
-        db = Database(_db_path(project_path))
-        try:
-            result = resolve_deps(db)
-            return json.dumps(result)
-        finally:
-            db.close()
-
-    @mcp.tool(name="query-docs")
-    def query_docs_tool(
-        query: str = "",
+    @mcp.tool(name="summary")
+    def summary_tool(
+        query: str,
         packages: list[str] | None = None,
-        max_tokens: int | None = None,
-        detail: str = "summary",
-        chunk_ids: list[int] | None = None,
         limit: int = 10,
+        max_tokens: int | None = None,
     ) -> str:
-        """FTS5 full-text search across indexed documentation."""
+        """Search indexed documentation and return chunk summaries.
+
+        Use the returned chunk_ids to call the detail tool for full content.
+        FTS5 is lexical — translate natural language to key terms before
+        calling (e.g. "OAuth2 client credentials" not "how do I authenticate").
+        If a package in packages is not indexed, returns {"status": "not_indexed"}.
+        """
         db = Database(_db_path())
         try:
-            result = query_docs(
+            result = search_summaries(
                 db,
                 query=query,
                 packages=packages,
-                detail=detail,
-                chunk_ids=chunk_ids,
                 limit=limit,
                 max_tokens=max_tokens,
             )
@@ -176,9 +187,26 @@ def _register_tools(mcp: FastMCP) -> None:
         finally:
             db.close()
 
+    @mcp.tool(name="detail")
+    def detail_tool(
+        chunk_ids: list[int],
+        max_tokens: int | None = None,
+    ) -> str:
+        """Fetch full content of specific chunks by ID.
+
+        Call after summary to retrieve complete documentation for the chunks
+        you identified as relevant. Revoked chunks are silently excluded.
+        """
+        db = Database(_db_path())
+        try:
+            result = fetch_detail(db, chunk_ids=chunk_ids, max_tokens=max_tokens)
+            return json.dumps(result)
+        finally:
+            db.close()
+
 
 def create_server() -> FastMCP:
-    """Create the MCP server with query-docs and resolve-deps tools."""
+    """Create the MCP server with summary and detail tools."""
     mcp = FastMCP("tank")
     _register_tools(mcp)
     return mcp
