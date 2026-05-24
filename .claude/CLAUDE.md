@@ -71,7 +71,7 @@
 
 - **Circular import in `fts.py`**: Importing `Database` at the top of `fts.py` creates a circular import with `storage.db`. Use a `TYPE_CHECKING` guard: `if TYPE_CHECKING: from tank.storage.db import Database`, then annotate with the string `"Database"`. `server.py` has no circular import issue and uses an unconditional top-level import.
 
-- **FastMCP tool names**: `@mcp.tool()` registers the Python function name, not a hyphenated name. `def resolve_deps_tool()` becomes `"resolve_deps_tool"`, not `"resolve-deps"`. Always pass `name=` explicitly: `@mcp.tool(name="resolve-deps")`.
+- **FastMCP tool names**: `@mcp.tool()` registers the Python function name, not a hyphenated name. `def search_tool()` becomes `"search_tool"`, not `"search"`. Always pass `name=` explicitly: `@mcp.tool(name="search")`.
 
 - **CliRunner and working directory**: `CliRunner.invoke()` does not accept a `cwd=` parameter. CLI commands that use relative `.tank/` paths need the process cwd set. Pattern used in the test suite: `os.chdir(tmp_path)` with a `try/finally` to restore the original cwd. See `_cli_in_cwd()` in `tests/test_integration.py`.
 

@@ -156,26 +156,22 @@ Each entry records: the decision, the alternatives considered, why we chose what
 
 ---
 
-## D12: `query-docs` Tool Surface — Single Tool vs Split
+## D12: MCP Tool Surface — Single Tool vs Split ✓ Implemented (v0.2.0)
 
-**Decision**: ship MVP with a single `query-docs` tool accepting a `detail` parameter (`"summary"` or `"full"`).
+**Decision**: ship MVP with a single `query-docs` tool accepting a `detail` parameter (`"summary"` or `"full"`); split into separate `search`/`fetch` tools in v0.2.0.
 
-**The problem with this surface**: `detail="full"` sounds better than `detail="summary"` to an LLM agent. The parameter name nudges agents toward the expensive single-step path — fetching full content speculatively without a prior relevance pass — which is the footgun the two-step pattern is designed to prevent.
+**The problem with the single-tool surface**: `detail="full"` sounds better than `detail="summary"` to an LLM agent. The parameter name nudged agents toward the expensive single-step path — fetching full content speculatively without a prior relevance pass — which is the footgun the two-step pattern is designed to prevent.
 
-**Proposed split (deferred)**:
+**Resolution (v0.2.0)**:
 
 ```
-search-docs   query, packages, limit     → always returns summaries only
-fetch-docs    chunk_ids, max_tokens      → always returns full content by ID
+search   query, packages, limit, max_tokens  → always returns summaries + chunk_ids only
+fetch    chunk_ids, max_tokens               → always returns full content by ID
 ```
 
-This enforces the two-step pattern architecturally: `search-docs` cannot return full content; `fetch-docs` cannot do speculative full-content search. Eliminates the footgun without any stateful enforcement.
-
-**Why deferred**: breaking change to `query-docs`. Any existing MCP client configuration referencing `query-docs` would need to migrate. The immediate mitigation is a clear tool description stating that `detail="full"` without `chunk_ids` should always be paired with an explicit `max_tokens`.
+This enforces the two-step pattern architecturally: `search` cannot return full content; `fetch` cannot do speculative full-content search. Eliminates the footgun without any stateful enforcement. Implemented in `src/tank/server.py`; documented in `docs/MCP.md`.
 
 **`max_tokens` default rationale**: `max_tokens` defaults to `None` (no budget enforcement) by design. A default of e.g. `4000` would silently trade away recall — with BM25 noise, the most relevant chunk can land at position 8 or 12, and a tight budget would exclude it with no signal to the agent. `limit` is the right knob for controlling result count; `max_tokens` is an explicit opt-in for agents with known token constraints.
-
-**Revisit when**: the two-step workflow is validated with real users and a breaking change to the tool surface is acceptable. The split is the right architecture; the question is timing.
 
 ---
 
@@ -238,7 +234,7 @@ STDIO Transport (Default): STDIO (Standard Input/Output) is the default transpor
 
 **Decision**: ship the Model Context Protocol spec (`mcp@2025-11-25`) as the v0.1.1 release artifact alongside fastmcp@3.3.0.
 
-**Rationale**: Tank depends on `mcp` directly, and the MCP layer refactor (D12/S3) is the largest single v0.2.0 work item — agents implementing the `search-docs`/`fetch-docs` split will query this pack constantly. `modelcontextprotocol.io` publishes `llms-full.txt`, making it buildable today without a crawler or HTML extraction.
+**Rationale**: Tank depends on `mcp` directly, and the MCP tool split (D12) is the largest single v0.2.0 work item — agents using the `search`/`fetch` tools will query this pack constantly. `modelcontextprotocol.io` publishes `llms-full.txt`, making it buildable today without a crawler or HTML extraction.
 
 **Alternatives considered**:
 - **httpx@0.28.1**: still pre-1.0 (0.x), no API stability commitment. Rejected.

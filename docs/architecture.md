@@ -329,7 +329,7 @@ Documentation text in chunks is treated as untrusted source content. It is store
 | `deprecated` | Valid but a newer version exists | Allowed with warning |
 | `revoked` | Known-bad: tampered, incorrect, or security issue | Always rejected |
 
-`revoked` is enforced at query time as well as at import time. A pack imported before revocation will have its chunks excluded from all `query-docs` results once `lifecycle_state` is updated to `revoked` in the packages table.
+`revoked` is enforced at query time as well as at import time. A pack imported before revocation will have its chunks excluded from all `search` results once `lifecycle_state` is updated to `revoked` in the packages table.
 
 ### Policy file (policy.toml)
 
@@ -338,7 +338,7 @@ Documentation text in chunks is treated as untrusted source content. It is store
 
 [policy]
 require_signatures = false          # true = reject unsigned packs at verify time
-require_attribution = true          # include provenance in query-docs results
+require_attribution = true          # include provenance in results
 
 allowed_lifecycle_states = [
   "approved",
@@ -467,16 +467,17 @@ CREATE TABLE chunks (
 );
 
 -- FTS5 full-text index, BM25 ranking (primary search mechanism for MVP)
+-- Weights: heading_path 2.5×, summary 1.5×, content 1.0×
 CREATE VIRTUAL TABLE chunks_fts USING fts5(
-    summary, content,
+    heading_path, summary, content,
     content='chunks',
     content_rowid='id'
 );
 
 -- Keep FTS5 in sync with chunks
 CREATE TRIGGER chunks_ai AFTER INSERT ON chunks BEGIN
-    INSERT INTO chunks_fts(rowid, summary, content)
-    VALUES (new.id, new.summary, new.content);
+    INSERT INTO chunks_fts(rowid, heading_path, summary, content)
+    VALUES (new.id, new.heading_path, new.summary, new.content);
 END;
 CREATE TRIGGER chunks_ad AFTER DELETE ON chunks BEGIN
     INSERT INTO chunks_fts(chunks_fts, rowid, summary, content)
@@ -522,25 +523,22 @@ Target: sub-10ms queries against up to 100,000 indexed chunks on commodity hardw
 
 ### Progressive disclosure
 
-Results are returned at two detail levels:
-
-1. **Summary** (default): `heading_path`, `summary`, `score`, `source_url`, `lifecycle_state`. ~20–40 tokens per result. The agent uses this to decide which chunks it actually needs.
-2. **Full**: all of the above plus `content`. The agent requests specific `chunk_ids` from the first pass.
-
-This two-step pattern is the primary mechanism for staying within the AI agent's token budget.
+Results flow through the two-tool API: `search` returns lightweight summaries and chunk IDs; `fetch` returns full content for the IDs the agent selects.
 
 ## Token Efficiency
 
-### Layered retrieval
+### Two-tool retrieval pattern
 
-1. **Summary layer** (returned by default): heading path + one-line summary per matching chunk. Roughly 20–40 tokens per result. The agent scans this to decide what it actually needs.
-2. **Full content** (on request): the agent requests specific chunks by ID via `chunk_ids` to get complete text.
+1. **`search`** — returns `heading_path`, `summary`, `score`, `source_url` per chunk. ~20–40 tokens per result. The agent scans this to decide what it actually needs.
+2. **`fetch`** — takes the `chunk_id` values selected from step 1 and returns full `content`. The agent pays only for the chunks it chose.
+
+This two-step pattern is the primary mechanism for staying within the AI agent's token budget. See `docs/MCP.md` for the recommended usage pattern.
 
 ### Token budget enforcement (`max_tokens`)
 
-When `max_tokens` is set on `query-docs`, a greedy post-ranking pass enforces a hard budget. After BM25 ranking, chunks are accumulated from highest score to lowest. A chunk is included only if its estimated cost does not push the running total over `max_tokens`. The cut always falls between whole chunks — content is never truncated mid-text.
+Both `search` and `fetch` accept an optional `max_tokens` budget. A greedy post-ranking pass enforces it: chunks are accumulated in BM25 rank order (for `search`) or provided order (for `fetch`). A chunk is included only if its estimated cost does not push the running total over `max_tokens`. The cut always falls between whole chunks — content is never truncated mid-text.
 
-Token cost estimation: `len(content) // 4` for `detail="full"`, `len(summary) // 4` for `detail="summary"`. This matches the `token_count` estimator written at build time and is intentionally approximate — suitable for budget planning, not byte-exact accounting.
+Token cost estimation: `len(summary) // 4` for `search`, `len(content) // 4` for `fetch`. Intentionally approximate — suitable for budget planning, not byte-exact accounting.
 
 The ranking strategy and the rationale for the greedy approach are documented in `docs/ranking.md`.
 
@@ -724,7 +722,7 @@ tank/
 │   │
 │   │── # ── BASE PACKAGE (pip install tank) ─────────────────────
 │   │
-│   ├── server.py               # MCP server (query-docs, resolve-deps tools)
+│   ├── server.py               # MCP server (search, fetch tools; tank serve)
 │   │
 │   ├── search/
 │   │   ├── __init__.py
@@ -785,7 +783,7 @@ tank/
 ```toml
 [project.scripts]
 tank = "tank.cli.main:cli"
-# MCP server is invoked directly: python -m tank.server
+# MCP server launched via: tank serve
 
 [project.optional-dependencies]
 build = [
@@ -807,7 +805,7 @@ all = ["tank[build]", "tank[embeddings]", "pytest", "pytest-asyncio"]
 - `tank pull` (verify-then-import, atomic transaction)
 - `tank query` with FTS5/BM25 and full source attribution
 - `tank inspect` for debugging pack contents and the local index
-- MCP server: `query-docs` and read-only `resolve-deps`
+- MCP server: `search` (summaries + chunk IDs) and `fetch` (full content by ID)
 - SQLite schema with governance and attribution columns
 - Policy file (`policy.toml`) with lifecycle state and signature enforcement
 - `.tank/index.lock` as a human-readable record of imported packs
@@ -826,7 +824,7 @@ all = ["tank[build]", "tank[embeddings]", "pytest", "pytest-asyncio"]
 - Incremental re-crawl using HTTP ETags (`If-None-Match` / `If-Modified-Since`)
 - Remote registry: `tank publish`, `tank pull <package@version>` from registry URL
 - Lifecycle promotion workflow: `tank promote`, `tank revoke`
-- Staleness detection against project lockfiles (`resolve-deps` expanded to scan `requirements.txt`, `package.json`, `Cargo.toml`, etc.)
+- Staleness detection against project lockfiles (`index-deps` MCP tool scans `requirements.txt`, `package.json`, `Cargo.toml`, etc.)
 - Auto-discovery of dependency files in the project directory
 - Private and internal packages via `--auth` flag in `tank build`
 - Registry governance: signing, content hash verification on upload, reproducibility checks

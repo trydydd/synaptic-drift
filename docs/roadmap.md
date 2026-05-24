@@ -106,9 +106,9 @@ v0.1.1 is complete. Active development is on `feature/mcp` targeting v0.2.0.
   - `tank pull` accepts `package@version` in addition to file paths
 - [ ] **CI/CD templates** — GitHub Actions, GitLab CI, CircleCI: build packs on release, verify in PRs, publish to static registry
 - [ ] **Pre-built packs for top 100 libraries** — scale up pack-building CI pipeline
-- [ ] **Token budget intelligence** — `max_tokens` on `query-docs` controls response size, balancing breadth vs. depth within the budget
+- [ ] **Token budget intelligence** — `max_tokens` on `search`/`fetch` controls response size, balancing breadth vs. depth within the budget
 - [ ] **`index-deps` MCP tool** — scans project deps, reports which have packs available, which are indexed, which are stale
-- [ ] **Staleness detection** — compare indexed pack versions against project lockfiles. Surface warnings in `resolve-deps`
+- [ ] **Staleness detection** — compare indexed pack versions against project lockfiles. Surface warnings via `index-deps` MCP tool
 - [ ] **Structured logging** — JSON logging at key checkpoints. `python logging` with configurable verbosity
 
 ---
