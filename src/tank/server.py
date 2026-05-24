@@ -144,12 +144,10 @@ def _register_tools(mcp: FastMCP) -> None:
         limit: int = 10,
         max_tokens: int | None = None,
     ) -> str:
-        """Search indexed documentation and return chunk summaries.
-
-        Use the returned chunk_ids to call the fetch tool for full content.
-        FTS5 is lexical — translate natural language to key terms before
-        calling (e.g. "OAuth2 client credentials" not "how do I authenticate").
-        If a package in packages is not indexed, returns {"status": "not_indexed"}.
+        """Search indexed documentation. Returns summaries and chunk_ids — no content included.
+        Call fetch with the chunk_ids for full text.
+        FTS5 is lexical: use keywords, not natural-language questions.
+        If a package is not indexed, returns {"status": "not_indexed"}.
         """
         db = Database(_db_path())
         try:
@@ -169,11 +167,7 @@ def _register_tools(mcp: FastMCP) -> None:
         chunk_ids: list[int],
         max_tokens: int | None = None,
     ) -> str:
-        """Fetch full content of specific chunks by ID.
-
-        Call after search to retrieve complete documentation for the chunks
-        you identified as relevant. Revoked chunks are silently excluded.
-        """
+        """Fetch full chunk content by ID. Call after search with the chunk_ids it returned."""
         db = Database(_db_path())
         try:
             result = fetch_docs(db, chunk_ids=chunk_ids, max_tokens=max_tokens)

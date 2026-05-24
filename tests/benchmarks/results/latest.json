@@ -1,67 +1,67 @@
 {
-    "timestamp": "2026-05-24T23:22:45.197190+00:00",
-    "git_commit": "feature/mcp",
-    "tank_version": "0.2.0-dev",
-    "token_counter": "len_div_4",
-    "corpus": {
-        "chunks": 20,
-        "avg_summary_chars": 73,
-        "avg_content_chars": 939
+  "timestamp": "2026-05-24T23:25:01.273027+00:00",
+  "git_commit": "c127451",
+  "tank_version": "0.1.0",
+  "token_counter": "len_div_4",
+  "corpus": {
+    "chunks": 20,
+    "avg_summary_chars": 73,
+    "avg_content_chars": 939
+  },
+  "schema": {
+    "total_tokens": 301,
+    "tools": [
+      {
+        "name": "search",
+        "tokens": 197,
+        "chars": 791
+      },
+      {
+        "name": "fetch",
+        "tokens": 104,
+        "chars": 417
+      }
+    ],
+    "pct_of_200k_context": 0.15,
+    "pct_of_128k_context": 0.235
+  },
+  "responses": {
+    "summary_n5": {
+      "tokens": 559,
+      "actual_results": 5,
+      "tokens_per_result": 112
     },
-    "schema": {
-        "total_tokens": 357,
-        "tools": [
-            {
-                "name": "search",
-                "tokens": 221,
-                "chars": 887
-            },
-            {
-                "name": "fetch",
-                "tokens": 136,
-                "chars": 544
-            }
-        ],
-        "pct_of_200k_context": 0.178,
-        "pct_of_128k_context": 0.279
+    "full_n5": {
+      "tokens": 1714,
+      "actual_results": 5,
+      "tokens_per_result": 343
     },
-    "responses": {
-        "summary_n5": {
-            "tokens": 559,
-            "actual_results": 5,
-            "tokens_per_result": 112
-        },
-        "full_n5": {
-            "tokens": 1714,
-            "actual_results": 5,
-            "tokens_per_result": 343
-        },
-        "summary_n10": {
-            "tokens": 1115,
-            "actual_results": 10,
-            "tokens_per_result": 112
-        },
-        "full_n10": {
-            "tokens": 3465,
-            "actual_results": 10,
-            "tokens_per_result": 346
-        },
-        "summary_n20": {
-            "tokens": 2010,
-            "actual_results": 18,
-            "tokens_per_result": 112
-        },
-        "full_n20": {
-            "tokens": 6341,
-            "actual_results": 18,
-            "tokens_per_result": 352
-        }
+    "summary_n10": {
+      "tokens": 1115,
+      "actual_results": 10,
+      "tokens_per_result": 112
     },
-    "progressive_disclosure": {
-        "step1_summary_all_tokens": 2010,
-        "step2_full_top3_tokens": 1033,
-        "total_tokens": 3043,
-        "vs_naive_full_n20_tokens": 6341,
-        "saving_pct": 52.0
+    "full_n10": {
+      "tokens": 3465,
+      "actual_results": 10,
+      "tokens_per_result": 346
+    },
+    "summary_n20": {
+      "tokens": 2010,
+      "actual_results": 18,
+      "tokens_per_result": 112
+    },
+    "full_n20": {
+      "tokens": 6341,
+      "actual_results": 18,
+      "tokens_per_result": 352
     }
+  },
+  "progressive_disclosure": {
+    "step1_summary_all_tokens": 2010,
+    "step2_full_top3_tokens": 1033,
+    "total_tokens": 3043,
+    "vs_naive_full_n20_tokens": 6341,
+    "saving_pct": 52.0
+  }
 }
