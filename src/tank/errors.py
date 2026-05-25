@@ -33,3 +33,19 @@ class BuildError(TankError):
 
 class SearchError(TankError):
     """Database or query error during search."""
+
+
+class LockfileError(TankError):
+    """Malformed, missing, or incompatible tank.lock."""
+
+
+class FetchError(TankError):
+    """Cannot fetch a pack from a remote source_url.
+
+    Raised when source_url is an HTTPS URL but the fetcher module is not yet
+    available, or when a network error occurs during fetch.
+    """
+
+
+class PackNotFoundError(TankError):
+    """The requested pack is not present in the local index."""

@@ -66,11 +66,10 @@ v0.1.1 is complete. Active development is on `feature/mcp` targeting v0.2.0.
 - [x] **`schemas/manifest.v2.schema.json`** — machine-readable JSON Schema as single source of truth for manifest fields; wire verifier to validate against it. Establishes a stable schema contract before PyPI release.
 - [x] **Cross-platform path handling** — normalize to forward slashes, reject backslashes/UNC in validator. Modify `src/tank/validator/verify.py`
 - [x] **Error message polish** — every error path produces an actionable message. Audit all `TankError` subclass usage
-- [x] **Lockfile in git** — `tank.lock` at project root, written by `tank pull`; commit to version-control documentation dependencies analogous to `Cargo.lock`
-- [ ] **`tank sync`** — read `tank.lock` and pull all listed packs automatically, enabling `git clone && tank sync` to reproduce the index on a fresh checkout. Requires `source_url` recorded per pack in the lockfile (added in schema v2). Analogous to `cargo build` reading `Cargo.lock`: the lockfile is the declaration, `tank sync` is the executor.
-  - New command: `src/tank/cli/sync.py`
-  - For each `[packs.*]` entry in the lockfile: skip if already imported at that digest; fetch from `source_url` (local path or `https://`); verify pack_digest matches lockfile before importing
-  - Blocked on pre-built packs having stable `source_url` values (GitHub Releases or equivalent)
+- [x] **Lockfile in git** — `tank.lock` at project root, written by `tank add`; commit to version-control documentation dependencies analogous to `Cargo.lock`
+- [x] **`tank add` (renamed from `tank pull`)** — `tank pull` was misleading (implies remote fetch; only imports local files). Renamed to `tank add`, consistent with `cargo add`, `uv add`, `npm install <pkg>`. `tank pull` kept as a hidden deprecated alias. See `decisions.md` D19.
+- [x] **`tank sync`** — reads `tank.lock`, skips already-imported packs (idempotent), verifies digest against lockfile before importing (supply-chain check), imports any missing packs. Enables `git clone && tank sync` workflow. HTTPS `source_url` fetch deferred until URL fetcher module lands (exits with actionable `FetchError`). See `src/tank/cli/sync.py`.
+- [x] **`tank remove`** — removes a pack from `index.db` and rewrites `tank.lock`. Completes the verb set: without it, removing a pack requires hand-editing the lockfile. See `src/tank/cli/remove.py`.
 
 ### Chunker quality stream — S7 → chunker → S2 → summary
 

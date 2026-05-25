@@ -270,13 +270,16 @@ tank build mcp@2025-11-25 --source /tmp/mcp-docs --output ./packs
 
 ## D17: `pack_source` vs `source_url` — two distinct URL fields
 
-**Decision**: The `packages` table carries two separate URL fields: `source_url` (from the manifest — where the documentation was authored) and `pack_source` (set at import time — where the `.ctx` file was fetched from). The lockfile's `source_url` field is populated from `pack_source`.
+**Decision**: The `packages` table carries two separate URL fields: `source_url` (from the manifest — where the documentation was authored) and `pack_source` (set at import time — where the `.ctx` file was fetched from).
 
-**Rationale**: These are fundamentally different things. `source_url` in the manifest is provenance metadata about the documentation content (e.g., `docs/api`). `pack_source` is the distribution address of the pack artifact (e.g., a GitHub Release URL). Conflating them caused the lockfile to show the build-time docs directory as the fetch location, making `tank sync` impossible to implement correctly.
+**Lockfile `source_url` population** (refined in D19): the lockfile's `source_url` field prefers the manifest's `source_url` when it is an HTTPS URL (canonical distribution address for official packs), and falls back to `pack_source` (the local import path) otherwise. This ensures `tank sync` can fetch official packs by URL while still recording a usable path for locally-built packs.
+
+**Rationale**: These are fundamentally different things. `source_url` in the manifest is provenance metadata about the documentation content (e.g., `docs/api`). `pack_source` is the local path where the `.ctx` was imported from. For official packs built with a canonical HTTPS `source_url` in their manifest, that URL is what `tank sync` needs to re-fetch the pack. Conflating them caused the lockfile to show the build-time docs directory as the fetch location, making `tank sync` impossible to implement correctly.
 
 **Alternatives considered**:
 - **Overwrite `source_url` with the pull path**: Destroys provenance metadata. Rejected.
 - **Store pull path only in the lockfile, not the DB**: Loses the data if the lockfile is regenerated. Rejected.
+- **Always use `pack_source`**: Would record `/tmp/fastmcp@3.3.0.ctx` in the lockfile, breaking `tank sync` for official packs. Rejected.
 
 **Revisit when**: Phase 2 registry design — `pack_source` may evolve to carry a structured registry reference rather than a raw URL.
 
@@ -295,3 +298,35 @@ tank build mcp@2025-11-25 --source /tmp/mcp-docs --output ./packs
 - **Manual field-by-field checks**: already in place, insufficient. Replaced.
 
 **Revisit when**: schema version 3 (Phase 2 crawl fields) or Phase 3 (embedding fields) — add new optional properties to the schema, keep `additionalProperties` open.
+
+---
+
+## D19: CLI command set — `add`, `sync`, `remove` replace/extend `pull`
+
+**Decision**: Rename `tank pull` → `tank add`; implement `tank sync`; add `tank remove`. Keep `tank pull` as a hidden deprecated alias for one minor version.
+
+**Rationale**:
+- `tank pull` was misleading: "pull" implies a remote fetch (`git pull`, `docker pull`), but the command only imports a local file. The misnaming becomes actively harmful once `tank sync` lands and *does* fetch.
+- `tank add` is the correct verb: it is consistent with `cargo add`, `uv add`, `npm install <pkg>`, and reads correctly with any input source (local path, HTTPS URL, future registry spec).
+- `tank sync` closes the "nothing reads `tank.lock`" gap. It enables `git clone && tank sync` to reproduce the local index on a fresh checkout — the primary missing workflow for teams.
+- `tank remove` completes the verb set. Without it, removing a pack requires hand-editing the lockfile, which breaks the invariant that the lockfile is always written by the CLI.
+
+**Command surface after this change (8 commands, two personas)**:
+
+| Persona  | Commands |
+|----------|----------|
+| Consumer | `add`, `sync`, `remove`, `query`, `serve` |
+| Author   | `build`, `verify`, `inspect` |
+
+No individual user touches all 8. Consumer persona needs ~4 in normal use (`sync`, `serve`, `query`, sometimes `add`).
+
+**`add` vs `sync` kept separate** (not collapsed à la `npm install [pkg]`): the operations are genuinely different — ad-hoc acquisition of a new pack vs. reproducing the full index from the lockfile. The uv/Cargo discipline of one-verb-one-thing holds here.
+
+**`tank.toml` deferred**: without a registry there is no resolution step that would distinguish a manifest from a lock. The lockfile continues to serve as both declaration and receipt until the Phase 3 static registry introduces real version ranges. At that point, `tank.toml` + `tank.lock` split cleanly along the Cargo/uv model.
+
+**Alternatives considered**:
+- **`tank install [<ref>]` (npm-style unification)**: `npm install` (no args) = from lock; `npm install <pkg>` = add. Familiar but conflates two distinct operations. Broadly considered a design mistake in npm. Rejected in favour of explicit verbs.
+- **`tank import`**: accurate but unused by any major package manager. Less discoverable. Rejected.
+- **Drop `tank verify` from the top-level**: too useful for CI pipelines ("verify this .ctx before importing"). Kept as standalone; it is also already implicit in `add` and `sync`.
+
+**Revisit when**: Phase 3 static registry lands and `tank.toml` is introduced — at that point `tank add <pkg@range>` becomes the primary declaration verb and `tank sync` becomes the "ensure lockfile is satisfied" executor, matching the Cargo model exactly.
