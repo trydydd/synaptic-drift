@@ -131,9 +131,9 @@ v0.1.1 is complete. Active development is on `feature/mcp` targeting v0.2.0.
 - [ ] **`tank build --source <url>`** — general web crawler: follow links from a docs site root, fetch and chunk all reachable pages. For sites without `llms.txt` or `llms-full.txt`. Rate limiting, `robots.txt` compliance, configurable `User-Agent`. No embeddings or JS rendering — static HTML only.
   - New module: `src/tank/builder/crawler.py`
   - Extend `src/tank/builder/fetch.py` with link extraction and crawl frontier logic
-- [ ] **Pack registry (static hosting)** — `tank pull fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
+- [ ] **Pack registry (static hosting)** — `tank add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
   - New module: `src/tank/registry/` (client only; server is a static file host)
-  - `tank pull` accepts `package@version` in addition to file paths
+  - `tank add` accepts `package@version` in addition to file paths
 - [ ] **CI/CD templates** — GitHub Actions, GitLab CI, CircleCI: build packs on release, verify in PRs, publish to static registry
 - [ ] **Pre-built packs for top 100 libraries** — scale up pack-building CI pipeline
 - [ ] **Token budget intelligence** — `max_tokens` on `search`/`fetch` controls response size, balancing breadth vs. depth within the budget
@@ -164,7 +164,7 @@ v0.1.1 is complete. Active development is on `feature/mcp` targeting v0.2.0.
 
 **Trigger**: Real user feedback shows vocabulary-mismatch failures on semantic queries that tuned FTS5 cannot address.
 
-- [ ] **Import-side embeddings** — BGE-M3 dense + sparse vectors computed at `tank pull` time, stored in `index.db`. Pack format unchanged — no embedding vectors in `.ctx` files.
+- [ ] **Import-side embeddings** — BGE-M3 dense + sparse vectors computed at `tank add` time, stored in `index.db`. Pack format unchanged — no embedding vectors in `.ctx` files.
 - [ ] Hybrid search: dense cosine + BGE-M3 sparse + FTS5, fused with Reciprocal Rank Fusion (RRF)
 - [ ] `tank[embeddings]` optional dependency group (`pip install tank[embeddings]`)
 - [ ] Re-embedding on model change (stored chunk text → new vectors, no re-pull required)

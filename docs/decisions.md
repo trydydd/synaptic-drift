@@ -264,7 +264,7 @@ tank build mcp@2025-11-25 --source /tmp/mcp-docs --output ./packs
 **Alternatives considered**:
 - **`.tank/index.lock`**: Keeps all Tank state under one directory but requires gitignore gymnastics and is invisible at the root level. Rejected.
 
-**Revisit when**: Never — this is a UX convention decision. The location is now baked into `pull.py`, docs, and `tank.lock` itself.
+**Revisit when**: Never — this is a UX convention decision. The location is now baked into `add.py`, docs, and `tank.lock` itself.
 
 ---
 

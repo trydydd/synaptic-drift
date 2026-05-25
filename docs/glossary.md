@@ -30,7 +30,7 @@ Definitions of Tank-specific terminology. Sorted alphabetically.
 
 **index.db** — the SQLite database at `.tank/index.db`. Contains `packages`, `pages`, `chunks`, and `chunks_fts` tables. Source of truth for all imported documentation. One database per project.
 
-**tank.lock** — TOML file at the project root, written by `tank pull` on every import. Records each imported pack's name, version, `pack_digest`, `lifecycle_state`, `indexed_at`, and `source_url`. Commit this file to version-control your documentation dependencies — analogous to `Cargo.lock` or `package-lock.json`. The database (`.tank/index.db`) is the source of truth; `tank.lock` is the human-readable, committable declaration.
+**tank.lock** — TOML file at the project root, written by `tank add` and `tank sync` on every import. Records each imported pack's name, version, `pack_digest`, `lifecycle_state`, `indexed_at`, and `source_url`. Commit this file to version-control your documentation dependencies — analogous to `Cargo.lock` or `package-lock.json`. The database (`.tank/index.db`) is the source of truth; `tank.lock` is the human-readable, committable declaration.
 
 **lifecycle_state** — governance field tracking a pack's approval status. Values: `draft` (built, not reviewed), `approved` (reviewed and cleared), `deprecated` (valid but superseded), `revoked` (known-bad, excluded from all queries). Stored in `manifest.json` and the `packages` table. Enforced by policy at both import and query time.
 
