@@ -43,13 +43,14 @@ def _import_pack(ctx_path: Path, policy: Policy, db: Database) -> Path:
         version=str(manifest["version"]),
         lifecycle_state=str(manifest["lifecycle_state"]),
         doc_version_status=doc_version_status,
-        indexed_at=str(manifest.get("created_at", "")),
+        indexed_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         policy_profile=str(manifest.get("policy_profile", "")),
         pack_digest=str(manifest["pack_digest"]),
         normalized_content_hash=str(manifest["normalized_content_hash"]),
         source_url=str(manifest.get("source_url", "")),
         source_commit=str(manifest.get("source_commit", "")),
         owner=str(manifest.get("owner", "")),
+        pack_source=str(ctx_path),
     )
 
     with zipfile.ZipFile(ctx_path, "r") as zf:
@@ -108,8 +109,8 @@ def _write_lockfile(db: Database) -> None:
         lines.append(f'pack_digest = "{p.pack_digest or ""}"')
         lines.append(f'lifecycle_state = "{p.lifecycle_state}"')
         lines.append(f'indexed_at = "{p.indexed_at}"')
-        if p.source_url:
-            lines.append(f'source_url = "{p.source_url}"')
+        if p.pack_source:
+            lines.append(f'source_url = "{p.pack_source}"')
         lines.append("")
     LOCK_FILE.write_text("\n".join(lines), encoding="utf-8")
 
