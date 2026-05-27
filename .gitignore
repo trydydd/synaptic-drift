@@ -27,8 +27,8 @@ htmlcov/
 # Linting
 .ruff_cache/
 
-# Tank runtime artifacts
-.tank/
+# Synaptic Drift runtime artifacts
+.synd/
 
 # Built packs (release artifacts, not stored in repo)
 packs/
