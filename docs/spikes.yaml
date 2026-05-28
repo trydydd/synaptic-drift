@@ -128,7 +128,14 @@ spikes:
 
   - id: S5
     title: PyPI packaging — CLI-only release vs MCP server layer refactor
-    status: open
+    status: done
+    outcome: |
+      Optional [serve] extra already existed in pyproject.toml (mcp dependency).
+      Decision: keep MCP in the optional extra; wrap all serve entry points with
+      graceful ImportError handling so the base install fails clearly rather than
+      crashing. cli/serve.py already had the guard. __main__.py (python -m synd)
+      was missing it and has been fixed. No structural refactor needed — the
+      existing optional-dependency split is sufficient for a clean CLI-only release.
     context: |
       PyPI release is blocked on the MCP server packaging. The release workflow
       already produces artifacts (wheel, sdist, .ctx packs) but has no publish step.
