@@ -378,6 +378,62 @@ spikes:
       - docs/decisions.md
     blocked_by: [S6]
 
+  - id: S10
+    title: Minimum-token merge — absorb stub chunks into neighbours
+    status: open
+    context: |
+      The MCP pack analysis (feature/chunker) found 249 stub chunks (<10 tokens)
+      across 2,089 total chunks. These arise when a heading in the source is
+      immediately followed by another heading (no prose between them) — e.g.:
+        ## Authorization
+        ### Introduction
+      The chunker emits a chunk for "## Authorization" with content = "## Authorization"
+      and token_count = 2–5 tokens. This chunk:
+        - Contributes nothing to BM25 that the heading_path field doesn't already carry.
+        - Inflates result counts in search responses with near-zero-information entries.
+        - Cannot be surfaced usefully by fetch — the content IS the heading.
+      The same pattern produces very small preamble chunks (e.g., a 3-token page
+      intro sentence) that would be better merged with the following section.
+      A min-token threshold (e.g. 20 tokens) with a merge-forward pass would absorb
+      these stubs into the next chunk with the same heading_path ancestry, or
+      failing that into the previous chunk.
+    task: |
+      Design and implement a post-chunking merge pass in chunking.py:
+      1. Threshold: what is the right min_chunk_tokens value? Consider: stub chunks
+         are almost always <10t; legitimate short sections (a one-sentence intro
+         before a code block) are typically 15–30t. Recommend a default and whether
+         it should be a CLI param (--min-chunk-tokens).
+      2. Merge direction: when a stub is found, should it be merged into:
+         a. The NEXT chunk (merge-forward) — preserves heading context but may
+            produce a heading + unrelated intro combo.
+         b. The PREVIOUS chunk (merge-back) — the stub's heading becomes part of
+            the prior section.
+         c. Both, with preference: forward if next chunk shares heading ancestry,
+            otherwise backward.
+         Analyse the MCP stub distribution to determine which direction produces
+         better chunks in practice. Use the charter page (33 stubs) as a test case.
+      3. heading_path after merge: when two chunks are merged, which heading_path
+         wins? Options: keep the parent, keep the child, concatenate. Consider
+         FTS5 impact — heading_path is 2.5× weighted; a merged path that drops
+         a child heading loses search precision.
+      4. Interaction with oversized chunks (S9): a merge pass that runs before the
+         overflow split could push a near-threshold chunk over the limit. Recommend
+         a run order (split first, merge second) and confirm it avoids this.
+      5. Edge cases: a page that consists entirely of stubs (e.g. a pure TOC page);
+         a stub that is the only chunk on a page; two consecutive stubs.
+      Validate against the MCP pack: after the merge pass, stub count (<10t) should
+      drop from 249 to near 0. The charter page (33 stubs, 60 sections) is the
+      primary regression test.
+    success: |
+      A merge algorithm recommendation with direction policy, heading_path handling,
+      and threshold value. A code sketch of the merge pass function. Edge cases
+      covered. Enough detail to implement in chunking.py without further research.
+    files:
+      - src/synd/builder/chunking.py
+      - src/synd/cli/build.py
+      - docs/decisions.md
+    blocked_by: []
+
   - id: S9
     title: Chunk size gate — warning threshold and oversized chunk handling
     status: open
