@@ -712,13 +712,11 @@ def test_fastmcp_full_pipeline(tmp_path: Path, runner: CliRunner) -> None:
     assert result.exit_code == 0, result.output
 
     # --- query ---
-    db = Database(tmp_path / ".synd" / "index.db")
-    try:
-        db.create_schema()
-        hits = search(db, "tool", packages=["fastmcp"], limit=5)
-        assert len(hits) > 0, (
-            "Query for 'tool' against fastmcp docs returned no results"
-        )
-        assert all(h.package == "fastmcp" for h in hits)
-    finally:
-        db.close()
+    result = _cli_in_cwd(
+        runner,
+        ["query", "tool", "--package", "fastmcp", "--limit", "5"],
+        tmp_path,
+    )
+    assert result.exit_code == 0, result.output
+    assert "fastmcp" in result.output
+    assert "No results found" not in result.output
