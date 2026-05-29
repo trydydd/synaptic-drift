@@ -142,13 +142,14 @@ Each entry records: the decision, the alternatives considered, why we chose what
 
 - ✅ **`heading_path` added to `chunks_fts`** — `db.py:48-52` creates the FTS5 table with `heading_path` as the first column; both triggers updated to include it. `section_tags[0]` from chunkana provides the `##`-level heading; `###` depth requires D14 (custom chunker).
 - ✅ **BM25 column weights tuned** — `fts.py:67` uses `bm25(chunks_fts, 2.5, 1.5, 1.0)` (heading 2.5×, summary 1.5×, content 1.0×). Weight only activates when `heading_path` is non-null; FTS5 treats NULL as empty string for fallback-chunked documents.
-- ✅ **Query sanitization (partial)** — `fts.py` strips FTS5 special characters (`.`, `(`, `)`, `"`, `*`, etc.) before passing to `MATCH`, preventing syntax errors on symbol-heavy queries like `mcp.tool`. Stopword filtering and term normalisation remain deferred.
-- ⬜ **Synonym expansion** — `auth` → `authentication`, `JWT` → `JSON Web Token`. Still deferred.
+- ✅ **Query sanitization** — `fts.py` strips FTS5 special characters (`.`, `(`, `)`, `"`, `*`, etc.) before passing to `MATCH`, preventing syntax errors on symbol-heavy queries like `mcp.tool`.
+- ✅ **Stopword filtering and term normalisation** — `_preprocess_query()` in `fts.py` filters common English function words (articles, auxiliary verbs, prepositions) before the query reaches FTS5. Words that appear in section titles (`how`, `what`, `where`) and FTS5 boolean operators (`AND`, `OR`, `NOT`) pass through unchanged. Falls back to original sanitized query if all tokens are stopwords. Tested in `tests/test_search/test_fts.py`.
+- ⬜ **Synonym expansion** — `auth` → `authentication`, `JWT` → `JSON Web Token`. **Intentionally deferred indefinitely.** Synonym dictionaries are a maintenance burden and address vocabulary mismatch — the same problem that hybrid search (v1.1 contingency) would solve via embeddings. Building a synonym table now would be superseded if hybrid search lands, and is low-value if it does not (FTS5 BM25 IDF already down-weights high-frequency generic terms). See `docs/hybrid-search.md`.
 - ⬜ **Custom tokenizer** — porter stemmer or unicode61 with diacritics removal. Still deferred; low-priority for technical docs where exact terms dominate.
 
 **Schema commitment note**: indexing `heading_path` in FTS5 means future chunker changes (D14) that alter how `heading_path` is computed will require rebuilding the FTS5 index (or a migration). This is acceptable — the index can be rebuilt from the `chunks` table on schema version bump.
 
-**Remaining work**: query preprocessing and synonym expansion are the next two improvements, ordered by impact. Measure search quality against the fastmcp benchmark before considering embeddings.
+**Latency benchmark**: measured P95 ≤80ms against a 100,000-chunk synthetic index; results in `tests/benchmarks/results/latency.json`. Worst-case synthetic corpus (70-word vocabulary, ~44% per-term document frequency); real documentation indices with larger vocabularies achieve sub-10ms for specific technical terms.
 
 ---
 

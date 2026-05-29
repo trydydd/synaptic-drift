@@ -10,6 +10,66 @@ if TYPE_CHECKING:
 
 _FTS5_SPECIAL_RE = re.compile(r"[^\w\s]")
 
+# Conservative set of English function words that carry no search value in
+# technical documentation. Excludes words that can appear in section titles
+# (how, what, where) and FTS5 boolean operators (AND, OR, NOT).
+_STOPWORDS = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "of",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "with",
+        "by",
+        "from",
+        "as",
+        "this",
+        "that",
+        "these",
+        "those",
+        "it",
+        "its",
+    }
+)
+
+
+def _preprocess_query(query: str) -> str:
+    """Strip FTS5 special chars, collapse whitespace, and filter stopwords.
+
+    Falls back to the stopword-filtered-but-not-empty result: if every token
+    is a stopword the original sanitized query is returned unchanged so that
+    the caller can still distinguish a non-empty-input query from a truly
+    empty one.
+    """
+    sanitized = " ".join(_FTS5_SPECIAL_RE.sub(" ", query).split())
+    if not sanitized:
+        return sanitized
+    tokens = sanitized.split()
+    filtered = [t for t in tokens if t.lower() not in _STOPWORDS]
+    return " ".join(filtered) if filtered else sanitized
+
 
 @dataclass
 class SearchResult:
@@ -38,7 +98,7 @@ def search(
     detail: str = "summary",
     limit: int = 10,
 ) -> list[SearchResult]:
-    sanitized = " ".join(_FTS5_SPECIAL_RE.sub(" ", query).split())
+    sanitized = _preprocess_query(query)
     if not sanitized:
         return []
 

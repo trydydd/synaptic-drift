@@ -11,14 +11,16 @@ All queries use SQLite FTS5's built-in BM25 implementation. BM25 is a lexical ra
 **What it does well:**
 
 - Exact and near-exact keyword matches against both `summary` and `content` fields.
-- Fast — FTS5's inverted index makes BM25 sub-10ms for up to 100,000 chunks on commodity hardware.
+- Fast — FTS5's inverted index makes BM25 sub-100ms (measured P95 ≤80ms) for up to 100,000 chunks. Specific technical terms with low document frequency typically achieve sub-10ms.
 - Deterministic — the same query against the same index always returns the same ranking.
 
 **What it does not do:**
 
-- Semantic or synonym matching (e.g. "auth" does not automatically match "authentication").
+- Semantic or synonym matching (e.g. "auth" does not automatically match "authentication"). Vocabulary-mismatch failures that tuned FTS5 cannot address are the trigger for hybrid search (v1.1 contingency).
 - Cross-chunk relevance reasoning — it ranks each chunk independently.
 - Preference for shorter, denser answers over longer ones with more keyword repetitions.
+
+**Query preprocessing** — before the FTS5 `MATCH` is issued, common English function words (articles, auxiliary verbs, prepositions) are stripped from the query. FTS5 boolean operators (`AND`, `OR`, `NOT`) and words that appear in section titles (`how`, `what`, `where`) pass through unchanged.
 
 The FTS5 index covers three columns with differentiated BM25 weights (`bm25(chunks_fts, 2.5, 1.5, 1.0)`):
 

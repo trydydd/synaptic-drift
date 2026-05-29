@@ -1,0 +1,46 @@
+{
+  "chunk_count": 100000,
+  "reps_per_query": 50,
+  "queries": {
+    "single_common_term": {
+      "query": "install",
+      "limit": 10,
+      "p50_ms": 73.508,
+      "p95_ms": 78.276,
+      "min_ms": 69.166,
+      "max_ms": 87.059
+    },
+    "multi_term": {
+      "query": "install package",
+      "limit": 10,
+      "p50_ms": 45.862,
+      "p95_ms": 60.096,
+      "min_ms": 43.597,
+      "max_ms": 73.223
+    },
+    "rare_term": {
+      "query": "sigstore",
+      "limit": 10,
+      "p50_ms": 68.515,
+      "p95_ms": 72.417,
+      "min_ms": 66.6,
+      "max_ms": 79.347
+    },
+    "high_limit_common": {
+      "query": "configuration",
+      "limit": 20,
+      "p50_ms": 0.024,
+      "p95_ms": 0.062,
+      "min_ms": 0.024,
+      "max_ms": 0.097
+    },
+    "mixed_terms": {
+      "query": "authentication token",
+      "limit": 10,
+      "p50_ms": 44.018,
+      "p95_ms": 47.154,
+      "min_ms": 42.722,
+      "max_ms": 68.946
+    }
+  }
+}
