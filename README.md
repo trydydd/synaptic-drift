@@ -71,7 +71,7 @@ Every result tells the agent what it found, where it came from, and whether it s
 
 **Verifiable** — every pack carries cryptographic hashes. Tampering at any level is detectable before content enters your index.
 
-**Fast** — sub-10ms queries via SQLite FTS5. No embedding model, no vector database, no GPU. [Benchmark details →](docs/benchmarks.md)
+**Fast** — queries complete in under 25ms P95 against 100K real documentation chunks via SQLite FTS5 (3–6ms for specific technical terms, ~11ms for common words). No embedding model, no vector database, no GPU. [Benchmark details →](docs/benchmarks.md)
 
 **Source-attributed** — every query result carries provenance metadata. Your agent knows exactly where its information came from.
 
