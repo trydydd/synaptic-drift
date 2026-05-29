@@ -480,3 +480,39 @@ The URL noise filter (`DEFAULT_NOISE_URL_PATTERNS`) already handles the canonica
 - `scripts/validate_chunk_sizes.py`: live validation against MCP and FastMCP `llms-full.txt`.
 
 **Revisit when**: real user feedback shows that oversized structural-token chunks (tables, code blocks) materially degrade search quality in a way that automatic splitting would fix without worse side effects; or when the warning system generates enough data about which structural bypasses are most common to design a targeted mitigation.
+
+---
+
+## D25: Synonym Expansion — Deferred Indefinitely
+
+**Decision**: do not implement a synonym expansion system (e.g. `auth` → `authentication`, `JWT` → `JSON Web Token`).
+
+**Rationale**: synonym expansion was listed as a pending v0.2.0 FTS5 tuning item but its cost/benefit doesn't justify implementation:
+
+1. **BM25 IDF already handles frequency** — FTS5's inverse document frequency component naturally down-weights tokens that appear in many chunks. High-frequency synonyms (`api`, `auth`) already have low IDF weight, so adding `auth → authentication` would boost exactly the noisy matches BM25 is already trying to suppress.
+2. **Direct overlap with hybrid search** — The vocabulary mismatch problem (a user queries `JWT` but docs say `JSON Web Token`) is precisely what the v1.1 hybrid search contingency addresses via embedding-based semantic similarity. Building a hand-curated synonym dictionary solves a narrow slice of the same problem at higher maintenance cost and without the generalization.
+3. **Maintenance burden** — A synonym dictionary requires ongoing curation as the documentation corpus grows. Different domains need different synonym rules; a single table cannot generalize. This cost compounds forever.
+4. **The contingency design is deliberate** — hybrid search (v1.1) is gated on evidence of real vocabulary-mismatch failures. Until that evidence arrives, FTS5 is sufficient. Building the thing hybrid search would supersede preemptively violates the "no premature optimization" principle.
+
+**Alternatives considered**:
+- **Hand-curated domain dictionary** — highest quality for known terms, but brittle, domain-specific, and immediately superseded if hybrid search lands.
+- **Automatic synonym generation via WordNet or similar** — adds a dependency, produces noisy expansions for technical terms (WordNet knows `token` as a travel pass, not an API credential).
+- **Query rewriting via LLM** — introduces an LLM dependency at query time, breaking the local-first constraint.
+
+**Revisit when**: v1.1 hybrid search contingency is triggered (real evidence of vocabulary-mismatch failures that tuned FTS5 cannot address). If hybrid search lands, this question is permanently closed. If hybrid search doesn't land, revisit synonym expansion only with concrete query failure data as motivation.
+
+---
+
+## D26: FTS5 Latency Benchmark — Real Corpus Required
+
+**Decision**: the FTS5 latency benchmark must use a real documentation corpus, not a synthetic one.
+
+**Background**: the initial implementation used a synthetic corpus with a 70-word vocabulary and uniform random term assignment. This gave P50 latencies of 44–78ms. Replacing it with 100,116 real documentation chunks (59 packs from `directory.llmstxt.cloud`) gave P50 latencies of 0.15–21ms depending on query type.
+
+**Why synthetic corpora mislead for FTS5**: FTS5 BM25 query time is O(posting-list-size) — proportional to how many chunks match the query term(s). A 70-word vocabulary with uniform distribution gives every term a ~44% document frequency, so every query scans ~44,000 matching chunks in a 100K corpus. Real documentation vocabulary has a long-tail distribution: most technical terms (class names, method names, config keys, product-specific jargon) appear in < 1% of chunks. The benchmark's most important case — a specific technical term from a library's API — completes in < 1ms, not 78ms. A synthetic corpus produces worst-case numbers that misrepresent the dominant query pattern.
+
+**Implication**: whenever FTS5 performance is re-measured (e.g. after an FTS5 configuration change, or after a Python/SQLite version upgrade), the benchmark must be run against the real corpus. The 100ms P95 regression guard in `tests/benchmarks/test_query_latency.py` is calibrated for real data; running it against a synthetic corpus would produce false failures.
+
+**Setup**: `python scripts/build_benchmark_packs.py` fetches and builds the 59-pack corpus. Already-built packs are skipped, so re-running after a partial build is safe.
+
+**Revisit when**: never for the core methodology. The corpus list in `scripts/build_benchmark_packs.py` should be refreshed periodically as sites update their `llms-full.txt` content and as new sites are added to `directory.llmstxt.cloud`.

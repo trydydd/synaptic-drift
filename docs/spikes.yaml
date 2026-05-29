@@ -443,6 +443,79 @@ spikes:
       - docs/decisions.md
     blocked_by: []
 
+  - id: S11
+    title: Non-Mintlify llms-full.txt format support
+    status: open
+    outcome: null
+    context: |
+      synd build --source <url>/llms-full.txt currently only handles the Mintlify
+      format, which delimits pages with "Source: <url>" boundary lines. During
+      benchmark corpus construction (59 packs, 100K chunks from directory.llmstxt.cloud)
+      we discovered that a significant fraction of major documentation sites use
+      incompatible formats and produce "No pages found" errors:
+
+        - Cloudflare (developers.cloudflare.com): YAML frontmatter blocks (--- ... ---)
+          as page separators, no "Source:" lines
+        - Svelte (svelte.dev): single flat file opening with <SYSTEM> tag, no page
+          boundaries
+        - GenAIScript (microsoft.github.io/genaiscript): empty or non-standard format
+        - Mintlify itself (mintlify.com/docs): redirects, non-parseable
+        - BuildWithFern, Codeium, Dynamic, Clerk, Apify, Commerce Layer, Zep: all
+          returned 0 "Source:" lines; formats unconfirmed
+
+      Cloudflare is the highest-value miss — it has extensive developer documentation
+      (Workers, Pages, AI, R2, D1, KV, Queues, etc.) that would be extremely useful
+      to index, and the YAML frontmatter format is clearly structured and parseable.
+      Svelte's <SYSTEM> tag file is a different but also regular format.
+
+      The current llms_full.py preprocessor (src/synd/builder/llms_full.py) has a
+      single parse_llms_full_txt() function that splits on "Source: " lines. It has
+      no format detection or fallback.
+    task: |
+      Survey the incompatible formats encountered and design a format-detection
+      strategy for build_pack_from_url() when given an llms-full.txt URL:
+
+      1. Confirm the exact format of each incompatible site by fetching samples:
+         - Cloudflare: how does each "page" start? Is the separator always "---\ntitle:"?
+           Does the YAML block contain a canonical URL field usable as source_url?
+         - Svelte: is there any page-level boundary at all, or is it one giant flat file?
+           If flat, how should it be chunked? (Single source document with heading-based
+           splitting, analogous to a local .md file.)
+         - At least 2 others from the zero-Source list to characterise the spread.
+
+      2. Recommend a format detection approach:
+         - Auto-detect from content (e.g. "starts with ---\ntitle:" → YAML frontmatter
+           format; "starts with <SYSTEM>" → flat file; "contains Source: lines" →
+           existing Mintlify path)?
+         - Explicit --format flag on synd build?
+         - Or detect automatically with a --format override escape hatch?
+
+      3. Scope the implementation for the Cloudflare YAML frontmatter format:
+         - Extract source_url from each page's frontmatter (likely the "url" or
+           "canonical" key, or derived from the "title" + directory structure)
+         - Extract page title from frontmatter "title" key
+         - Pass page body (after the closing ---) to the existing chunker pipeline
+         - Estimate effort in lines of new code
+
+      4. Consider the flat-file case (Svelte-style): should a flat llms-full.txt
+         with no page boundaries be treated as a single source document chunked by
+         heading? If so, source_url = the llms-full.txt URL itself; heading_path
+         values are relative to the file's structure.
+
+      The spike is complete when: format coverage is characterised, a detection
+      strategy is recommended, and the Cloudflare YAML case has a concrete
+      implementation sketch.
+    success: |
+      A characterisation of each incompatible format with sample content.
+      A recommended format detection strategy (auto vs flag).
+      A concrete implementation sketch for the Cloudflare YAML frontmatter case.
+      An estimate of effort for each format.
+    files:
+      - src/synd/builder/llms_full.py
+      - src/synd/builder/build.py
+      - docs/decisions.md
+    blocked_by: []
+
   - id: S9
     title: Chunk size gate — warning threshold and oversized chunk handling
     status: done
