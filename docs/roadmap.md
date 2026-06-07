@@ -11,7 +11,7 @@ v0.1.1 is complete. Active development is on v0.2.0 (402 tests passing).
 - `--max/min/warn-chunk-tokens` CLI params; default max raised 500 → 800; oversized-chunk warnings
 - Minimum-token stub suppression (heading boundaries + trailing sections)
 
-**Next up:** PyPI release (blocked on `twine upload` step), FTS5 query preprocessing.
+**Next up:** PyPI release. The publish step is written but unreachable on the automated path (see the Release section below for the exact trigger gap and fix); FTS5 query preprocessing is done.
 
 ---
 
@@ -170,9 +170,12 @@ v0.1.1 is complete. Active development is on v0.2.0 (402 tests passing).
 
 ### Release — after foundation + S5
 
-- [ ] **PyPI release** (`pip install synaptic-drift`, `pip install synaptic-drift[build]`) — blocked on resolving the MCP server packaging: either a CLI-only release that excludes the server, or a refactor of the server layer to remove the dependency conflict. Release workflow already produces artifacts; needs a `twine upload` / `pypi-publish` step once unblocked.
-  - *[S5](docs/spikes.yaml) resolved — optional `[serve]` extra approach confirmed. Needs `twine upload` / `pypi-publish` step wired into release workflow.*
-- [ ] **Validator optimization** — refactor `_read_archive_bytes()` to avoid full in-memory ZIP reconstruction for digest computation. The current implementation reads the entire ZIP into memory, then reconstructs a second in-memory ZIP — decompressing and re-compressing every file — solely to zero out `pack_digest` and hash the result. Near the 500MB archive limit this allocates 500MB+, decompresses everything, and holds it all in memory simultaneously. Fix: hash individual entries in a defined order instead of reconstructing the archive.
+- [ ] **PyPI release** (`pip install synaptic-drift`, `pip install synaptic-drift[serve]`) — the packaging conflict is resolved ([S5](docs/spikes.yaml) — `mcp` is an optional `[serve]` extra, base install has no server dependency), and a `pypa/gh-action-pypi-publish` (OIDC trusted publisher) `publish` job already exists. The actual remaining blocker is a **CI trigger gap**, plus metadata gaps and an external prerequisite:
+  - **Orphaned publish job (the real blocker).** The `publish` job lives only in `release.yml`, which fires on `push: tags: v*`. But the automated release path (`cut-release.yml` → PR → merge → `auto-release.yml`) creates the release *and its tag* via the GitHub API using `GITHUB_TOKEN`. GitHub's loop-prevention policy means a `GITHUB_TOKEN`-created tag does **not** trigger `on: push: tags` workflows — so `release.yml` never fires and nothing is uploaded to PyPI. `auto-release.yml`'s header comment confirms the no-double-fire behaviour is intentional, but the side effect is that publishing is unreachable.
+    - **Recommended fix:** move/add the `publish` job into `auto-release.yml` (it already builds `dist/` in-job; append an OIDC publish job with `environment: name: pypi`). Then `release.yml` can either be retired or kept solely for manual PAT-driven tag pushes. *Do not* switch the automated path back to a PAT-pushed tag — that reintroduces the loop-prevention bug `auto-release.yml` was created to fix.
+  - **Metadata gaps.** `pyproject.toml` has no `description`, `readme`, `license`, `authors`, `classifiers`, or `[project.urls]`. The package uploads but renders a blank PyPI page. Fill these before the first publish.
+  - **External prerequisite (cannot be done from the repo).** Configure a PyPI Trusted Publisher on pypi.org for `synaptic-drift`, scoped to repo `trydydd/synaptic-drift`, the **workflow filename that runs `publish`** (must match wherever the job ends up — `auto-release.yml` under the recommended fix), and environment name `pypi`. Trusted publishers are bound to a specific workflow filename, so this must be kept in sync with the fix above. A pending-publisher entry can be created before the project's first release.
+- [x] **Validator optimization** — `compute_pack_digest()` now hashes each ZIP entry's content directly in filename-sorted order, eliminating the full in-memory ZIP reconstruction. The previous implementation read the entire archive into memory and rebuilt a second in-memory ZIP — decompressing and re-compressing every file — solely to zero out `pack_digest` before hashing, allocating 500MB+ near the archive limit. See `src/synd/builder/manifest.py:compute_pack_digest`; merged in PR #38.
 
 ### Discovery — after PyPI release + pre-built packs
 
