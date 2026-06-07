@@ -1,9 +1,11 @@
 import json
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
-from tank.builder.build import build_pack
-from tank.errors import BuildError
+from synd.builder.build import build_pack, build_pack_from_url
+from synd.builder.llms_full import LlmsFullPage
+from synd.errors import BuildError
 
 
 def _fixture_path(name: str = "sample_docs") -> Path:
@@ -13,12 +15,13 @@ def _fixture_path(name: str = "sample_docs") -> Path:
 def _build(tmp_path: Path, source: Path | None = None) -> Path:
     src = source or _fixture_path()
     output = tmp_path / "packs"
-    return build_pack(
+    ctx_path, _ = build_pack(
         package="test-lib",
         version="1.0.0",
         source=src,
         output=output,
     )
+    return ctx_path
 
 
 def test_build_produces_valid_ctx(tmp_path: Path) -> None:
@@ -39,7 +42,29 @@ def test_build_produces_valid_ctx(tmp_path: Path) -> None:
         assert manifest["pack_digest"].startswith("sha256:")
         assert manifest["normalized_content_hash"].startswith("sha256:")
         assert manifest["schema_version"] == 2
-        assert manifest["pack_format"] == "tank-text-v1"
+        assert manifest["pack_format"] == "synd-text-v1"
+
+
+def test_build_emits_schema_valid_artifacts(tmp_path: Path) -> None:
+    """Every artifact a real build writes validates against its JSON Schema.
+
+    Closes the loop with the verifier: what build emits, verify accepts.
+    """
+    from synd.schemas import validate_chunk, validate_manifest, validate_pages
+
+    ctx_path = _build(tmp_path)
+    with zipfile.ZipFile(ctx_path, "r") as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+        chunk_lines = zf.read("chunks.jsonl").decode("utf-8").strip().split("\n")
+        pages = json.loads(zf.read("pages.json"))
+
+    validate_manifest(manifest)
+    assert chunk_lines and chunk_lines[0]
+    for line in chunk_lines:
+        validate_chunk(json.loads(line))
+    validate_pages(pages)
+    assert len(pages) == manifest["pages"]
+    assert len(chunk_lines) == manifest["chunks"]
 
 
 def test_build_deterministic_hash(tmp_path: Path) -> None:
@@ -60,12 +85,13 @@ def test_build_deterministic_hash(tmp_path: Path) -> None:
 
 
 def _build_with_output(output: Path) -> Path:
-    return build_pack(
+    ctx_path, _ = build_pack(
         package="test-lib",
         version="1.0.0",
         source=_fixture_path(),
         output=output,
     )
+    return ctx_path
 
 
 def test_build_source_url_relative_paths(tmp_path: Path) -> None:
@@ -81,7 +107,7 @@ def test_build_source_url_relative_paths(tmp_path: Path) -> None:
     old_cwd = os.getcwd()
     os.chdir(tmp_path)
     try:
-        ctx_path = build_pack(
+        ctx_path, _ = build_pack(
             package="test-lib",
             version="1.0.0",
             source=Path("./docs"),
@@ -140,7 +166,7 @@ def test_source_url_does_not_strip_source_dir_name(tmp_path: Path) -> None:
     old_cwd = os.getcwd()
     os.chdir(tmp_path)
     try:
-        ctx_path = build_pack(
+        ctx_path, _ = build_pack(
             package="test-lib",
             version="1.0.0",
             source=Path("./docs"),
@@ -181,7 +207,7 @@ def test_build_doc_version_status_passed_through(tmp_path: Path) -> None:
     source = _fixture_path()
     for status in ("stable", "prerelease", "archived", "unknown"):
         output = tmp_path / f"packs_{status}"
-        ctx_path = build_pack(
+        ctx_path, _ = build_pack(
             package="test-lib",
             version="1.0.0",
             source=source,
@@ -201,3 +227,236 @@ def test_build_doc_version_status_defaults_to_stable(tmp_path: Path) -> None:
     with zipfile.ZipFile(ctx_path, "r") as zf:
         manifest = json.loads(zf.read("manifest.json"))
     assert manifest["doc_version_status"] == "stable"
+
+
+def test_source_urls_use_forward_slashes(tmp_path: Path) -> None:
+    """All source_url values in a built pack must use forward slashes only."""
+    ctx_path = _build(tmp_path)
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+        chunks_lines = zf.read("chunks.jsonl").decode()
+        pages = json.loads(zf.read("pages.json"))
+
+    # manifest source_url
+    assert "\\" not in (manifest.get("source_url") or ""), (
+        f"manifest source_url contains backslash: {manifest.get('source_url')}"
+    )
+
+    # chunk source_urls
+    for line in chunks_lines.strip().split("\n"):
+        if not line:
+            continue
+        chunk = json.loads(line)
+        assert "\\" not in (chunk.get("source_url") or ""), (
+            f"chunk source_url contains backslash: {chunk.get('source_url')}"
+        )
+
+    # page urls
+    for page in pages:
+        assert "\\" not in (page.get("url") or ""), (
+            f"page url contains backslash: {page.get('url')}"
+        )
+
+
+def test_discover_files_sorted_by_forward_slash_path(tmp_path: Path) -> None:
+    """discover_files returns files sorted by their forward-slash relative path."""
+    from synd.builder.chunking import discover_files
+
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "z_file.md").write_text("# Z\n")
+    sub = docs / "a_sub"
+    sub.mkdir()
+    (sub / "first.md").write_text("# First\n")
+    result = discover_files(docs)
+    # "a_sub/first.md" sorts before "z_file.md" in forward-slash lexicographic order
+    assert len(result) == 2
+    rel_paths = [p.relative_to(docs).as_posix() for p in result]
+    assert rel_paths == sorted(rel_paths), f"Not sorted: {rel_paths}"
+
+
+# --- build_pack_from_url ---
+
+_FAKE_LLMS_TXT_PAGES = [
+    (
+        "https://docs.example.com/intro.md",
+        "# Introduction\n\nWelcome to the library.\n",
+    ),
+    (
+        "https://docs.example.com/api.md",
+        "# API Reference\n\nUse `client.get()` to fetch data.\n",
+    ),
+]
+
+_FAKE_LLMS_FULL_PAGES = [
+    LlmsFullPage(
+        url="https://docs.example.com/intro.md", content="# Introduction\n\nWelcome.\n"
+    ),
+    LlmsFullPage(
+        url="https://docs.example.com/api.md",
+        content="# API Reference\n\nDetails here.\n",
+    ),
+]
+
+
+def test_build_pack_from_url_llms_txt_produces_valid_ctx(tmp_path: Path) -> None:
+    with patch("synd.builder.build.fetch_pages", return_value=_FAKE_LLMS_TXT_PAGES):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url="https://docs.example.com/llms.txt",
+            output=tmp_path / "packs",
+        )
+
+    assert ctx_path.exists()
+    assert ctx_path.suffix == ".ctx"
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+        assert manifest["package"] == "test-lib"
+        assert manifest["version"] == "1.0.0"
+        assert manifest["pack_digest"].startswith("sha256:")
+        assert manifest["source_url"] == "https://docs.example.com/llms.txt"
+
+
+def test_build_pack_from_url_llms_full_txt_produces_valid_ctx(tmp_path: Path) -> None:
+    with patch(
+        "synd.builder.build.fetch_llms_full_pages", return_value=_FAKE_LLMS_FULL_PAGES
+    ):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url="https://docs.example.com/llms-full.txt",
+            output=tmp_path / "packs",
+        )
+
+    assert ctx_path.exists()
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+        assert manifest["source_url"] == "https://docs.example.com/llms-full.txt"
+
+
+def test_build_pack_from_url_chunk_source_url_is_page_url(tmp_path: Path) -> None:
+    with patch("synd.builder.build.fetch_pages", return_value=_FAKE_LLMS_TXT_PAGES):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url="https://docs.example.com/llms.txt",
+            output=tmp_path / "packs",
+        )
+
+    with zipfile.ZipFile(ctx_path) as zf:
+        chunks = [
+            json.loads(ln)
+            for ln in zf.read("chunks.jsonl").decode().strip().split("\n")
+        ]
+    urls = {c["source_url"] for c in chunks}
+    assert "https://docs.example.com/intro.md" in urls
+    assert "https://docs.example.com/api.md" in urls
+
+
+def test_build_pack_from_url_page_url_is_full_url(tmp_path: Path) -> None:
+    with patch("synd.builder.build.fetch_pages", return_value=_FAKE_LLMS_TXT_PAGES):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url="https://docs.example.com/llms.txt",
+            output=tmp_path / "packs",
+        )
+
+    with zipfile.ZipFile(ctx_path) as zf:
+        pages = json.loads(zf.read("pages.json"))
+    page_urls = {p["url"] for p in pages}
+    assert "https://docs.example.com/intro.md" in page_urls
+
+
+def test_build_pack_from_url_heading_path_uses_url_stem(tmp_path: Path) -> None:
+    with patch("synd.builder.build.fetch_pages", return_value=_FAKE_LLMS_TXT_PAGES):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url="https://docs.example.com/llms.txt",
+            output=tmp_path / "packs",
+        )
+
+    with zipfile.ZipFile(ctx_path) as zf:
+        chunks = [
+            json.loads(ln)
+            for ln in zf.read("chunks.jsonl").decode().strip().split("\n")
+        ]
+    prefixes = {c["heading_path"].split(" / ")[0] for c in chunks}
+    assert "intro" in prefixes
+    assert "api" in prefixes
+
+
+def test_build_pack_from_url_unsupported_url_raises(tmp_path: Path) -> None:
+    try:
+        build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url="https://docs.example.com/README.md",
+            output=tmp_path / "packs",
+        )
+    except BuildError as exc:
+        assert "Unsupported URL source" in str(exc)
+    else:
+        assert False, "Expected BuildError"
+
+
+def test_build_html_source_chunks_contain_no_raw_tags(tmp_path: Path) -> None:
+    """build_pack() from a directory of .html files must convert HTML before chunking."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "quickstart.html").write_text(
+        "<html><body><h1>Quickstart</h1>"
+        "<h2>Installation</h2><p>Run pip install.</p>"
+        "</body></html>"
+    )
+    ctx_path, _ = build_pack(
+        package="test-lib",
+        version="1.0.0",
+        source=docs,
+        output=tmp_path / "packs",
+    )
+    with zipfile.ZipFile(ctx_path) as zf:
+        chunks = [
+            json.loads(ln)
+            for ln in zf.read("chunks.jsonl").decode().strip().split("\n")
+        ]
+    all_content = " ".join(c["content"] for c in chunks)
+    assert "<h1>" not in all_content
+    assert "<h2>" not in all_content
+    assert "<p>" not in all_content
+    assert "&quot;" not in all_content
+
+
+def test_build_html_source_page_title_from_h1(tmp_path: Path) -> None:
+    """build_pack() must extract the page title from the HTML <h1>, not raw markup."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "guide.html").write_text(
+        "<html><body><h1>User Guide</h1><p>Content.</p></body></html>"
+    )
+    ctx_path, _ = build_pack(
+        package="test-lib",
+        version="1.0.0",
+        source=docs,
+        output=tmp_path / "packs",
+    )
+    with zipfile.ZipFile(ctx_path) as zf:
+        pages = json.loads(zf.read("pages.json"))
+    assert pages[0]["title"] == "User Guide"
+
+
+def test_build_pack_from_url_no_pages_raises(tmp_path: Path) -> None:
+    with patch("synd.builder.build.fetch_pages", return_value=[]):
+        try:
+            build_pack_from_url(
+                package="test-lib",
+                version="1.0.0",
+                source_url="https://docs.example.com/llms.txt",
+                output=tmp_path / "packs",
+            )
+        except BuildError as exc:
+            assert "No pages" in str(exc)
+        else:
+            assert False, "Expected BuildError"

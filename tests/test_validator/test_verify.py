@@ -8,10 +8,12 @@ import time
 import zipfile
 from pathlib import Path
 
+import pytest
 
-from tank.builder.build import build_pack
-from tank.policy.engine import Policy
-from tank.validator.verify import VerifyResult, verify
+from synd.builder.build import build_pack
+from synd.builder.manifest import compute_pack_digest as _compute_pack_digest
+from synd.policy.engine import Policy
+from synd.validator.verify import VerifyResult, verify
 
 _REQUIRED_FIELDS = [
     "schema_version",
@@ -43,12 +45,13 @@ def _build_valid_ctx(tmp_path: Path) -> Path:
     try:
         output = tmp_path / "packs"
         output.mkdir()
-        return build_pack(
+        ctx_path, _ = build_pack(
             package="test-lib",
             version="1.0.0",
             source=_fixture_path(),
             output=output,
         )
+        return ctx_path
     finally:
         os.chdir(old_cwd)
 
@@ -69,7 +72,6 @@ def _rewrite_archive_keep_digest(
 
     First builds the modified archive, then computes the correct digest.
     """
-    import hashlib as _hashlib
     import io as _io
 
     result = src.parent / (src.stem + "_rebuilt" + src.suffix)
@@ -99,17 +101,7 @@ def _rewrite_archive_keep_digest(
                     zf.writestr(name, data)
 
     # Step 2: Compute pack_digest from the modified archive
-    buf = _io.BytesIO()
-    with zipfile.ZipFile(result, "r") as zf:
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out:
-            for item in zf.infolist():
-                data = zf.read(item.filename)
-                if item.filename == "manifest.json":
-                    zeroed = dict(manifest)
-                    zeroed["pack_digest"] = ""
-                    data = json.dumps(zeroed, indent=2, sort_keys=True).encode()
-                out.writestr(item, data)
-    digest = "sha256:" + _hashlib.sha256(buf.getvalue()).hexdigest()
+    digest = _compute_pack_digest(result)
 
     # Step 3: Update manifest with the real digest
     manifest["pack_digest"] = digest
@@ -130,12 +122,14 @@ def _rewrite_archive_keep_digest(
     return result
 
 
+_ZIP_EPOCH = (2021, 8, 8, 0, 0, 0)
+
+
 def _rewrite_archive_with_modified_chunks(
     src: Path,
     content_replacements: dict[int, str],
 ) -> Path:
     """Rewrite archive with modified chunk content, correct digest."""
-    import hashlib as _hashlib
     import io as _io
 
     result = src.parent / (src.stem + "_rebuilt" + src.suffix)
@@ -157,33 +151,38 @@ def _rewrite_archive_with_modified_chunks(
         else:
             new_chunks += "\n"
 
-    # Compute correct pack_digest
-    buf = _io.BytesIO()
-    with zipfile.ZipFile(src, "r") as zf:
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out:
-            zeroed = dict(manifest)
-            zeroed["pack_digest"] = ""
-            out.writestr(
-                "manifest.json", json.dumps(zeroed, indent=2, sort_keys=True).encode()
-            )
-            out.writestr("chunks.jsonl", new_chunks.encode())
-            for name in zf.namelist():
-                if name in ("manifest.json", "chunks.jsonl"):
+    # Step 1: Write result with modified chunks and pack_digest="" to allow digest computation
+    zeroed = dict(manifest)
+    zeroed["pack_digest"] = ""
+    with zipfile.ZipFile(result, "w", zipfile.ZIP_DEFLATED) as zf:
+        manifest_info = zipfile.ZipInfo("manifest.json", date_time=_ZIP_EPOCH)
+        manifest_info.compress_type = zipfile.ZIP_DEFLATED
+        zf.writestr(
+            manifest_info, json.dumps(zeroed, indent=2, sort_keys=True).encode()
+        )
+        chunks_info = zipfile.ZipInfo("chunks.jsonl", date_time=_ZIP_EPOCH)
+        chunks_info.compress_type = zipfile.ZIP_DEFLATED
+        zf.writestr(chunks_info, new_chunks.encode())
+        with zipfile.ZipFile(src, "r") as orig:
+            for orig_item in orig.infolist():
+                if orig_item.filename in ("manifest.json", "chunks.jsonl"):
                     continue
-                out.writestr(name, zf.read(name))
-    digest = "sha256:" + _hashlib.sha256(buf.getvalue()).hexdigest()
+                zf.writestr(orig_item, orig.read(orig_item.filename))
+
+    # Step 2: Compute digest from the written archive
+    digest = _compute_pack_digest(result)
     manifest["pack_digest"] = digest
 
-    with zipfile.ZipFile(result, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(
-            "manifest.json", json.dumps(manifest, indent=2, sort_keys=True).encode()
-        )
-        zf.writestr("chunks.jsonl", new_chunks.encode())
-        with zipfile.ZipFile(src, "r") as orig:
-            for name in orig.namelist():
-                if name in ("manifest.json", "chunks.jsonl"):
-                    continue
-                zf.writestr(name, orig.read(name))
+    # Step 3: Rewrite result with the real digest in manifest
+    buf = _io.BytesIO()
+    with zipfile.ZipFile(result, "r") as zf:
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out:
+            for item in zf.infolist():
+                data = zf.read(item.filename)
+                if item.filename == "manifest.json":
+                    data = json.dumps(manifest, indent=2, sort_keys=True).encode()
+                out.writestr(item, data)
+    result.write_bytes(buf.getvalue())
 
     return result
 
@@ -199,17 +198,17 @@ def _make_manifest(**overrides: object) -> dict:
     """Create a minimal valid manifest with optional overrides."""
     m = {
         "schema_version": 2,
-        "pack_format": "tank-text-v1",
+        "pack_format": "synd-text-v1",
         "package": "test-lib",
         "version": "1.0.0",
-        "pack_digest": "sha256:abc",
-        "normalized_content_hash": "sha256:def",
+        "pack_digest": "sha256:" + "a" * 64,
+        "normalized_content_hash": "sha256:" + "b" * 64,
         "chunks": 1,
         "pages": 1,
         "lifecycle_state": "approved",
         "doc_version_status": "stable",
         "created_at": time.time(),
-        "created_by": "tank/0.1.0",
+        "created_by": "synd/0.1.1",
     }
     m.update(overrides)
     return m
@@ -493,7 +492,7 @@ def test_step6_pack_digest_mismatch(tmp_path: Path) -> None:
     """Archive with tampered pack_digest fails at step 6."""
     ctx = tmp_path / "bad.ctx"
     manifest = _make_manifest()
-    manifest["pack_digest"] = "sha256:wrong"
+    manifest["pack_digest"] = "sha256:" + "0" * 64
     _create_zip_with_entries(
         ctx,
         {
@@ -520,7 +519,7 @@ def test_step7_content_hash_mismatch(tmp_path: Path) -> None:
     build_dir.mkdir(parents=True, exist_ok=True)
     output = build_dir / "packs"
     output.mkdir()
-    ctx_path = build_pack(
+    ctx_path, _ = build_pack(
         package="test-lib",
         version="1.0.0",
         source=_fixture_path(),
@@ -545,7 +544,7 @@ def test_step8_signature_required_but_missing(tmp_path: Path) -> None:
     build_dir.mkdir(parents=True, exist_ok=True)
     output = build_dir / "packs"
     output.mkdir()
-    ctx_path = build_pack(
+    ctx_path, _ = build_pack(
         package="test-lib",
         version="1.0.0",
         source=_fixture_path(),
@@ -574,7 +573,7 @@ def test_step8_signature_present_passes(tmp_path: Path) -> None:
     build_dir.mkdir(parents=True, exist_ok=True)
     output = build_dir / "packs"
     output.mkdir()
-    ctx_path = build_pack(
+    ctx_path, _ = build_pack(
         package="test-lib",
         version="1.0.0",
         source=_fixture_path(),
@@ -607,7 +606,7 @@ def test_verify_does_not_extract_to_disk(tmp_path: Path) -> None:
     build_dir.mkdir(parents=True, exist_ok=True)
     output = build_dir / "packs"
     output.mkdir()
-    ctx_path = build_pack(
+    ctx_path, _ = build_pack(
         package="test-lib",
         version="1.0.0",
         source=_fixture_path(),
@@ -648,7 +647,7 @@ def test_step6_does_not_pass_tampered_manifest(tmp_path: Path) -> None:
     build_dir.mkdir(parents=True, exist_ok=True)
     output = build_dir / "packs"
     output.mkdir()
-    ctx = build_pack(
+    ctx, _ = build_pack(
         package="test-lib",
         version="1.0.0",
         source=_fixture_path(),
@@ -687,3 +686,179 @@ def test_verify_returns_verify_result_not_raises(tmp_path: Path) -> None:
     result = verify(ctx, policy)
     assert isinstance(result, VerifyResult)
     assert result.passed is False
+
+
+def test_step2_rejects_wrong_type(tmp_path: Path) -> None:
+    """Manifest with chunks as a string is rejected at step 2."""
+    ctx = tmp_path / "bad.ctx"
+    manifest = _make_manifest(chunks="bad")
+    _create_zip_with_entries(
+        ctx,
+        {
+            "manifest.json": json.dumps(manifest, sort_keys=True).encode(),
+            "chunks.jsonl": b'{"id":1,"content":"hello"}\n',
+            "pages.json": b"[]",
+            "signatures/": b"",
+        },
+    )
+    policy = Policy.default()
+    result = verify(ctx, policy)
+    assert result.passed is False
+    assert result.step == 2
+
+
+def test_step2_rejects_bad_lifecycle_enum(tmp_path: Path) -> None:
+    """Manifest with lifecycle_state 'active' (not in enum) is rejected at step 2."""
+    ctx = tmp_path / "bad.ctx"
+    manifest = _make_manifest(lifecycle_state="active")
+    _create_zip_with_entries(
+        ctx,
+        {
+            "manifest.json": json.dumps(manifest, sort_keys=True).encode(),
+            "chunks.jsonl": b'{"id":1,"content":"hello"}\n',
+            "pages.json": b"[]",
+            "signatures/": b"",
+        },
+    )
+    policy = Policy.default()
+    result = verify(ctx, policy)
+    assert result.passed is False
+    assert result.step == 2
+
+
+def test_step4_windows_drive_letter_rejected(tmp_path: Path) -> None:
+    """Archive entry with Windows drive letter fails at step 4."""
+    ctx = tmp_path / "bad.ctx"
+    manifest = _make_manifest()
+    _create_zip_with_entries(
+        ctx,
+        {
+            "manifest.json": json.dumps(manifest, sort_keys=True).encode(),
+            "C:/etc/passwd": b"win drive",
+            "chunks.jsonl": b"",
+            "pages.json": b"[]",
+            "signatures/": b"",
+        },
+    )
+    result = verify(ctx, Policy.load())
+    assert result.passed is False
+    assert result.step == 4
+    assert "absolute" in result.reason.lower()
+
+
+def test_step4_unc_path_rejected(tmp_path: Path) -> None:
+    """Archive entry with UNC path fails at step 4."""
+    ctx = tmp_path / "bad.ctx"
+    manifest = _make_manifest()
+    _create_zip_with_entries(
+        ctx,
+        {
+            "manifest.json": json.dumps(manifest, sort_keys=True).encode(),
+            "//server/share/file.txt": b"unc path",
+            "chunks.jsonl": b"",
+            "pages.json": b"[]",
+            "signatures/": b"",
+        },
+    )
+    result = verify(ctx, Policy.load())
+    assert result.passed is False
+    assert result.step == 4
+    assert "absolute" in result.reason.lower()
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "schema_version",
+        "pack_format",
+        "package",
+        "version",
+        "pack_digest",
+        "normalized_content_hash",
+        "chunks",
+        "pages",
+        "lifecycle_state",
+        "doc_version_status",
+        "created_at",
+        "created_by",
+    ],
+)
+def test_step2_missing_any_required_field(tmp_path: Path, field: str) -> None:
+    """Missing any required manifest field fails at step 2."""
+    manifest = _make_manifest()
+    del manifest[field]
+    ctx = tmp_path / "bad.ctx"
+    _create_zip_with_entries(
+        ctx,
+        {
+            "manifest.json": json.dumps(manifest).encode(),
+            "chunks.jsonl": b'{"id":1,"content":"x","page_id":1,"heading_path":"h","summary":"s","token_count":1,"source_url":"a.md"}\n',
+            "pages.json": b'[{"id":1,"package":"p","version":"1.0","url":"a.md","title":"T","content_hash":"sha256:'
+            + b"a" * 64
+            + b'"}]',
+            "signatures/": b"",
+        },
+    )
+    policy = Policy(
+        require_signatures=False,
+        require_attribution=False,
+        allowed_lifecycle_states=["draft", "approved", "deprecated", "revoked"],
+        rejected_doc_version_statuses=[],
+    )
+    result = verify(ctx, policy)
+    assert result.passed is False
+    assert result.step == 2
+
+
+# ---------------------------------------------------------------------------
+# Step 7: artifact schema validation (chunks.jsonl / pages.json)
+# ---------------------------------------------------------------------------
+
+
+def _permissive_policy() -> Policy:
+    return Policy(
+        require_signatures=False,
+        require_attribution=False,
+        allowed_lifecycle_states=["draft", "approved", "deprecated", "revoked"],
+        rejected_doc_version_statuses=[],
+    )
+
+
+def test_step7_malformed_chunk_record_fails(tmp_path: Path) -> None:
+    """A chunk record that violates chunk.v1 fails at step 7 (digest recomputed)."""
+    src = _build_valid_ctx(tmp_path)
+    # Missing required content_hash → schema violation.
+    bad_chunk = b'{"id": 1, "page_id": 1, "heading_path": "h", "content": "x"}\n'
+    tampered = _rewrite_archive_keep_digest(
+        src,
+        remove_entries={"chunks.jsonl"},
+        extra_entries={"chunks.jsonl": bad_chunk},
+    )
+    result = verify(tampered, _permissive_policy())
+    assert result.passed is False
+    assert result.step == 7
+    assert "Invalid pack artifact" in result.reason
+
+
+def test_step7_malformed_pages_fails(tmp_path: Path) -> None:
+    """A pages.json entry that violates pages.v1 fails at step 7."""
+    src = _build_valid_ctx(tmp_path)
+    # Page missing required package/version/url.
+    bad_pages = b'[{"id": 1}]'
+    tampered = _rewrite_archive_keep_digest(
+        src,
+        remove_entries={"pages.json"},
+        extra_entries={"pages.json": bad_pages},
+    )
+    result = verify(tampered, _permissive_policy())
+    assert result.passed is False
+    assert result.step == 7
+    assert "Invalid pack artifact" in result.reason
+
+
+def test_step7_valid_artifacts_pass(tmp_path: Path) -> None:
+    """A freshly built pack passes all steps (artifacts are schema-valid)."""
+    src = _build_valid_ctx(tmp_path)
+    result = verify(src, _permissive_policy())
+    assert result.passed is True
+    assert result.step is None

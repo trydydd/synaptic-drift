@@ -1,66 +1,82 @@
-# Tank — Chunking
+# Synaptic Drift — Chunking
 
-How chunkana splits documentation files into chunks, what controls chunk size, and what the defaults mean for token budgets at query time.
+How the custom markdown-it-py chunker splits documentation files into chunks, what controls chunk size, and what the defaults mean for token budgets at query time.
 
 For the broader build pipeline context, see `docs/document-processing.md`.
 
-## How chunkana splits documents
+## How the chunker splits documents
 
-Tank passes raw file content to `chunkana.chunk_text()` with no configuration override, so chunkana uses its defaults. Chunkana splits at structural boundaries — headings, code blocks, and tables — rather than at arbitrary character counts. The chunk boundaries are document-aware:
+Synaptic Drift uses a custom token-walker built on `markdown-it-py` to split documents at structural boundaries. The chunker processes the markdown-it-py token stream directly, which makes heading-level detection and code-fence atomicity precise by construction:
 
-- A new heading always starts a new chunk.
-- Code blocks and tables are **atomic** — they are never split mid-block, even if they exceed `max_chunk_size`.
-- Content before the first heading is extracted as a preamble chunk.
-- Adjacent chunks share an overlap window so that context is not lost at boundaries.
+- **Every heading starts a new chunk** — splits occur at all levels `#` through `######`, not just `##`.
+- **Code fences are atomic** — a fenced code block is never split across chunks, even if it exceeds `max_chunk_tokens`. The token stream represents each fence as a single self-contained token, so the atomicity guarantee holds without special-casing.
+- **Heading path is built by construction** — the chunker maintains an ancestor stack as it walks tokens. When a heading is encountered, the stack is trimmed to the correct depth and the new heading text is pushed. `heading_path` is `" / ".join(ancestor_stack)` at emission time — never reconstructed after the fact.
+- **Preamble content** — content before the first heading is emitted as a chunk with `heading_path` equal to the file prefix only (e.g. `auth/oauth`).
+- **No overlap window** — chunks do not duplicate content. Each byte of source appears in exactly one chunk.
 
-The strategy chunkana selects depends on the document's content mix:
+## Token budget and overflow splitting
 
-| Document type | Strategy selected |
+The default maximum chunk size is `_DEFAULT_MAX_CHUNK_TOKENS = 800` tokens (estimated as `len(content) // 4`). Headings are the primary split point. When a single heading section exceeds `max_chunk_tokens`, the chunker splits at the next paragraph boundary — never mid-paragraph and never inside a fence.
+
+| Bound | Tokens (approx) |
 |---|---|
-| >30% code content | `code_aware` |
-| ≥3 headings | `structural` |
-| >40% list content and ≥5 list blocks | `list_aware` |
-| Everything else | `fallback` |
+| Default `max_chunk_tokens` | 800 |
+| Default `min_chunk_tokens` | 20 |
 
-## Default configuration
+The 800-token default is calibrated for code-heavy SDK and framework documentation — the primary target corpus. A typical section is a `###` subsection with two to four sentences of explanation followed by one or more fenced code examples. At 800 tokens, the prose budget is large enough to keep an explanation and its code example in the same chunk, preserving retrieval coherence. The P95 section size in the MCP documentation corpus is ~420 tokens; the 800-token cap fires only on the longest prose sections.
 
-Tank calls `chunk_text(raw_content)` with no `ChunkConfig` argument. The active defaults are:
+### Minimum-token threshold
 
-| Parameter | Default | Description |
+When a heading boundary would produce a chunk below `min_chunk_tokens` (default 20), the emit is skipped and `chunk_start_line` is left in place. The suppressed content carries forward and is absorbed by the next section at its next emit point. This eliminates stub chunks — heading-only chunks produced when a heading is immediately followed by another heading with no prose between them — without a separate post-processing pass.
+
+The same guard applies to the trailing emit at the end of a file. A pure heading-only trailing section (e.g. a bare `# Title` at the end of a page in `llms-full.txt` referencing the next page) is suppressed when it falls below the threshold and has no body lines. If the trailing content contains any non-heading lines (prose, code, or tables) it is always emitted regardless of size.
+
+The absorbed heading text remains in the merged chunk's content, contributing to BM25 scoring, while `heading_path` reflects the absorbing section's (deeper) heading. For example:
+
+```
+Source:
+  ## Authorization         ← heading only, no prose
+  ### Introduction
+  OAuth2 requires a client ID and secret.
+
+Before (min_chunk_tokens=0):
+  Chunk 1  heading_path: "doc / Authorization"
+           content:      "## Authorization"             ← 2-token stub
+
+  Chunk 2  heading_path: "doc / Authorization / Introduction"
+           content:      "### Introduction\n\nOAuth2 requires..."
+
+After (default min_chunk_tokens=20):
+  Chunk 1  heading_path: "doc / Authorization / Introduction"
+           content:      "## Authorization\n\n### Introduction\n\nOAuth2 requires..."
+```
+
+`Authorization` is still an ancestor in `heading_path` — its BM25 weight is fully preserved. Pass `min_chunk_tokens=0` to disable the guard and restore the original behaviour.
+
+## Heading path examples
+
+| Source file | Heading in file | `heading_path` |
 |---|---|---|
-| `max_chunk_size` | 4096 chars | Upper bound on chunk size |
-| `min_chunk_size` | 512 chars | Lower bound; short sections are merged up to this threshold |
-| `overlap_size` | 200 chars | Characters of overlap copied from the end of one chunk to the start of the next |
-| `preserve_atomic_blocks` | `True` | Code blocks and tables are never split |
-| `extract_preamble` | `True` | Content before the first heading becomes its own chunk |
-| `enable_code_context_binding` | `True` | Code blocks are bound to immediately surrounding prose |
+| `docs/auth/oauth.md` | preamble (before any heading) | `auth/oauth` |
+| `docs/auth/oauth.md` | `# OAuth2` | `auth/oauth / OAuth2` |
+| `docs/auth/oauth.md` | `## Client Credentials` (under `# OAuth2`) | `auth/oauth / OAuth2 / Client Credentials` |
+| `docs/auth/oauth.md` | `## Authorization Code` (under `# OAuth2`) | `auth/oauth / OAuth2 / Authorization Code` |
+| `docs/guide.md` | `### STDIO Transport` (under `# Running Your Server / ## Transport Protocols`) | `guide / Running Your Server / Transport Protocols / STDIO Transport` |
 
-## Chunk size in practice
-
-The character limits translate to approximate token counts using the `len(content) // 4` estimator Tank uses everywhere:
-
-| Bound | Characters | Estimated tokens |
-|---|---|---|
-| Minimum | 512 | ~128 |
-| Maximum | 4096 | ~1024 |
-
-These are soft bounds — chunkana will exceed `max_chunk_size` to avoid splitting an atomic block (a large code example or table). In practice, most prose sections from real documentation land between 200–1500 characters (~50–375 tokens).
-
-The 200-character overlap means adjacent chunks share roughly 50 tokens of context. This is written into the stored content, so overlapping tokens are counted in both chunks' `token_count` fields and in any `max_tokens` budget.
+The file prefix ensures that identically-named headings in different files are always disambiguated.
 
 ## What this means for `limit` and `max_tokens`
 
 With the default `limit=10` and no `max_tokens`:
 
-- **Best case** (10 short chunks at min size): ~10 × 128 = ~1,280 tokens
-- **Worst case** (10 large chunks at max size): ~10 × 1,024 = ~10,240 tokens
-- **Typical** (mixed real-world docs): ~10 × 200–400 tokens = ~2,000–4,000 tokens
+- **Best case** (10 small single-paragraph sections): ~10 × 50 = ~500 tokens
+- **Worst case** (10 sections at the overflow limit): ~10 × 800 = ~8,000 tokens
+- **Typical** (mixed real-world docs): ~10 × 150–300 tokens = ~1,500–3,000 tokens
 
-`max_tokens` is the only mechanism that gives a hard upper bound regardless of what's in the index. For agents with tight context budgets, the recommended pattern is:
+`max_tokens` is the mechanism that gives a hard upper bound regardless of what's in the index. For agents with tight context budgets, the recommended pattern is:
 
 ```json
 {
-  "detail": "summary",
   "limit": 20,
   "max_tokens": 800
 }
@@ -72,23 +88,20 @@ See `docs/ranking.md` for how the greedy budget enforcement works.
 
 ## Configuring chunk size
 
-Tank does not currently expose `ChunkConfig` parameters through the CLI. To change chunking behaviour, modify the `_chunk_text(raw_content)` call in `src/tank/builder/chunking.py:54` to pass an explicit config:
+Three `synd build` flags control chunk size:
 
-```python
-from chunkana.config import ChunkConfig
+- `--max-chunk-tokens` (default `800`) — upper bound; sections that exceed this are split at the next paragraph boundary.
+- `--min-chunk-tokens` (default `20`) — lower bound guard; heading boundaries that would produce a below-threshold chunk are skipped and the content is absorbed forward into the next section.
+- `--warn-chunk-tokens` (default: `2 × max_chunk_tokens`) — emit a warning after build for any chunk exceeding this threshold. Structural tokens (indented code blocks, tables, long fenced code) can bypass the paragraph-level overflow split; warnings surface these irreducibly large chunks without attempting an automatic structural split (see D24 in `docs/decisions.md`).
 
-config = ChunkConfig(max_chunk_size=2048, min_chunk_size=256, overlap_size=100)
-ana_chunks = _chunk_text(raw_content, config)
-```
+## Summary generation
 
-Chunkana provides several preset configs as class methods on `ChunkConfig`:
+Each chunk's summary is generated by `generate_summary(content, heading_path)` immediately after chunking. The summary uses a heading-aware prefix heuristic (S2):
 
-| Preset | `max_chunk_size` | `min_chunk_size` | `overlap_size` | Best for |
-|---|---|---|---|---|
-| `ChunkConfig()` (default) | 4096 | 512 | 200 | General documentation |
-| `ChunkConfig.for_code_heavy()` | 8192 | 1024 | 100 | API references, SDK docs |
-| `ChunkConfig.for_structured()` | 4096 | 512 | 200 | Structured reference docs |
-| `ChunkConfig.minimal()` | 1024 | 256 | 50 | Dense retrieval, small context windows |
-| `ChunkConfig.for_changelogs()` | 6144 | 256 | 100 | Changelogs, release notes |
+- **Prefix with leaf heading**: `"STDIO Transport (Default): STDIO is the default transport..."` rather than the transitional `"You can now run this server..."`.
+- **Preamble chunks** (no heading in path): first-sentence only, no prefix.
+- **Long headings** (> 60 characters): the heading alone is used as the summary.
+- **Prose-heavy chunks**: first sentence of prose (heading lines and list items excluded).
+- **Code-heavy chunks** (> 50% of content inside fences): first `def`/`class`/`function`/`export` signature from the leading code block; falls back to first prose sentence.
 
-Exposing this via `tank build --chunk-config <preset>` is a candidate for a future release.
+No LLM is involved. All summary generation is deterministic heuristic logic at build time.

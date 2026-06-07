@@ -1,4 +1,4 @@
-"""Tests for the tank verify CLI command."""
+"""Tests for the synd verify CLI command."""
 
 from __future__ import annotations
 
@@ -7,8 +7,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from tank.cli.main import cli
-from tank.builder.build import build_pack
+from synd.cli.main import cli
 
 
 def _fixture_path(name: str = "sample_docs") -> Path:
@@ -16,19 +15,24 @@ def _fixture_path(name: str = "sample_docs") -> Path:
 
 
 class TestVerifyCommand:
-    """Tests for 'tank verify' subcommand."""
+    """Tests for 'synd verify' subcommand."""
 
     def test_verify_command_pass(self, tmp_path: Path) -> None:
         """A valid .ctx must pass verification."""
-        # Build a valid .ctx first
         source = _fixture_path()
         build_out = tmp_path / "build"
-        build_pack(
-            package="my-lib",
-            version="1.0.0",
-            source=source,
-            output=build_out,
+        result = CliRunner().invoke(
+            cli,
+            [
+                "build",
+                "my-lib@1.0.0",
+                "--source",
+                str(source),
+                "--output",
+                str(build_out),
+            ],
         )
+        assert result.exit_code == 0, f"build setup failed: {result.output}"
         ctx_path = build_out / "my-lib@1.0.0.ctx"
         result = CliRunner().invoke(
             cli,
@@ -55,14 +59,19 @@ class TestVerifyCommand:
             cli,
             ["verify", str(ctx_path)],
         )
-        assert result.exit_code == 1, f"verify should fail: {result.output}"
+        # Corrupt manifest fails at verify step 1 → verification exit code 4.
+        assert result.exit_code == 4, f"verify should fail: {result.output}"
         assert "error" in result.output.lower() or "failed" in result.output.lower()
 
     def test_verify_missing_file(self) -> None:
-        """Verifying a nonexistent file must exit 1."""
+        """Verifying a nonexistent file is a usage error (exit code 2)."""
         result = CliRunner().invoke(
             cli,
             ["verify", "/nonexistent/file.ctx"],
         )
-        assert result.exit_code == 1
-        assert "error" in result.output.lower() or "not found" in result.output.lower()
+        assert result.exit_code == 2
+        assert (
+            "error" in result.output.lower()
+            or "not found" in result.output.lower()
+            or "does not exist" in result.output.lower()
+        )

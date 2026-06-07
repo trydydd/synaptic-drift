@@ -1,8 +1,8 @@
-# Tank — Release Procedure
+# Synaptic Drift — Release Procedure
 
 ## Versioning Policy
 
-Tank follows [Semantic Versioning](https://semver.org/).
+Synaptic Drift follows [Semantic Versioning](https://semver.org/).
 
 | Component | When to increment |
 |---|---|
@@ -25,10 +25,9 @@ Review `docs/todo.md` and confirm every v{N} item is resolved or explicitly defe
 
 The following bugs were open when v0.1.0 was tagged and are deferred to v0.1.1:
 
-- [ ] `src/tank/storage/db.py:121-126` — page ID foreign key integrity on import
-- [ ] `src/tank/search/fts.py:76` — silent exception swallowing on search failure
-- [ ] `src/tank/cli/pull.py:39` — hardcoded `doc_version_status="imported"`
-- [ ] `src/tank/server.py` — `max_tokens` parameter accepted but not implemented
+- [ ] `src/synd/storage/db.py:121-126` — page ID foreign key integrity on import
+- [ ] `src/synd/search/fts.py:76` — silent exception swallowing on search failure
+- [ ] `src/synd/server.py` — `max_tokens` parameter accepted but not implemented
 
 ### 2. Tests pass cleanly
 
@@ -57,7 +56,7 @@ git commit -m "chore: capture v{VERSION} benchmark baseline"
 Update the version string in two places and confirm they match:
 
 - `pyproject.toml` → `[project] version`
-- `src/tank/__init__.py` → `__version__`
+- `src/synd/__init__.py` → `__version__`
 
 ### 5. README reflects reality
 
@@ -83,10 +82,10 @@ ruff check . && mypy src/
 # 2. Capture performance baseline (see above)
 
 # 3. Bump version
-#    Edit pyproject.toml and src/tank/__init__.py
+#    Edit pyproject.toml and src/synd/__init__.py
 
 # 4. Commit the version bump and baseline together
-git add pyproject.toml src/tank/__init__.py tests/benchmarks/results/v{VERSION}.json
+git add pyproject.toml src/synd/__init__.py tests/benchmarks/results/v{VERSION}.json
 git commit -m "Release v{VERSION}"
 
 # 5. Tag
@@ -104,7 +103,7 @@ git push origin v{VERSION}
 # 8. Publish to PyPI (currently manual — no twine step in CI yet)
 pip install build twine
 python -m build
-twine upload dist/tank-{VERSION}*
+twine upload dist/synaptic_drift-{VERSION}*
 ```
 
 ---
@@ -116,8 +115,8 @@ Each GitHub Release contains the following files, attached automatically by
 
 | Artifact | Description |
 |---|---|
-| `tank-{VERSION}-py3-none-any.whl` | Installable wheel. `pip install tank` or direct URL install. |
-| `tank-{VERSION}.tar.gz` | Source distribution. Required for downstream repackaging (Debian, Homebrew, etc.). |
+| `synaptic_drift-{VERSION}-py3-none-any.whl` | Installable wheel. `pip install synaptic-drift` or direct URL install. |
+| `synaptic_drift-{VERSION}.tar.gz` | Source distribution. Required for downstream repackaging (Debian, Homebrew, etc.). |
 | `fastmcp@{VERSION}.ctx` | Pre-built documentation pack for FastMCP, built from `llms-full.txt` in CI. |
 
 ### Adding packs to a release
@@ -126,13 +125,13 @@ The `build packs` step in `release.yml` builds one pack per library listed in th
 workflow. To add a library for v0.2.0:
 
 1. Confirm the library publishes `llms-full.txt`.
-2. Add a `curl` + `tank build` line to the `Build packs` step in `release.yml`.
+2. Add a `curl` + `synd build` line to the `Build packs` step in `release.yml`.
 3. The `.ctx` file is picked up by the `files:` glob automatically.
 
 ### Artifact naming convention
 
 `.ctx` packs are named `{name}@{version}.ctx` where `version` is the *library*
-version, not the Tank version. Example: `fastmcp@3.3.0.ctx` built by Tank v0.2.0.
+version, not the Synaptic Drift version. Example: `fastmcp@3.3.0.ctx` built by Synaptic Drift v0.2.0.
 
 ---
 
@@ -160,11 +159,11 @@ Output is printed to stdout and written to `tests/benchmarks/results/latest.json
 | Progressive disclosure saving | `(naive_full_n20 − two_step_total) / naive_full_n20` |
 
 The two-step pattern (step 1: summary scan → step 2: targeted full fetch of top 3)
-is Tank's primary token efficiency claim. The saving % is the headline number.
+is Synaptic Drift's primary token efficiency claim. The saving % is the headline number.
 
 ### Token counter
 
-Benchmarks use `len(str) // 4` — the same approximation used throughout Tank's
+Benchmarks use `len(str) // 4` — the same approximation used throughout Synaptic Drift's
 codebase. This is ±15% accurate for English prose. For exact cl100k counts,
 install `tiktoken` and replace `_count_tokens` in `tests/benchmarks/test_token_overhead.py`.
 If you switch counters between releases, note it in the benchmark result's
@@ -196,7 +195,7 @@ Compare `v{N}.json` against `v{N-1}.json` before tagging. Expected behaviour:
 {
   "timestamp": "2026-05-20T12:00:00+00:00",
   "git_commit": "abc1234",
-  "tank_version": "0.1.0",
+  "synd_version": "0.1.0",
   "token_counter": "len_div_4",
   "corpus": {
     "chunks": 20,
@@ -234,8 +233,8 @@ Compare `v{N}.json` against `v{N-1}.json` before tagging. Expected behaviour:
 
 ## Post-Release Steps
 
-1. **Verify PyPI**: `pip install tank=={VERSION}` in a clean virtualenv. Run
-   `tank --version` and confirm it prints the correct version.
+1. **Verify PyPI**: `pip install synaptic-drift=={VERSION}` in a clean virtualenv. Run
+   `synd --version` and confirm it prints the correct version.
 
 2. **Verify GitHub Release**: Check that all expected artifacts are attached —
    wheel, sdist, and all `.ctx` packs.

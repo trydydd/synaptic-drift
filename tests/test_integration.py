@@ -3,7 +3,7 @@
 Network tests (marked with @pytest.mark.network) are skipped by default.
 Pass --network to pytest to run them: pytest --network tests/
 
-Exercises build -> verify -> pull -> query using the CLI via CliRunner
+Exercises build -> verify -> add -> query using the CLI via CliRunner
 and real .ctx files, not mocked components.
 
 Each test creates its own temporary directory via tmp_path so there is no
@@ -12,22 +12,21 @@ shared state between tests.
 
 from __future__ import annotations
 
-import hashlib
 import io
 import json
 import os
-import urllib.request
 import zipfile
 from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
 
-from tank.cli.main import cli  # type: ignore[import-untyped]
-from tank.policy.engine import Policy  # type: ignore[import-untyped]
-from tank.search.fts import search  # type: ignore[import-untyped]
-from tank.storage.db import Database  # type: ignore[import-untyped]
-from tank.validator.verify import verify  # type: ignore[import-untyped]
+from synd.builder.manifest import compute_pack_digest
+from synd.cli.main import cli  # type: ignore[import-untyped]
+from synd.policy.engine import Policy  # type: ignore[import-untyped]
+from synd.search.fts import search  # type: ignore[import-untyped]
+from synd.storage.db import Database  # type: ignore[import-untyped]
+from synd.validator.verify import verify  # type: ignore[import-untyped]
 from click.testing import Result
 
 
@@ -55,7 +54,7 @@ def sample_docs() -> Path:
 
 
 def _cli_in_cwd(runner: CliRunner, args: list[str], tmp_path: Path) -> Result:
-    """Invoke CliRunner with cwd set to tmp_path (pull/query need .tank relative)."""
+    """Invoke CliRunner with cwd set to tmp_path (add/query need .synd relative)."""
     old = os.getcwd()
     os.chdir(tmp_path)
     try:
@@ -95,42 +94,44 @@ def _tamper_with_valid_digest(src: Path, content_replacements: dict[int, str]) -
             new_lines.append("")
     new_chunks = "\n".join(new_lines) + "\n"
 
-    # Compute pack_digest for the tampered archive (zero digest, re-zip, hash)
+    # Step 1: Write tampered archive with pack_digest="" to allow digest computation
     zeroed = dict(manifest)
     zeroed["pack_digest"] = ""
-    zeroed_manifest_json = json.dumps(zeroed, indent=2, sort_keys=True).encode()
-
-    buf = io.BytesIO()
-    with zipfile.ZipFile(src, "r") as _:
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zf:
-            out_zf.writestr("manifest.json", zeroed_manifest_json)
-            out_zf.writestr("chunks.jsonl", new_chunks.encode())
-            for name, data in other_files.items():
-                out_zf.writestr(name, data)
-    digest = "sha256:" + hashlib.sha256(buf.getvalue()).hexdigest()
-    manifest["pack_digest"] = digest
-
-    # Write tampered archive with updated pack_digest
     with zipfile.ZipFile(result, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(
-            "manifest.json", json.dumps(manifest, indent=2, sort_keys=True).encode()
+            "manifest.json", json.dumps(zeroed, indent=2, sort_keys=True).encode()
         )
         zf.writestr("chunks.jsonl", new_chunks.encode())
         for name, data in other_files.items():
             zf.writestr(name, data)
 
+    # Step 2: Compute digest from the written archive
+    digest = compute_pack_digest(result)
+    manifest["pack_digest"] = digest
+
+    # Step 3: Rewrite with the real digest
+    buf = io.BytesIO()
+    with zipfile.ZipFile(result, "r") as zf_in:
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zf:
+            for item in zf_in.infolist():
+                data = zf_in.read(item.filename)
+                if item.filename == "manifest.json":
+                    data = json.dumps(manifest, indent=2, sort_keys=True).encode()
+                out_zf.writestr(item, data)
+    result.write_bytes(buf.getvalue())
+
     return result
 
 
 # ===========================================================================
-# 1. Golden-path end-to-end: build -> verify -> pull -> query
+# 1. Golden-path end-to-end: build -> verify -> add -> query
 # ===========================================================================
 
 
-def test_full_pipeline_build_verify_pull_query(
+def test_full_pipeline_build_verify_add_query(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
-    """Build from fixture docs, verify passes, pull succeeds, query returns
+    """Build from fixture docs, verify passes, add succeeds, query returns
     results with correct package name and source_url."""
     output_dir = tmp_path / "output"
     ctx_path = output_dir / "test-lib@1.0.0.ctx"
@@ -154,8 +155,8 @@ def test_full_pipeline_build_verify_pull_query(
     result = runner.invoke(cli, ["verify", str(ctx_path)])
     assert result.exit_code == 0, result.output
 
-    # --- pull (needs CWD=tmp_path for relative .tank path) ---
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    # --- add (needs CWD=tmp_path for relative .synd path) ---
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
     # --- query ---
@@ -247,10 +248,10 @@ def test_build_then_tamper_then_verify_fails(
 # ===========================================================================
 
 
-def test_pull_populates_fts_index(
+def test_add_populates_fts_index(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
-    """After pull, FTS5 chunks_fts table should contain entries."""
+    """After add, FTS5 chunks_fts table should contain entries."""
     output_dir = tmp_path / "output"
     ctx_path = output_dir / "fts-test@1.0.0.ctx"
 
@@ -267,18 +268,18 @@ def test_pull_populates_fts_index(
     )
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
     # Check FTS contents directly
-    db = Database(tmp_path / ".tank" / "index.db")
+    db = Database(tmp_path / ".synd" / "index.db")
     try:
         db.create_schema()
         rows = db.conn.execute("SELECT COUNT(*) AS cnt FROM chunks_fts").fetchone()
-        assert rows["cnt"] > 0, "chunks_fts should have entries after pull"
+        assert rows["cnt"] > 0, "chunks_fts should have entries after add"
 
         rows = db.conn.execute("SELECT COUNT(*) AS cnt FROM chunks").fetchone()
-        assert rows["cnt"] > 0, "chunks table should have entries after pull"
+        assert rows["cnt"] > 0, "chunks table should have entries after add"
     finally:
         db.close()
 
@@ -291,7 +292,7 @@ def test_pull_populates_fts_index(
 def test_query_returns_attributed_results(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
-    """After build+pull, querying returns results with package name,
+    """After build+add, querying returns results with package name,
     source_url, heading, and score."""
     output_dir = tmp_path / "output"
     ctx_path = output_dir / "attr-test@1.0.0.ctx"
@@ -309,7 +310,7 @@ def test_query_returns_attributed_results(
     )
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
     result = _cli_in_cwd(runner, ["query", "billing", "--detail", "full"], tmp_path)
@@ -343,7 +344,7 @@ def test_query_progressive_disclosure(
     )
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
     # CLI summary query
@@ -351,19 +352,19 @@ def test_query_progressive_disclosure(
     assert result.exit_code == 0, result.output
 
     # Server API for programmatic checks
-    db = Database(tmp_path / ".tank" / "index.db")
+    db = Database(tmp_path / ".synd" / "index.db")
     try:
         db.create_schema()
-        from tank.server import query_docs  # type: ignore[import-untyped]
+        from synd.server import fetch_docs, search_docs
 
-        summary_resp = query_docs(db, "oauth", detail="summary")
+        summary_resp = search_docs(db, "oauth")
         assert "results" in summary_resp
         for r in summary_resp["results"]:
             assert r["content"] is None, f"summary should not include content: {r}"
 
         if summary_resp["results"]:
             chunk_ids = [r["chunk_id"] for r in summary_resp["results"]]
-            full_resp = query_docs(db, "", detail="full", chunk_ids=chunk_ids)
+            full_resp = fetch_docs(db, chunk_ids)
             assert "results" in full_resp
             for r in full_resp["results"]:
                 assert r["content"] is not None and len(r["content"]) > 0, (
@@ -374,18 +375,18 @@ def test_query_progressive_disclosure(
 
 
 # ===========================================================================
-# 7. Lockfile written after pull
+# 7. Lockfile written after add
 # ===========================================================================
 
 
-def test_pull_writes_lockfile(
+def test_add_writes_lockfile(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
-    """.tank/index.lock exists after pull, contains the pack's name, version,
+    """synd.lock exists at project root after add, contains pack name, version,
     and pack_digest."""
     output_dir = tmp_path / "output"
     ctx_path = output_dir / "lock-test@2.0.0.ctx"
-    lock_file = tmp_path / ".tank" / "index.lock"
+    lock_file = tmp_path / "synd.lock"
 
     result = runner.invoke(
         cli,
@@ -400,15 +401,17 @@ def test_pull_writes_lockfile(
     )
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
-    assert lock_file.exists(), "index.lock should exist after pull"
+    assert lock_file.exists(), "synd.lock should exist at project root after add"
 
     content = lock_file.read_text()
     assert "lock-test" in content, "lockfile should contain pack name"
     assert "2.0.0" in content, "lockfile should contain pack version"
     assert "pack_digest" in content, "lockfile should contain pack_digest"
+    assert "source_url" in content, "lockfile should contain source_url"
+    assert "schema_version = 2" in content, "lockfile should be schema version 2"
 
 
 # ===========================================================================
@@ -416,7 +419,7 @@ def test_pull_writes_lockfile(
 # ===========================================================================
 
 
-def test_pull_duplicate_rejected(
+def test_add_duplicate_rejected(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
     """Pulling the same pack twice without --force should fail."""
@@ -436,11 +439,11 @@ def test_pull_duplicate_rejected(
     )
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
-    assert result.exit_code != 0, "Second pull without --force should fail"
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
+    assert result.exit_code != 0, "Second add without --force should fail"
     assert "already imported" in result.output.lower()
 
 
@@ -452,7 +455,7 @@ def test_pull_duplicate_rejected(
 def test_revoked_pack_excluded_from_query(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
-    """After build+pull, manually setting lifecycle_state to revoked causes
+    """After build+add, manually setting lifecycle_state to revoked causes
     query to exclude results from that pack."""
     output_dir = tmp_path / "output"
     ctx_path = output_dir / "revoked@1.0.0.ctx"
@@ -470,11 +473,11 @@ def test_revoked_pack_excluded_from_query(
     )
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
     # Manually set lifecycle_state to revoked
-    db = Database(tmp_path / ".tank" / "index.db")
+    db = Database(tmp_path / ".synd" / "index.db")
     try:
         db.create_schema()
         db.conn.execute(
@@ -486,7 +489,7 @@ def test_revoked_pack_excluded_from_query(
         db.close()
 
     # Query should not return results from the revoked pack
-    db = Database(tmp_path / ".tank" / "index.db")
+    db = Database(tmp_path / ".synd" / "index.db")
     try:
         db.create_schema()
         hits = search(db, "oauth")
@@ -503,7 +506,7 @@ def test_revoked_pack_excluded_from_query(
 # ===========================================================================
 
 
-def test_pull_does_not_leave_partial_state_on_failure(
+def test_add_does_not_leave_partial_state_on_failure(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
     """If import fails mid-transaction, the database must contain zero records
@@ -524,16 +527,16 @@ def test_pull_does_not_leave_partial_state_on_failure(
     )
     assert result.exit_code == 0, result.output
 
-    # First pull succeeds
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    # First add succeeds
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
-    # Second pull fails (duplicate)
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
-    assert result.exit_code != 0, "Second pull should fail"
+    # Second add fails (duplicate)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
+    assert result.exit_code != 0, "Second add should fail"
 
     # Exactly 1 package in DB (the first successful import)
-    db = Database(tmp_path / ".tank" / "index.db")
+    db = Database(tmp_path / ".synd" / "index.db")
     try:
         db.create_schema()
         rows = db.conn.execute("SELECT COUNT(*) AS cnt FROM packages").fetchone()
@@ -551,7 +554,7 @@ def test_revoked_pack_not_in_query_results(
     tmp_path: Path, sample_docs: Path, runner: CliRunner
 ) -> None:
     """Import a pack, update its lifecycle_state to revoked in the DB,
-    run tank query -- zero results for that pack's content."""
+    run synd query -- zero results for that pack's content."""
     output_dir = tmp_path / "output"
     ctx_path = output_dir / "revoked-not@1.0.0.ctx"
 
@@ -568,11 +571,11 @@ def test_revoked_pack_not_in_query_results(
     )
     assert result.exit_code == 0, result.output
 
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
     # Mark as revoked
-    db = Database(tmp_path / ".tank" / "index.db")
+    db = Database(tmp_path / ".synd" / "index.db")
     try:
         db.create_schema()
         db.conn.execute(
@@ -584,7 +587,7 @@ def test_revoked_pack_not_in_query_results(
         db.close()
 
     # Query via search API
-    db = Database(tmp_path / ".tank" / "index.db")
+    db = Database(tmp_path / ".synd" / "index.db")
     try:
         db.create_schema()
         hits = search(db, "sample")
@@ -606,11 +609,11 @@ def test_build_verify_cycle_is_symmetric(
 ) -> None:
     """A .ctx file produced by build_pack() must always pass verify() with
     default policy. If this fails, build and verify are inconsistent."""
-    from tank.builder.build import build_pack  # type: ignore[import-untyped]
+    from synd.builder.build import build_pack  # type: ignore[import-untyped]
 
     output_dir = tmp_path / "output"
 
-    ctx_path = build_pack(
+    ctx_path, _ = build_pack(
         package="sym-test",
         version="1.0.0",
         source=sample_docs,
@@ -638,11 +641,11 @@ def test_content_tampering_captured_at_step_7(
 ) -> None:
     """Verify that modifying chunk content fails at step 7 specifically,
     not step 6 (pack_digest)."""
-    from tank.builder.build import build_pack
+    from synd.builder.build import build_pack
 
     output_dir = tmp_path / "output"
 
-    ctx_path = build_pack(
+    ctx_path, _ = build_pack(
         package="step-test",
         version="1.0.0",
         source=sample_docs,
@@ -660,7 +663,7 @@ def test_content_tampering_captured_at_step_7(
 
 
 # ===========================================================================
-# NETWORK TEST 14 -- Full pipeline against real FastMCP docs
+# NETWORK TEST 14 -- Full pipeline against real FastMCP docs via CLI
 # ===========================================================================
 
 _FASTMCP_URL = "https://gofastmcp.com/llms-full.txt"
@@ -669,34 +672,29 @@ _FASTMCP_MIN_CHUNKS = 500  # sanity-check: real docs should produce many chunks
 
 @pytest.mark.network
 def test_fastmcp_full_pipeline(tmp_path: Path, runner: CliRunner) -> None:
-    """Download the FastMCP llms-full.txt, build a pack, verify it, pull it,
-    and confirm a relevant query returns results.
+    """Build from the live FastMCP llms-full.txt URL using the synd build CLI,
+    verify it, add it, and confirm a relevant query returns results.
 
-    This test exercises the full pipeline against a real-world large file
-    (~2MB, ~54k lines) and is the canonical check that tank handles
-    large single-file sources correctly.
+    Exercises the full pipeline against a real-world large file (~2MB, ~54k lines)
+    via the public CLI entry points only.
     """
-    from tank.builder.build import build_pack
-
-    source_dir = tmp_path / "source"
     output_dir = tmp_path / "output"
-    source_dir.mkdir()
-    output_dir.mkdir()
-
-    # --- download ---
-    dest = source_dir / "llms-full.md"
-    urllib.request.urlretrieve(_FASTMCP_URL, dest)  # noqa: S310
-    assert dest.stat().st_size > 1_000_000, "Downloaded file suspiciously small"
+    ctx_path = output_dir / "fastmcp@3.3.0.ctx"
 
     # --- build ---
-    ctx_path = build_pack(
-        package="fastmcp",
-        version="3.3.0",
-        source=source_dir,
-        output=output_dir,
-        lifecycle="draft",
+    result = runner.invoke(
+        cli,
+        [
+            "build",
+            "fastmcp@3.3.0",
+            "--source",
+            _FASTMCP_URL,
+            "--output",
+            str(output_dir),
+        ],
     )
-    assert ctx_path.exists()
+    assert result.exit_code == 0, result.output
+    assert ctx_path.exists(), f"Expected .ctx at {ctx_path}"
 
     # Sanity-check chunk count — a real large doc should produce many chunks
     with zipfile.ZipFile(ctx_path) as zf:
@@ -708,24 +706,33 @@ def test_fastmcp_full_pipeline(tmp_path: Path, runner: CliRunner) -> None:
     )
 
     # --- verify ---
-    policy = Policy.default()
-    vresult = verify(ctx_path=ctx_path, policy=policy)
-    assert vresult.passed is True, (
-        f"Verification failed: step={vresult.step}, reason={vresult.reason}"
-    )
+    result = runner.invoke(cli, ["verify", str(ctx_path)])
+    assert result.exit_code == 0, result.output
 
-    # --- pull ---
-    result = _cli_in_cwd(runner, ["pull", str(ctx_path)], tmp_path)
+    # --- add ---
+    result = _cli_in_cwd(runner, ["add", str(ctx_path)], tmp_path)
     assert result.exit_code == 0, result.output
 
     # --- query ---
-    db = Database(tmp_path / ".tank" / "index.db")
-    try:
-        db.create_schema()
-        hits = search(db, "tool", packages=["fastmcp"], limit=5)
-        assert len(hits) > 0, (
-            "Query for 'tool' against fastmcp docs returned no results"
-        )
-        assert all(h.package == "fastmcp" for h in hits)
-    finally:
-        db.close()
+    result = _cli_in_cwd(
+        runner,
+        ["query", "tool", "--package", "fastmcp", "--limit", "5"],
+        tmp_path,
+    )
+    assert result.exit_code == 0, result.output
+    assert "fastmcp" in result.output
+    assert "No results found" not in result.output
+
+    # --- remove ---
+    result = _cli_in_cwd(runner, ["remove", "fastmcp@3.3.0"], tmp_path)
+    assert result.exit_code == 0, result.output
+    assert "removed" in result.output.lower()
+
+    # confirm pack is gone from the index
+    result = _cli_in_cwd(
+        runner,
+        ["query", "tool", "--package", "fastmcp", "--limit", "1"],
+        tmp_path,
+    )
+    assert result.exit_code == 0, result.output
+    assert "No results found" in result.output

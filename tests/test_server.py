@@ -1,15 +1,15 @@
-"""Tests for the MCP server module (chunk-10)."""
+"""Tests for the MCP server module."""
 
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from tank.storage.db import Database
-from tank.storage.models import Chunk, Pack, Page
-from tank.server import (
-    query_docs,
-    resolve_deps,
+from synd.storage.db import Database
+from synd.storage.models import Chunk, Pack, Page
+from synd.server import (
+    fetch_docs,
+    search_docs,
 )
 
 
@@ -21,7 +21,7 @@ from tank.server import (
 @pytest.fixture()
 def db(tmp_path: Path) -> Database:
     """Create a fresh Database with schema and return it."""
-    db_path = tmp_path / ".tank" / "index.db"
+    db_path = tmp_path / ".synd" / "index.db"
     db = Database(db_path)
     db.create_schema()
     return db
@@ -201,91 +201,14 @@ def _seed_revoked_pack(db: Database) -> Pack:
 
 
 # ---------------------------------------------------------------------------
-# test_resolve_deps_returns_packs
+# search_docs — summary MCP tool backend
 # ---------------------------------------------------------------------------
 
 
-def test_resolve_deps_returns_packs(db: Database) -> None:
+def test_search_docs_returns_summaries(db: Database) -> None:
     _seed_approved_pack(db)
 
-    # Import a second pack to verify multi-pack behavior
-    pack2 = Pack(
-        name="other-lib",
-        version="2.1.0",
-        lifecycle_state="approved",
-        doc_version_status="stable",
-        indexed_at="2026-05-15T12:00:00Z",
-        policy_profile="internal-strict",
-        pack_digest="sha256:ee1",
-        normalized_content_hash="sha256:ee2",
-        source_url="https://other-lib.example.com/docs",
-        source_commit="def456",
-        owner="backend-team",
-    )
-    pages2 = [
-        Page(id=1, package="other-lib", version="2.1.0", url="docs/api.md", title="API")
-    ]
-    chunks2 = [
-        Chunk(
-            id=1,
-            package="other-lib",
-            version="2.1.0",
-            content="The API accepts JSON payloads.",
-            page_id=1,
-            heading_path="docs / API",
-            summary="API accepts JSON",
-            token_count=50,
-            source_url="docs/api.md",
-            source_commit="def456",
-            content_hash="sha256:ff1",
-        ),
-    ]
-    db.import_pack(pack2, pages2, chunks2)
-
-    result: dict[str, Any] = resolve_deps(db)
-    assert result["status"] == "ok"
-    assert len(result["packs"]) == 2
-
-    packages_seen = {p["package"] for p in result["packs"]}
-    assert packages_seen == {"my-lib", "other-lib"}
-
-    my_lib = next(p for p in result["packs"] if p["package"] == "my-lib")
-    assert my_lib["version"] == "1.0.0"
-    assert my_lib["lifecycle_state"] == "approved"
-    assert my_lib["chunks"] == 5
-
-    other_lib = next(p for p in result["packs"] if p["package"] == "other-lib")
-    assert other_lib["version"] == "2.1.0"
-    assert other_lib["lifecycle_state"] == "approved"
-    assert other_lib["chunks"] == 1
-
-
-# ---------------------------------------------------------------------------
-# test_resolve_deps_empty_index
-# ---------------------------------------------------------------------------
-
-
-def test_resolve_deps_empty_index(db: Database) -> None:
-    result: dict[str, Any] = resolve_deps(db)
-    assert result["status"] == "ok"
-    assert result["packs"] == []
-
-
-# ---------------------------------------------------------------------------
-# test_query_docs_summary_mode
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_summary_mode(db: Database) -> None:
-    _seed_approved_pack(db)
-
-    result: dict[str, Any] = query_docs(
-        db,
-        query="OAuth2",
-        packages=None,
-        detail="summary",
-        chunk_ids=None,
-    )
+    result: dict[str, Any] = search_docs(db, query="OAuth2")
     assert "results" in result
     assert len(result["results"]) > 0
 
@@ -293,114 +216,60 @@ def test_query_docs_summary_mode(db: Database) -> None:
         assert "chunk_id" in r
         assert "package" in r
         assert "summary" in r
-        assert r.get("content") is None
+        assert r.get("content") is None, "summary tool must never include content"
         assert "lifecycle_warning" not in r
 
 
-# ---------------------------------------------------------------------------
-# test_query_docs_full_mode
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_full_mode(db: Database) -> None:
+def test_search_docs_no_content_field(db: Database) -> None:
+    """Content must be absent (None) in every summary result."""
     _seed_approved_pack(db)
 
-    result: dict[str, Any] = query_docs(
-        db,
-        query="configure",
-        packages=None,
-        detail="full",
-        chunk_ids=None,
-    )
+    result: dict[str, Any] = search_docs(db, query="configure")
     assert "results" in result
-    assert len(result["results"]) > 0
-
     for r in result["results"]:
-        assert r.get("content") is not None
-        assert len(r["content"]) > 0
+        assert r.get("content") is None
 
 
-# ---------------------------------------------------------------------------
-# test_query_docs_chunk_ids
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_chunk_ids(db: Database) -> None:
+def test_search_docs_empty_query_returns_empty(db: Database) -> None:
     _seed_approved_pack(db)
 
-    result: dict[str, Any] = query_docs(
-        db,
-        query="",
-        packages=None,
-        detail="summary",
-        chunk_ids=[1, 2],
-    )
-    assert "results" in result
-    assert len(result["results"]) == 2
-    chunk_ids_in_result = {r["chunk_id"] for r in result["results"]}
-    assert chunk_ids_in_result == {1, 2}
-    for r in result["results"]:
-        assert r.get("content") is not None
-        assert len(r["content"]) > 0
+    result: dict[str, Any] = search_docs(db, query="")
+    assert result == {"results": []}
+
+    result_ws: dict[str, Any] = search_docs(db, query="   ")
+    assert result_ws == {"results": []}
 
 
-# ---------------------------------------------------------------------------
-# test_query_docs_limit
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_limit(db: Database) -> None:
+def test_search_docs_limit(db: Database) -> None:
     _seed_approved_pack(db)
 
     # "configure" matches chunks 1, 2, 4, 5 in the fixture (4 results).
-    full = query_docs(db, query="configure", detail="summary", chunk_ids=None)
+    full = search_docs(db, query="configure")
     assert len(full["results"]) == 4
 
-    capped = query_docs(
-        db, query="configure", detail="summary", chunk_ids=None, limit=2
-    )
+    capped = search_docs(db, query="configure", limit=2)
     assert len(capped["results"]) == 2
 
     # limit larger than available results should return all matches without error.
-    uncapped = query_docs(
-        db, query="configure", detail="summary", chunk_ids=None, limit=100
-    )
+    uncapped = search_docs(db, query="configure", limit=100)
     assert len(uncapped["results"]) == 4
 
 
-# ---------------------------------------------------------------------------
-# test_query_docs_not_indexed_package
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_not_indexed_package(db: Database) -> None:
+def test_search_docs_not_indexed_package(db: Database) -> None:
     _seed_approved_pack(db)
 
-    result: dict[str, Any] = query_docs(
+    result: dict[str, Any] = search_docs(
         db,
         query="anything",
         packages=["nonexistent-pkg"],
-        detail="summary",
-        chunk_ids=None,
     )
     assert result["status"] == "not_indexed"
 
 
-# ---------------------------------------------------------------------------
-# test_query_docs_deprecated_warning
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_deprecated_warning(db: Database) -> None:
+def test_search_docs_deprecated_warning(db: Database) -> None:
     _seed_deprecated_pack(db)
 
-    result: dict[str, Any] = query_docs(
-        db,
-        query="deprecated",
-        packages=None,
-        detail="summary",
-        chunk_ids=None,
-    )
+    result: dict[str, Any] = search_docs(db, query="deprecated")
     assert "results" in result
 
     found_deprecated = False
@@ -412,8 +281,127 @@ def test_query_docs_deprecated_warning(db: Database) -> None:
     assert found_deprecated
 
 
+def test_search_docs_does_not_return_revoked(db: Database) -> None:
+    """Revoked packs must return zero results.
+
+    NEG: Any result with lifecycle_state='revoked' in summary output.
+    """
+    _seed_approved_pack(db)
+    _seed_revoked_pack(db)
+
+    result: dict[str, Any] = search_docs(db, query="content")
+    assert "results" in result
+
+    for r in result["results"]:
+        assert r["lifecycle_state"] != "revoked", (
+            f"summary must not return results from revoked packs, "
+            f"but got package={r['package']}"
+        )
+
+
+def test_search_docs_max_tokens_large_budget(db: Database) -> None:
+    _seed_approved_pack(db)
+
+    unbounded = search_docs(db, query="configure")
+    budgeted = search_docs(db, query="configure", max_tokens=10_000)
+
+    assert budgeted["results"] == unbounded["results"]
+
+
+def test_search_docs_max_tokens_trims_to_ranked_prefix(db: Database) -> None:
+    _seed_approved_pack(db)
+
+    unbounded = search_docs(db, query="configure")
+    assert len(unbounded["results"]) > 1
+
+    # Compute total estimated cost across all returned summaries.
+    total_cost = sum(len(r["summary"] or "") // 4 for r in unbounded["results"])
+
+    # A budget one token below the total must drop at least the last result.
+    trimmed = search_docs(db, query="configure", max_tokens=total_cost - 1)
+    assert len(trimmed["results"]) < len(unbounded["results"])
+
+    # Retained results must be the top-ranked prefix — same order, same chunk IDs.
+    for i, r in enumerate(trimmed["results"]):
+        assert r["chunk_id"] == unbounded["results"][i]["chunk_id"]
+
+
 # ---------------------------------------------------------------------------
-# NEG: test_http_does_not_bind_external
+# fetch_docs — detail MCP tool backend
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_docs_returns_full_content(db: Database) -> None:
+    _seed_approved_pack(db)
+
+    result: dict[str, Any] = fetch_docs(db, chunk_ids=[1, 2])
+    assert "results" in result
+    assert len(result["results"]) == 2
+
+    chunk_ids_in_result = {r["chunk_id"] for r in result["results"]}
+    assert chunk_ids_in_result == {1, 2}
+
+    for r in result["results"]:
+        assert r.get("content") is not None
+        assert len(r["content"]) > 0
+
+
+def test_fetch_docs_empty_chunk_ids(db: Database) -> None:
+    _seed_approved_pack(db)
+
+    result: dict[str, Any] = fetch_docs(db, chunk_ids=[])
+    assert result == {"results": []}
+
+
+def test_fetch_docs_does_not_return_revoked(db: Database) -> None:
+    """Revoked chunk IDs must be silently excluded from detail output.
+
+    NEG: Any result with lifecycle_state='revoked' in detail output.
+    """
+    _seed_approved_pack(db)
+    _seed_revoked_pack(db)
+
+    # chunk ID 20 belongs to the revoked pack; chunk ID 1 to the approved pack.
+    result: dict[str, Any] = fetch_docs(db, chunk_ids=[1, 20])
+    assert "results" in result
+
+    returned_ids = {r["chunk_id"] for r in result["results"]}
+    assert 20 not in returned_ids, "detail must not return chunks from revoked packs"
+    assert 1 in returned_ids
+
+
+def test_fetch_docs_max_tokens(db: Database) -> None:
+    _seed_approved_pack(db)
+
+    # chunk_ids fetches full content; budget is applied against content length.
+    # Chunk 1 content: "To configure OAuth2 client credentials flow..." (46 chars → 11 tokens)
+    # Chunk 2 content: "Set the max retries to 3." (25 chars → 6 tokens)
+    # Combined cost: 17 tokens.
+
+    # Budget 17 fits both chunks.
+    both = fetch_docs(db, chunk_ids=[1, 2], max_tokens=17)
+    assert {r["chunk_id"] for r in both["results"]} == {1, 2}
+
+    # Budget 11 fits chunk 1 (cost 11) but stops before chunk 2 (11+6=17 > 11).
+    one = fetch_docs(db, chunk_ids=[1, 2], max_tokens=11)
+    assert [r["chunk_id"] for r in one["results"]] == [1]
+
+    # Budget 10 cannot fit chunk 1 (cost 11 > 10).
+    none = fetch_docs(db, chunk_ids=[1, 2], max_tokens=10)
+    assert none["results"] == []
+
+
+def test_fetch_docs_max_tokens_large_budget(db: Database) -> None:
+    _seed_approved_pack(db)
+
+    unbounded = fetch_docs(db, chunk_ids=[1, 2, 3])
+    budgeted = fetch_docs(db, chunk_ids=[1, 2, 3], max_tokens=10_000)
+
+    assert budgeted["results"] == unbounded["results"]
+
+
+# ---------------------------------------------------------------------------
+# HTTP transport
 # ---------------------------------------------------------------------------
 
 
@@ -423,7 +411,7 @@ def test_http_does_not_bind_external() -> None:
     NEG: Server binds to '0.0.0.0', '', or any non-loopback address.
     """
     import inspect
-    import tank.server as srv
+    import synd.server as srv
 
     assert srv._HTTP_HOST == "127.0.0.1", "_HTTP_HOST must be 127.0.0.1"
     source = inspect.getsource(srv.run_http)
@@ -432,135 +420,44 @@ def test_http_does_not_bind_external() -> None:
 
 
 # ---------------------------------------------------------------------------
-# NEG: test_query_docs_does_not_return_revoked
+# Tool response contract (tool-response.v1)
 # ---------------------------------------------------------------------------
 
 
-def test_query_docs_does_not_return_revoked(db: Database) -> None:
-    """Revoked packs must return zero results.
+def test_tools_publish_canonical_output_schema() -> None:
+    """Registered search/fetch tools advertise the tool-response.v1 schema.
 
-    NEG: Any result with lifecycle_state='revoked' in query-docs output.
+    Clients discover the response contract via tools/list; it must be the exact
+    canonical schema document the boundary validator uses (one source).
     """
-    _seed_approved_pack(db)
-    _seed_revoked_pack(db)
+    from synd.schemas import tool_response_schema
+    from synd.server import create_server
 
-    result: dict[str, Any] = query_docs(
-        db,
-        query="content",
-        packages=None,
-        detail="full",
-        chunk_ids=None,
-    )
-    assert "results" in result
+    canonical = tool_response_schema()
+    server = create_server()
+    tools = {t.name: t for t in server._tool_manager.list_tools()}
 
-    for r in result["results"]:
-        assert r["lifecycle_state"] != "revoked", (
-            f"query-docs must not return results from revoked packs, "
-            f"but got package={r['package']}"
+    assert {"search", "fetch"} <= set(tools)
+    for name in ("search", "fetch"):
+        assert tools[name].output_schema == canonical, (
+            f"{name} must advertise the tool-response.v1 schema"
         )
 
 
-# ---------------------------------------------------------------------------
-# NEG: test_resolve_deps_does_not_omit_deprecated
-# ---------------------------------------------------------------------------
+def test_search_docs_output_validates_against_contract(db: Database) -> None:
+    """search_docs payloads satisfy the tool-response.v1 schema."""
+    from synd.schemas import validate_tool_response
 
-
-def test_resolve_deps_does_not_omit_deprecated(db: Database) -> None:
-    """Deprecated packs must appear in resolve-deps output.
-
-    NEG: A deprecated pack missing from resolve-deps output.
-    """
-    _seed_approved_pack(db)
-    _seed_deprecated_pack(db)
-
-    result: dict[str, Any] = resolve_deps(db)
-    assert result["status"] == "ok"
-    assert len(result["packs"]) == 2
-
-    packages_seen = {p["package"] for p in result["packs"]}
-    assert "old-lib" in packages_seen, (
-        "resolve-deps must include deprecated packs in its output"
+    validate_tool_response(dict(search_docs(db, query="OAuth2")))
+    validate_tool_response(dict(search_docs(db, query="")))
+    validate_tool_response(
+        dict(search_docs(db, query="x", packages=["does-not-exist"]))
     )
 
 
-# ---------------------------------------------------------------------------
-# test_query_docs_max_tokens — large budget is equivalent to no budget
-# ---------------------------------------------------------------------------
+def test_fetch_docs_output_validates_against_contract(db: Database) -> None:
+    """fetch_docs payloads satisfy the tool-response.v1 schema."""
+    from synd.schemas import validate_tool_response
 
-
-def test_query_docs_max_tokens_large_budget(db: Database) -> None:
-    _seed_approved_pack(db)
-
-    unbounded = query_docs(db, query="configure", detail="summary")
-    budgeted = query_docs(db, query="configure", detail="summary", max_tokens=10_000)
-
-    assert budgeted["results"] == unbounded["results"]
-
-
-# ---------------------------------------------------------------------------
-# test_query_docs_max_tokens — trims and preserves BM25 prefix
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_max_tokens_trims_to_ranked_prefix(db: Database) -> None:
-    _seed_approved_pack(db)
-
-    unbounded = query_docs(db, query="configure", detail="summary")
-    assert len(unbounded["results"]) > 1
-
-    # Compute total estimated cost across all returned summaries.
-    total_cost = sum(len(r["summary"] or "") // 4 for r in unbounded["results"])
-
-    # A budget one token below the total must drop at least the last result.
-    trimmed = query_docs(
-        db, query="configure", detail="summary", max_tokens=total_cost - 1
-    )
-    assert len(trimmed["results"]) < len(unbounded["results"])
-
-    # Retained results must be the top-ranked prefix — same order, same chunk IDs.
-    for i, r in enumerate(trimmed["results"]):
-        assert r["chunk_id"] == unbounded["results"][i]["chunk_id"]
-
-
-# ---------------------------------------------------------------------------
-# test_query_docs_max_tokens — full detail uses content length
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_max_tokens_full_detail(db: Database) -> None:
-    _seed_approved_pack(db)
-
-    # Budget of 1 cannot fit any chunk (all content strings are > 4 chars).
-    empty = query_docs(db, query="configure", detail="full", max_tokens=1)
-    assert empty["results"] == []
-
-    # Large budget returns same results as no budget.
-    unbounded = query_docs(db, query="configure", detail="full")
-    big = query_docs(db, query="configure", detail="full", max_tokens=10_000)
-    assert big["results"] == unbounded["results"]
-
-
-# ---------------------------------------------------------------------------
-# test_query_docs_max_tokens — chunk_ids path applies budget against content
-# ---------------------------------------------------------------------------
-
-
-def test_query_docs_max_tokens_chunk_ids(db: Database) -> None:
-    _seed_approved_pack(db)
-
-    # chunk_ids always fetches full content; budget is applied against content length.
-    # Chunk 1 content: "To configure OAuth2 client credentials flow..." (46 chars → 11 tokens)
-    # Chunk 2 content: "Set the max retries to 3." (25 chars → 6 tokens)
-    # Combined cost: 17 tokens.
-
-    # Budget 17 fits both chunks.
-    both = query_docs(db, query="", chunk_ids=[1, 2], max_tokens=17)
-    assert {r["chunk_id"] for r in both["results"]} == {1, 2}
-
-    # Budget 11 fits chunk 1 (cost 11) but stops before chunk 2 (11+6=17 > 11).
-    one = query_docs(db, query="", chunk_ids=[1, 2], max_tokens=11)
-    assert [r["chunk_id"] for r in one["results"]] == [1]
-
-    # Budget 10 cannot fit chunk 1 (cost 11 > 10).
-    none = query_docs(db, query="", chunk_ids=[1, 2], max_tokens=10)
-    assert none["results"] == []
+    validate_tool_response(dict(fetch_docs(db, chunk_ids=[1, 2])))
+    validate_tool_response(dict(fetch_docs(db, chunk_ids=[])))

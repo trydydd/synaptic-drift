@@ -3,10 +3,10 @@ import tempfile
 
 import pytest
 
-from tank.errors import SearchError
-from tank.search.fts import search, get_chunks_by_id
-from tank.storage.db import Database
-from tank.storage.models import Chunk, Page, Pack
+from synd.errors import SearchError
+from synd.search.fts import search, get_chunks_by_id, _preprocess_query
+from synd.storage.db import Database
+from synd.storage.models import Chunk, Page, Pack
 
 
 def _make_db() -> Database:
@@ -330,6 +330,68 @@ def test_search_malformed_query_raises_search_error() -> None:
         search(db, "foo AND")  # incomplete binary operator — invalid FTS5 syntax
 
 
+def test_search_stopword_only_query_raises_search_error() -> None:
+    """A query that reduces to nothing after stopword filtering raises SearchError."""
+    db = _make_db()
+    with pytest.raises(SearchError, match="common words"):
+        search(db, "the is a")
+
+
+def test_search_empty_string_returns_empty_list() -> None:
+    """Truly empty input returns [] without raising — caller's responsibility."""
+    db = _make_db()
+    assert search(db, "") == []
+
+
+def test_search_dot_in_query_does_not_raise() -> None:
+    """'mcp.tool' must not crash — dot is an FTS5 syntax error without sanitization."""
+    db = _make_db()
+    results = search(db, "mcp.tool")
+    assert results == []
+
+
+def test_search_parens_in_query_do_not_raise() -> None:
+    db = _make_db()
+    results = search(db, "foo(bar)")
+    assert results == []
+
+
+def test_search_special_chars_stripped_still_matches() -> None:
+    """Tokens survive sanitization and still match indexed content."""
+    db = _make_db()
+    pack = Pack(
+        name="docs",
+        version="1.0.0",
+        lifecycle_state="approved",
+        doc_version_status="stable",
+        indexed_at="2026-01-01T00:00:00Z",
+    )
+    pages = [Page(id=1, package="docs", version="1.0.0", url="index.md")]
+    chunks = [
+        Chunk(
+            id=1,
+            package="docs",
+            version="1.0.0",
+            page_id=1,
+            heading_path="Tools",
+            summary="Tool usage",
+            content="Use the mcp tool decorator to register functions",
+            source_url="index.md",
+        ),
+    ]
+    _import_pack(db, pack, pages, chunks)
+
+    results = search(db, "mcp.tool")
+    assert len(results) == 1
+    assert results[0].heading_path == "Tools"
+
+
+def test_search_query_of_only_special_chars_returns_empty() -> None:
+    db = _make_db()
+    results = search(db, "...")
+    assert results == []
+
+
 def test_search_best_match_first() -> None:
     db = _make_db()
     pack = Pack(
@@ -367,3 +429,69 @@ def test_search_best_match_first() -> None:
     results = search(db, "python")
     assert len(results) == 2
     assert results[0].chunk_id == 1
+
+
+def test_preprocess_query_filters_stopwords() -> None:
+    """Common function words are stripped, leaving only meaningful terms."""
+    assert _preprocess_query("install the package") == "install package"
+    assert (
+        _preprocess_query("is the authentication configured")
+        == "authentication configured"
+    )
+    assert _preprocess_query("a token for the api") == "token api"
+
+
+def test_preprocess_query_all_stopwords_returns_empty() -> None:
+    """When every token is a stopword an empty string is returned so search() short-circuits."""
+    assert _preprocess_query("the is a") == ""
+    assert _preprocess_query("the") == ""
+
+
+def test_preprocess_query_preserves_fts5_operators() -> None:
+    """Uppercase AND / OR / NOT pass through — they are valid FTS5 operators."""
+    assert _preprocess_query("foo AND bar") == "foo AND bar"
+    assert _preprocess_query("foo OR bar") == "foo OR bar"
+
+
+def test_search_heading_path_weighted_higher() -> None:
+    """heading_path matches boost rank above summary-only matches (2.5x vs 1.5x weight)."""
+    db = _make_db()
+    pack = Pack(
+        name="docs",
+        version="1.0.0",
+        lifecycle_state="approved",
+        doc_version_status="stable",
+        indexed_at="2026-01-01T00:00:00Z",
+    )
+    pages = [Page(id=1, package="docs", version="1.0.0", url="index.md")]
+    chunks = [
+        Chunk(
+            id=1,
+            package="docs",
+            version="1.0.0",
+            page_id=1,
+            # heading_path does NOT contain the query term
+            heading_path="General Overview",
+            summary="oauth token authentication",
+            content="Details about the system.",
+            source_url="index.md",
+        ),
+        Chunk(
+            id=2,
+            package="docs",
+            version="1.0.0",
+            page_id=1,
+            # heading_path ALSO contains the query term — should rank higher
+            heading_path="oauth authentication flow",
+            summary="oauth token authentication",
+            content="Details about the system.",
+            source_url="index.md",
+        ),
+    ]
+    _import_pack(db, pack, pages, chunks)
+
+    results = search(db, "oauth")
+    assert len(results) == 2
+    # Chunk 2 matches in both heading_path (2.5x weight) and summary (1.5x weight);
+    # chunk 1 matches only in summary (1.5x weight). Chunk 2 must rank first.
+    assert results[0].chunk_id == 2

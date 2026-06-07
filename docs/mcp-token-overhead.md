@@ -3,7 +3,7 @@
 MCP tool schemas are injected into the context window on every request. At scale,
 this consumes a significant fraction of available context before any user work begins.
 This document summarises findings from three independent benchmarks and maps the
-mitigations to Tank's architecture.
+mitigations to Synaptic Drift's architecture.
 
 ---
 
@@ -148,49 +148,44 @@ Tradeoff: requires sandbox infrastructure; highest setup complexity.
 
 ---
 
-## What This Means for Tank
+## What This Means for Synaptic Drift
 
-Tank registers two MCP tools (`query-docs`, `resolve-deps`). The schema cost is low
+Synaptic Drift registers two MCP tools (`search`, `fetch`). The schema cost is low
 compared to the benchmarks above. The relevant risk is **response bloat**, not schema
 bloat.
 
-### Tank's existing mitigation: progressive disclosure
+### Synaptic Drift's existing mitigation: two-tool progressive disclosure
 
-`query-docs` supports two detail levels:
+The tools structurally enforce the two-step pattern:
 
-- `detail="summary"` — returns heading path and one-sentence summary per chunk.
-  Token cost is proportional to the number of results, but each result is small.
-- `detail="full"` — returns complete chunk content. Token cost scales with chunk size
-  (average ~400 tokens per chunk based on the `token_count` estimates in `index.db`).
+- `search` — returns heading path and one-sentence summary per chunk, never full content.
+  Token cost is proportional to the number of results, but each result is small (~20–40 tokens).
+- `fetch` — returns complete chunk content for a list of `chunk_ids`. Token cost scales with
+  chunk size (average ~400 tokens per chunk based on the `token_count` estimates in `index.db`).
 
 The intended agent pattern is:
-1. Call `query-docs` with `detail="summary"` to identify relevant chunks (low cost).
-2. Call `query-docs` with `chunk_ids=[...]` and `detail="full"` to fetch only the
-   chunks that matter (targeted cost).
+1. Call `search` to identify relevant chunks (low cost).
+2. Call `fetch` with the selected `chunk_ids` to retrieve only the chunks that matter (targeted cost).
 
 This matches the search-first discovery and response filtering patterns from StackOne,
 without requiring sandbox infrastructure.
 
 ### What is not yet measured
 
-The ultraplan (line 274) cites the 40–50% context overhead figure from the Scalekit
-and Sideko benchmarks as justification for Tank's progressive disclosure pattern.
-The actual Scalekit numbers (4–32× overhead) suggest the problem is more severe than
-stated, which strengthens the argument — but Tank has no internal benchmark confirming
-its own tool's token footprint.
+The industry benchmarks above (Scalekit: 4–32× overhead, Apideck: 72% of context window consumed) cite the progressive disclosure pattern as a primary mitigation. Synaptic Drift's two-step design aligns with this, but Synaptic Drift has no internal benchmark confirming its own tool's token footprint.
 
-**A token overhead benchmark for Tank should measure**:
+**A token overhead benchmark for Synaptic Drift should measure**:
 
-1. Schema cost — serialise the `query-docs` and `resolve-deps` tool definitions,
+1. Schema cost — serialise the `search` and `fetch` tool definitions,
    count tokens (`len(json) // 4`), express as a percentage of a 200K context window.
-2. Summary response cost — total tokens returned by `query-docs` at `detail="summary"`
-   for N results (measure across N = 5, 10, 20).
-3. Full response cost — same, at `detail="full"`.
+2. Summary response cost — total tokens returned by `search` for N results
+   (measure across N = 5, 10, 20).
+3. Full response cost — total tokens returned by `fetch` for the same N chunks.
 4. Progressive disclosure saving — (full cost − summary cost) / full cost, to
    quantify what the two-step pattern saves per query session.
 
 This benchmark belongs in `tests/benchmarks/` and requires no new dependencies.
-It would give Tank a concrete, internally reproducible number to cite instead of
+It would give Synaptic Drift a concrete, internally reproducible number to cite instead of
 borrowing figures measured against a different tool.
 
 ### Recommendations for the roadmap
@@ -199,9 +194,9 @@ borrowing figures measured against a different tool.
 |---|---|---|
 | ~~Write token overhead benchmark~~ | ~~v0.2.0~~ | ✅ Done — `tests/benchmarks/test_token_overhead.py` with baseline in `tests/benchmarks/results/latest.json` |
 | Document progressive disclosure pattern | v0.1.0 | Add agent usage example to README showing the two-step summary→full pattern |
-| Expose `token_budget` on `query-docs` | v0.3.0 | Return maximum content within a caller-specified token budget, auto-balancing result count vs. detail level |
-| Consider schema compression | v1.0.0 | If Tank registers more tools in future, audit description verbosity against StackOne's compression tradeoffs |
-| Fix silent failure in `fts.py:76` | open bug | Currently all search errors return `[]` silently — a query over-budget or schema mismatch is invisible to the caller; tracked in `docs/todo.md` |
+| Expose `token_budget` on `search`/`fetch` | v0.3.0 | Return maximum content within a caller-specified token budget, auto-balancing result count vs. chunk size |
+| Consider schema compression | v1.0.0 | If Synaptic Drift registers more tools in future, audit description verbosity against StackOne's compression tradeoffs |
+| ~~Fix silent failure in `fts.py:76`~~ | ~~open bug~~ | ✅ Fixed — `search()` now raises `SearchError` on `sqlite3.Error` |
 
 ---
 

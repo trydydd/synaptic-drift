@@ -1,12 +1,12 @@
-"""Token overhead benchmark for Tank's MCP tools.
+"""Token overhead benchmark for Synd's MCP tools.
 
 Measures the token cost of:
   1. Tool schema injection — what every MCP session pays upfront
-  2. query-docs responses at detail='summary' and detail='full'
+  2. search responses (summaries only) and fetch responses (full content)
   3. The two-step progressive disclosure pattern vs. naive full fetch
 
 Token counting uses len(str) // 4 throughout, consistent with the project
-convention in tank/storage/models.py. This is an approximation (~±15%
+convention in synd/storage/models.py. This is an approximation (~±15%
 for English prose). For exact cl100k counts install tiktoken and replace
 _count_tokens below.
 
@@ -28,11 +28,12 @@ from typing import Any
 
 import pytest
 
-import tank
-from tank.server import create_server
-from tank.server import query_docs as _query_docs
-from tank.storage.db import Database
-from tank.storage.models import Chunk, Pack, Page
+import synd
+from synd.server import create_server
+from synd.server import fetch_docs as _fetch_docs
+from synd.server import search_docs as _search_docs
+from synd.storage.db import Database
+from synd.storage.models import Chunk, Pack, Page
 
 RESULTS_DIR = Path(__file__).parent / "results"
 
@@ -628,7 +629,7 @@ def _build_chunks() -> list[Chunk]:
 
 @pytest.fixture(scope="module")
 def bench_db(tmp_path_factory: pytest.TempPathFactory) -> Database:
-    path = tmp_path_factory.mktemp("bench") / ".tank" / "index.db"
+    path = tmp_path_factory.mktemp("bench") / ".synd" / "index.db"
     db = Database(path)
     db.create_schema()
     # page_id FK note: first import into a fresh DB — AUTOINCREMENT assigns
@@ -699,27 +700,37 @@ def test_token_overhead(bench_db: Database) -> None:
     )
 
     # Responses at different result counts via the public API.
+    # summary_nN: cost of search_docs at limit=N.
+    # full_nN: cost of fetch_docs for the top N chunk IDs (two-step, agentless).
     response_data: dict[str, dict[str, Any]] = {}
-    for detail in ("summary", "full"):
-        for n in (5, 10, 20):
-            result = _query_docs(bench_db, broad_query, detail=detail, limit=n)
-            results = result.get("results", [])
-            tokens = _response_tokens(result)
-            key = f"{detail}_n{n}"
-            response_data[key] = {
-                "tokens": tokens,
-                "actual_results": len(results),
-                "tokens_per_result": round(tokens / max(len(results), 1)),
-            }
+    for n in (5, 10, 20):
+        s_result = _search_docs(bench_db, broad_query, limit=n)
+        s_results = s_result.get("results", [])
+        s_tokens = _response_tokens(s_result)
+        response_data[f"summary_n{n}"] = {
+            "tokens": s_tokens,
+            "actual_results": len(s_results),
+            "tokens_per_result": round(s_tokens / max(len(s_results), 1)),
+        }
+
+        top_ids_n = [r["chunk_id"] for r in s_results]
+        f_result = _fetch_docs(bench_db, top_ids_n)
+        f_results = f_result.get("results", [])
+        f_tokens = _response_tokens(f_result)
+        response_data[f"full_n{n}"] = {
+            "tokens": f_tokens,
+            "actual_results": len(f_results),
+            "tokens_per_result": round(f_tokens / max(len(f_results), 1)),
+        }
 
     # Two-step progressive disclosure session via the public API.
     # Step 1 — broad summary scan
-    step1 = _query_docs(bench_db, broad_query, detail="summary", limit=20)
+    step1 = _search_docs(bench_db, broad_query, limit=20)
     step1_tokens = _response_tokens(step1)
     top_ids = [r["chunk_id"] for r in step1.get("results", [])[:3]]
 
     # Step 2 — targeted full fetch of top 3 chunks
-    step2 = _query_docs(bench_db, "", chunk_ids=top_ids)
+    step2 = _fetch_docs(bench_db, top_ids)
     step2_tokens = _response_tokens(step2)
 
     two_step_total = step1_tokens + step2_tokens
@@ -733,7 +744,7 @@ def test_token_overhead(bench_db: Database) -> None:
     results_payload: dict[str, Any] = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "git_commit": _git_commit(),
-        "tank_version": tank.__version__,
+        "synd_version": synd.__version__,
         "token_counter": "len_div_4",
         "corpus": {
             "chunks": len(corpus_chunks),
@@ -756,9 +767,9 @@ def test_token_overhead(bench_db: Database) -> None:
     out_path.write_text(json.dumps(results_payload, indent=2))
 
     # Print summary for -s output
-    print("\n── Tank MCP Token Overhead Benchmark ──────────────────────────")
+    print("\n── Synd MCP Token Overhead Benchmark ──────────────────────────")
     print(f"  git commit     : {results_payload['git_commit']}")
-    print(f"  tank version   : {results_payload['tank_version']}")
+    print(f"  synd version   : {results_payload['synd_version']}")
     print(f"  token counter  : {results_payload['token_counter']} (approx ±15%)")
     print(
         f"\n  Corpus: {len(corpus_chunks)} chunks, "
