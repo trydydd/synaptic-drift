@@ -2026,24 +2026,36 @@ chunks:
   # Every definition_of_done below runs fully offline. Live-model runs are
   # manual, env-gated (SYND_EVAL_BASE_URL), and happen on the user's machine.
   #
-  # PLANNER NOTE (2026-06-11, verified in a CPU-only sandbox): a llama.cpp
-  # llama-server with a tiny Qwen3 GGUF is a working stand-in for vLLM when
-  # smoke-testing chunk-e6/e8 against a REAL model (~50 tok/s on 4 CPU cores):
+  # PLANNER NOTE (2026-06-11, verified in a CPU-only sandbox: 4 cores, 15GB
+  # RAM): a llama.cpp llama-server with a Qwen3 GGUF is a working stand-in
+  # for vLLM when smoke-testing chunk-e6/e8 against a REAL model:
   #   1. Download a llama.cpp release binary (llama-bNNNN-bin-ubuntu-x64.tar.gz
-  #      from github.com/ggml-org/llama.cpp/releases) and Qwen3-0.6B-Q8_0.gguf
-  #      (huggingface.co/Qwen/Qwen3-0.6B-GGUF, ~610MB).
-  #   2. ./llama-server -m Qwen3-0.6B-Q8_0.gguf --jinja --host 127.0.0.1 \
-  #        --port 8089 -c 8192 -t 4 --reasoning-budget 0
-  #   3. SYND_EVAL_BASE_URL=http://127.0.0.1:8089/v1 SYND_EVAL_MODEL=qwen3
+  #      from github.com/ggml-org/llama.cpp/releases) and a GGUF (below).
+  #   2. ./llama-server -m <model>.gguf --jinja --host 127.0.0.1 \
+  #        --port 8089 -c 16384 -t 4 --reasoning-budget 0
+  #   3. SYND_EVAL_BASE_URL=http://127.0.0.1:8089/v1 SYND_EVAL_MODEL=local
   #      (llama-server ignores the model field; any non-empty value works).
-  #   Verified: Qwen3-0.6B naturally emits search tool_calls (OpenAI format,
-  #   arguments as JSON string), consumes role='tool' results, and follows up
-  #   with fetch — the full two-step loop. Qwen2.5-0.5B-Instruct is NOT
-  #   suitable: it answers in prose instead of calling tools, even with
-  #   tool_choice='required' (this build treats it as a hint, not a grammar).
-  #   Pass rates from a 0.6B are NOT meaningful results — the smoke run
-  #   validates the harness mechanics only; real measurements need the
-  #   operator's vLLM-served model.
+  #
+  # Model capability ladder, measured on seed tasks t03/t05/t09/t10 with
+  # simulated retrieval and the real dataset graders:
+  #   - Qwen3-8B Q4_K_M (Qwen/Qwen3-8B-GGUF, ~4.7GB, ~6GB RAM loaded):
+  #     RECOMMENDED. 4/4 passes; searched->fetched->answered naturally on
+  #     every task even with a gentle prompt; ~2 min/task on 4 CPU cores.
+  #     Capable enough that sandbox pass rates are directionally meaningful.
+  #   - Qwen3-4B-Instruct-2507 Q4_K_M (unsloth/Qwen3-4B-Instruct-2507-GGUF,
+  #     ~2.4GB; Qwen's own -2507-GGUF repo 401s on anonymous download):
+  #     faster (~0.5-2 min/task) but skipped retrieval on 3/4 tasks under a
+  #     gentle prompt and failed those on hallucinated APIs; usable for
+  #     quick loop checks ONLY with the forceful search-first system prompt
+  #     (see chunk-e8 local_context), 1 of the 4 still failed.
+  #   - Qwen3-0.6B-Q8_0 (~610MB): tool-call mechanics only (OpenAI-format
+  #     tool_calls, JSON-string arguments, role='tool' feedback, follow-up
+  #     fetch). Answers are not gradeable signal.
+  #   - Qwen2.5-0.5B-Instruct: NOT suitable; answers in prose instead of
+  #     calling tools, even with tool_choice='required' (this llama-server
+  #     build treats it as a hint, not a grammar).
+  # Sandbox numbers from any of these are smoke-level only; the real
+  # measurements still come from the operator's vLLM-served model.
   # ===========================================================================
 
   # ---------------------------------------------------------------------------
@@ -3182,6 +3194,20 @@ chunks:
       role='tool' message per call (content = JSON of the tool result,
       tool_call_id = the call's id), and request the next completion. The
       final assistant content is graded with chunk-e7's grade().
+
+      with_docs system prompt — use forceful search-first wording, verified
+      against real models in-sandbox (2026-06-11): "You are a coding
+      assistant with NO prior knowledge of the FastMCP API. Your memory of
+      FastMCP is unreliable and outdated. You MUST call the search tool
+      before answering, and base your code ONLY on fetched documentation.
+      Answer with Python code in a fenced code block." With a gentle
+      "use the search tool" prompt, Qwen3-4B skipped retrieval on 3 of 4
+      probed tasks and failed them on hallucinated APIs; the forceful
+      wording flipped t09 to a pass. Qwen3-8B searched naturally either
+      way. Keeping the forceful wording protects the treatment arm's lift
+      across model sizes without disadvantaging the control arm (which has
+      no tools and gets the same coding-assistant framing minus the
+      tool sentences).
 
       CI/sandbox verification uses a FakeChatClient with scripted replies —
       the loop, dispatch, and grading wiring are fully testable without any
