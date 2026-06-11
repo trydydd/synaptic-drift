@@ -2025,6 +2025,25 @@ chunks:
   # The user's vLLM endpoint is NOT reachable from CI or cloud sandboxes.
   # Every definition_of_done below runs fully offline. Live-model runs are
   # manual, env-gated (SYND_EVAL_BASE_URL), and happen on the user's machine.
+  #
+  # PLANNER NOTE (2026-06-11, verified in a CPU-only sandbox): a llama.cpp
+  # llama-server with a tiny Qwen3 GGUF is a working stand-in for vLLM when
+  # smoke-testing chunk-e6/e8 against a REAL model (~50 tok/s on 4 CPU cores):
+  #   1. Download a llama.cpp release binary (llama-bNNNN-bin-ubuntu-x64.tar.gz
+  #      from github.com/ggml-org/llama.cpp/releases) and Qwen3-0.6B-Q8_0.gguf
+  #      (huggingface.co/Qwen/Qwen3-0.6B-GGUF, ~610MB).
+  #   2. ./llama-server -m Qwen3-0.6B-Q8_0.gguf --jinja --host 127.0.0.1 \
+  #        --port 8089 -c 8192 -t 4 --reasoning-budget 0
+  #   3. SYND_EVAL_BASE_URL=http://127.0.0.1:8089/v1 SYND_EVAL_MODEL=qwen3
+  #      (llama-server ignores the model field; any non-empty value works).
+  #   Verified: Qwen3-0.6B naturally emits search tool_calls (OpenAI format,
+  #   arguments as JSON string), consumes role='tool' results, and follows up
+  #   with fetch — the full two-step loop. Qwen2.5-0.5B-Instruct is NOT
+  #   suitable: it answers in prose instead of calling tools, even with
+  #   tool_choice='required' (this build treats it as a hint, not a grammar).
+  #   Pass rates from a 0.6B are NOT meaningful results — the smoke run
+  #   validates the harness mechanics only; real measurements need the
+  #   operator's vLLM-served model.
   # ===========================================================================
 
   # ---------------------------------------------------------------------------
@@ -3364,7 +3383,7 @@ chunks:
       outputs:
         - path: "docs/evals.md"
           exports:
-            - "sections: Why these evals exist; Layer 1 hermetic retrieval (commands, metrics definitions, floor values and the measured baseline table); Layer 1b live retrieval; Layer 2 end-task A/B (vLLM setup: --enable-auto-tool-choice, --tool-call-parser hermes for Qwen, env vars with the operator example endpoint); Reading the results JSON; Extending the datasets (ref format, rot guard, re-validation procedure)"
+            - "sections: Why these evals exist; Layer 1 hermetic retrieval (commands, metrics definitions, floor values and the measured baseline table); Layer 1b live retrieval; Layer 2 end-task A/B (vLLM setup: --enable-auto-tool-choice, --tool-call-parser hermes for Qwen, env vars with the operator example endpoint); Smoke-testing without vLLM (the llama.cpp + Qwen3-0.6B recipe from the stream header PLANNER NOTE, with the explicit caveat that 0.6B pass rates validate mechanics only); Reading the results JSON; Extending the datasets (ref format, rot guard, re-validation procedure)"
         - path: "docs/roadmap.md"
           exports:
             - "v0.2.0 'Eval harness' subsection: checklist entries for chunks e1-e8 marked done with one-line descriptions"
