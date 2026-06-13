@@ -2036,26 +2036,38 @@ chunks:
   #   3. SYND_EVAL_BASE_URL=http://127.0.0.1:8089/v1 SYND_EVAL_MODEL=local
   #      (llama-server ignores the model field; any non-empty value works).
   #
-  # Model capability ladder, measured on seed tasks t03/t05/t09/t10 with
-  # simulated retrieval and the real dataset graders:
-  #   - Qwen3-8B Q4_K_M (Qwen/Qwen3-8B-GGUF, ~4.7GB, ~6GB RAM loaded):
-  #     RECOMMENDED. 4/4 passes; searched->fetched->answered naturally on
-  #     every task even with a gentle prompt; ~2 min/task on 4 CPU cores.
-  #     Capable enough that sandbox pass rates are directionally meaningful.
+  # SAMPLING PARAMETERS: Alibaba explicitly discourages greedy decoding for
+  # Qwen3. Verified in-sandbox: greedy produced identical-query repetition
+  # loops (model re-sent the same search 8 times at temperature=0). Use:
+  #   temperature=0.7, top_p=0.8, top_k=20, min_p=0
+  # llama-server accepts top_k and min_p as OpenAI-API extensions.
+  # These params go in the live run request payload in chunk-e8's driver.
+  #
+  # Model capability ladder — fully measured end-to-end (2026-06-11):
+  # all 10 seed tasks, real synd search_docs/fetch_docs against an index
+  # built from the eval corpus, Alibaba sampling, verified query guidance.
+  # Retrieval hits = model's queries surfaced the task's 'teaches' target.
+  #
+  #   - Qwen3-8B Q4_K_M (Qwen/Qwen3-8B-GGUF, ~4.7GB, ~6GB RAM):
+  #     SMOKE-ONLY. Retrieval 10/10, passes 3/10. Good enough to test
+  #     harness mechanics (tool loop, dispatch, grading wiring) and confirm
+  #     the retrieval path works. NOT large enough to measure A/B lift —
+  #     7 of 10 failures were code-gen errors (hallucinated API surface from
+  #     priors) despite fetching the right documentation. Pass rates at 8B
+  #     are not directionally meaningful for the eval's main question.
+  #     ~2-4 min/task on 4 CPU cores with Alibaba sampling.
   #   - Qwen3-4B-Instruct-2507 Q4_K_M (unsloth/Qwen3-4B-Instruct-2507-GGUF,
   #     ~2.4GB; Qwen's own -2507-GGUF repo 401s on anonymous download):
-  #     faster (~0.5-2 min/task) but skipped retrieval on 3/4 tasks under a
-  #     gentle prompt and failed those on hallucinated APIs; usable for
-  #     quick loop checks ONLY with the forceful search-first system prompt
-  #     (see chunk-e8 local_context), 1 of the 4 still failed.
-  #   - Qwen3-0.6B-Q8_0 (~610MB): tool-call mechanics only (OpenAI-format
+  #     LOOP-MECHANICS ONLY. Skips retrieval 3/4 tasks even with guidance;
+  #     code-gen quality below 8B.
+  #   - Qwen3-0.6B-Q8_0 (~610MB): tool-call WIRE FORMAT only (OpenAI-format
   #     tool_calls, JSON-string arguments, role='tool' feedback, follow-up
-  #     fetch). Answers are not gradeable signal.
-  #   - Qwen2.5-0.5B-Instruct: NOT suitable; answers in prose instead of
-  #     calling tools, even with tool_choice='required' (this llama-server
-  #     build treats it as a hint, not a grammar).
-  # Sandbox numbers from any of these are smoke-level only; the real
-  # measurements still come from the operator's vLLM-served model.
+  #     fetch). Answers are not gradeable.
+  #   - Qwen2.5-0.5B-Instruct: NOT suitable; ignores tools entirely.
+  #
+  # For real measurements, use your vLLM-served model. A model in the 14B+
+  # range (or a well-instruction-tuned smaller model) is the minimum for
+  # code-synthesis from docs to be reliable enough to measure A/B lift.
   # ===========================================================================
 
   # ---------------------------------------------------------------------------
@@ -3195,19 +3207,40 @@ chunks:
       tool_call_id = the call's id), and request the next completion. The
       final assistant content is graded with chunk-e7's grade().
 
-      with_docs system prompt — use forceful search-first wording, verified
-      against real models in-sandbox (2026-06-11): "You are a coding
-      assistant with NO prior knowledge of the FastMCP API. Your memory of
-      FastMCP is unreliable and outdated. You MUST call the search tool
-      before answering, and base your code ONLY on fetched documentation.
-      Answer with Python code in a fenced code block." With a gentle
-      "use the search tool" prompt, Qwen3-4B skipped retrieval on 3 of 4
-      probed tasks and failed them on hallucinated APIs; the forceful
-      wording flipped t09 to a pass. Qwen3-8B searched naturally either
-      way. Keeping the forceful wording protects the treatment arm's lift
-      across model sizes without disadvantaging the control arm (which has
-      no tools and gets the same coding-assistant framing minus the
-      tool sentences).
+      with_docs system prompt — verified end-to-end against real models,
+      real synd retrieval, all 10 seed tasks (2026-06-11):
+        "You are a coding assistant with NO prior knowledge of the FastMCP
+        API. Your memory of FastMCP is unreliable and outdated. You MUST
+        call the search tool before answering, and base your code ONLY on
+        fetched documentation. Search uses exact keyword matching: every
+        term must appear in a chunk, so use 1-3 distinctive terms (e.g.
+        'progress', 'prompt template', 'stdio'), never full sentences. If a
+        search returns no results, retry ONCE with fewer, different terms.
+        When search returns results, IMMEDIATELY fetch the most relevant
+        chunk_ids — never repeat a similar search. Once you have fetched
+        relevant documentation, give your final answer. Answer with Python
+        code in a fenced code block."
+      The forceful wording + AND-semantics explanation raised retrieval hits
+      from 2/10 to 10/10 with no code changes. Without it, Qwen3-8B at
+      greedy with only task prompts: 2/10 retrieval, 2/10 passes. With it:
+      10/10 retrieval, 3/10 passes (remaining failures are code-generation
+      quality, not retrieval or harness bugs). Keeping the forceful wording
+      protects the treatment arm's lift across model sizes.
+
+      search tool description — the real server.py docstring was updated to
+      match the AND-semantics guidance (2026-06-11, spike S13). The with_docs
+      arm uses the live tool schemas from the MCP server; no separate override
+      needed — the fix is in the product itself.
+
+      Sampling parameters for live runs: use Alibaba's recommended Qwen3
+      non-thinking settings: temperature=0.7, top_p=0.8, top_k=20, min_p=0.
+      Greedy decoding (temperature=0) causes identical-query repetition loops;
+      verified in-sandbox. Pass these in every request payload. OpenAI-compat
+      servers accept top_k and min_p as extensions.
+
+      Turn budget: max_turns=12 is sufficient; 8-turn budget caused time-outs
+      on tasks that needed 3-4 searches before converging. 12 turns verified
+      to give the model enough room without runaway loops.
 
       CI/sandbox verification uses a FakeChatClient with scripted replies —
       the loop, dispatch, and grading wiring are fully testable without any
@@ -3409,7 +3442,7 @@ chunks:
       outputs:
         - path: "docs/evals.md"
           exports:
-            - "sections: Why these evals exist; Layer 1 hermetic retrieval (commands, metrics definitions, floor values and the measured baseline table); Layer 1b live retrieval; Layer 2 end-task A/B (vLLM setup: --enable-auto-tool-choice, --tool-call-parser hermes for Qwen, env vars with the operator example endpoint); Smoke-testing without vLLM (the llama.cpp + Qwen3-0.6B recipe from the stream header PLANNER NOTE, with the explicit caveat that 0.6B pass rates validate mechanics only); Reading the results JSON; Extending the datasets (ref format, rot guard, re-validation procedure)"
+            - "sections: Why these evals exist; Layer 1 hermetic retrieval (commands, metrics definitions, floor values and the measured baseline table); Layer 1b live retrieval; Layer 2 end-task A/B (vLLM setup: --enable-auto-tool-choice, --tool-call-parser hermes for Qwen, env vars with the operator example endpoint; Alibaba-recommended sampling: temperature=0.7 top_p=0.8 top_k=20 min_p=0 — greedy causes repetition loops; max_turns=12 verified); Smoke-testing without vLLM (llama.cpp + Qwen3-8B recipe from the stream header PLANNER NOTE; 8B validates harness mechanics and retrieval path but 3/10 on code-gen means pass rates are not directionally meaningful — real measurements need 14B+ or your vLLM model); Reading the results JSON; Extending the datasets (ref format, rot guard, re-validation procedure)"
         - path: "docs/roadmap.md"
           exports:
             - "v0.2.0 'Eval harness' subsection: checklist entries for chunks e1-e8 marked done with one-line descriptions"
