@@ -94,26 +94,20 @@ class SearchResult:
     lifecycle_warning: str | None  # set when lifecycle_state == 'deprecated'
 
 
-def search(
+def _execute_fts(
     db: "Database",
-    query: str,
-    packages: list[str] | None = None,
-    detail: str = "summary",
-    limit: int = 10,
+    sanitized: str,
+    packages: list[str] | None,
+    detail: str,
+    limit: int,
 ) -> list[SearchResult]:
-    sanitized = _preprocess_query(query)
-    if not sanitized:
-        if _sanitize_query(query):
-            raise SearchError(
-                "Query contains only common words with no search value. "
-                "Use more specific terms."
-            )
-        return []
+    """Run the FTS5 query against the database and return results.
 
+    Expects `sanitized` to already be preprocessed. Raises SearchError on
+    SQLite errors (including malformed FTS5 syntax).
+    """
     conn = db.conn
-
     try:
-        # Build the WHERE clause for optional package filtering
         pkg_where = ""
         params: list[Any] = []
         if packages:
@@ -182,6 +176,66 @@ LIMIT ?"""
         )
 
     return results
+
+
+def search(
+    db: "Database",
+    query: str,
+    packages: list[str] | None = None,
+    detail: str = "summary",
+    limit: int = 10,
+) -> list[SearchResult]:
+    sanitized = _preprocess_query(query)
+    if not sanitized:
+        if _sanitize_query(query):
+            raise SearchError(
+                "Query contains only common words with no search value. "
+                "Use more specific terms."
+            )
+        return []
+
+    return _execute_fts(db, sanitized, packages, detail, limit)
+
+
+def search_relaxed(
+    db: "Database",
+    query: str,
+    packages: list[str] | None = None,
+    detail: str = "summary",
+    limit: int = 10,
+) -> tuple[list[SearchResult], str]:
+    """Like search(), but retries with progressively fewer terms on empty results.
+
+    When FTS5's implicit AND produces zero results for a multi-term query, drops
+    the rightmost term and retries. Continues until results are found or a single
+    term remains. This recovers from over-constrained queries (e.g. a 6-term
+    query where only 2 terms co-occur in any chunk).
+
+    Returns (results, effective_query) where effective_query is the preprocessed
+    query string that produced the returned results. When the original query
+    succeeds, effective_query equals the preprocessed form of the original.
+
+    Raises SearchError for stopwords-only input and malformed FTS5 syntax (e.g.
+    an incomplete boolean operator like "foo AND").
+    """
+    preprocessed = _preprocess_query(query)
+    if not preprocessed:
+        if _sanitize_query(query):
+            raise SearchError(
+                "Query contains only common words with no search value. "
+                "Use more specific terms."
+            )
+        return [], query
+
+    tokens = preprocessed.split()
+    while tokens:
+        effective = " ".join(tokens)
+        results = _execute_fts(db, effective, packages, detail, limit)
+        if results or len(tokens) == 1:
+            return results, effective
+        tokens = tokens[:-1]
+
+    return [], preprocessed
 
 
 def get_chunks_by_id(

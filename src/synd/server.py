@@ -20,7 +20,7 @@ from mcp.server.fastmcp import FastMCP
 
 from synd.schemas import tool_response_schema, validate_tool_response
 from synd.schemas.types import ToolResponse, ToolResultItem
-from synd.search.fts import SearchResult, get_chunks_by_id, search
+from synd.search.fts import SearchResult, get_chunks_by_id, search_relaxed
 from synd.storage.db import Database
 
 _DEFAULT_DB_PATH = Path(".synd") / "index.db"
@@ -68,13 +68,13 @@ def search_docs(
         if row["cnt"] < len(packages):
             return _validated({"status": "not_indexed"})
 
-    hits = [
-        _to_dict(r)
-        for r in search(db, query, packages=packages, detail="summary", limit=limit)
-    ]
+    raw, effective_query = search_relaxed(
+        db, query, packages=packages, detail="summary", limit=limit
+    )
+    hits = [_to_dict(r) for r in raw]
     if max_tokens is not None:
         hits = _apply_token_budget(hits, max_tokens, "summary")
-    return _validated({"results": hits})
+    return _validated({"results": hits, "query_used": effective_query})
 
 
 def fetch_docs(

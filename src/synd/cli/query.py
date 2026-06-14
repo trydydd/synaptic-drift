@@ -11,7 +11,7 @@ from rich.table import Table
 
 from synd.cli.exit_codes import exit_code_for
 from synd.errors import SyndError
-from synd.search.fts import get_chunks_by_id, search
+from synd.search.fts import get_chunks_by_id, search_relaxed
 from synd.storage.db import Database
 
 console = Console()
@@ -58,14 +58,23 @@ def query(
         db = _open_db()
         db.create_schema()
 
+        effective_query: str | None = None
         if chunk_ids is not None:
             ids = [int(cid.strip()) for cid in chunk_ids.split(",") if cid.strip()]
             results = get_chunks_by_id(db, ids, detail=detail)
         else:
-            results = search(db, query, packages=pkg_list, detail=detail, limit=limit)
+            results, effective_query = search_relaxed(
+                db, query, packages=pkg_list, detail=detail, limit=limit
+            )
     except SyndError as exc:
         console.print(f"[red]error: {exc}[/red]")
         sys.exit(exit_code_for(exc))
+
+    if effective_query is not None and effective_query != query.strip():
+        console.print(
+            f"[yellow]Note: search relaxed to '{effective_query}' "
+            f"(original query returned no results)[/yellow]"
+        )
 
     if not results:
         console.print("[yellow]No results found.[/yellow]")

@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 from synd.errors import SearchError
-from synd.search.fts import search, get_chunks_by_id, _preprocess_query
+from synd.search.fts import search, search_relaxed, get_chunks_by_id, _preprocess_query
 from synd.storage.db import Database
 from synd.storage.models import Chunk, Page, Pack
 
@@ -495,3 +495,122 @@ def test_search_heading_path_weighted_higher() -> None:
     # Chunk 2 matches in both heading_path (2.5x weight) and summary (1.5x weight);
     # chunk 1 matches only in summary (1.5x weight). Chunk 2 must rank first.
     assert results[0].chunk_id == 2
+
+
+# ---------------------------------------------------------------------------
+# search_relaxed() tests
+# ---------------------------------------------------------------------------
+
+
+def _make_relaxed_db() -> Database:
+    """DB with two chunks that do NOT share any term except 'progress'."""
+    with tempfile.TemporaryDirectory() as tmp:
+        db_path = Path(tmp) / "relaxed.db"
+        db = Database(db_path)
+        db.create_schema()
+        return db
+
+
+def _pack_pages_chunks(
+    pkg: str,
+) -> tuple[Pack, list[Page], list[Chunk]]:
+    pack = Pack(
+        name=pkg,
+        version="1.0.0",
+        lifecycle_state="approved",
+        doc_version_status="stable",
+        indexed_at="2026-01-01T00:00:00Z",
+    )
+    pages = [Page(id=1, package=pkg, version="1.0.0", url="index.md")]
+    chunks = [
+        Chunk(
+            id=1,
+            package=pkg,
+            version="1.0.0",
+            page_id=1,
+            heading_path="Progress Reporting",
+            summary="Call report_progress to update the client",
+            content="Long-running tools should call report_progress periodically",
+            source_url="index.md",
+        )
+    ]
+    return pack, pages, chunks
+
+
+def test_search_relaxed_returns_results_on_first_try() -> None:
+    """When the original query matches, returns (results, preprocessed_query)."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    results, effective = search_relaxed(db, "progress")
+    assert len(results) == 1
+    assert effective == "progress"
+
+
+def test_search_relaxed_drops_terms_until_match() -> None:
+    """Multi-term query that over-constrains falls back to the matching prefix."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    # "progress xyznotexistent" — 'xyznotexistent' does not exist; only 'progress' matches
+    results, effective = search_relaxed(db, "progress xyznotexistent")
+    assert len(results) == 1
+    assert effective == "progress"
+    assert results[0].heading_path == "Progress Reporting"
+
+
+def test_search_relaxed_effective_query_is_shorter() -> None:
+    """effective_query is a strict prefix of the preprocessed original when relaxed."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    results, effective = search_relaxed(db, "progress missing1 missing2 missing3")
+    assert len(results) == 1
+    # dropped 3 terms to reach a single-term match
+    assert effective == "progress"
+
+
+def test_search_relaxed_returns_empty_when_nothing_matches() -> None:
+    """When even the first term yields nothing, returns ([], that_term)."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    results, effective = search_relaxed(db, "zzznomatch anotherterm")
+    assert results == []
+    assert effective == "zzznomatch"
+
+
+def test_search_relaxed_no_relaxation_needed_multi_term() -> None:
+    """All terms match → no relaxation, effective_query equals preprocessed input."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    # both 'progress' and 'report_progress' appear in the chunk content
+    results, effective = search_relaxed(db, "progress report_progress")
+    assert len(results) == 1
+    assert effective == "progress report_progress"
+
+
+def test_search_relaxed_stopwords_only_raises() -> None:
+    """Stopwords-only input raises SearchError, same as search()."""
+    db = _make_relaxed_db()
+    with pytest.raises(SearchError, match="common words"):
+        search_relaxed(db, "the is a")
+
+
+def test_search_relaxed_empty_string_returns_empty() -> None:
+    db = _make_relaxed_db()
+    results, effective = search_relaxed(db, "")
+    assert results == []
+
+
+def test_search_relaxed_malformed_operator_raises() -> None:
+    """Incomplete FTS5 boolean operator still raises SearchError."""
+    db = _make_relaxed_db()
+    with pytest.raises(SearchError):
+        search_relaxed(db, "foo AND")
