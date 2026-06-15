@@ -685,3 +685,40 @@ spikes:
       - src/synd/search/fts.py
       - docs/decisions.md
     blocked_by: []
+
+  - id: S14
+    title: Scaled retrieval eval — dual-model gold generation methodology validation
+    status: open
+    outcome: null
+    context: |
+      Full design in docs/eval-harness-design.md. The current eval (chunk-e1..e9)
+      measures retrieval against a 90-chunk hand-built toy corpus, so its findings
+      (e.g. NL paraphrase/vocab queries scoring recall@10=0.000) cannot be trusted
+      to size a semantic/hybrid-search investment or to characterize synd's impact
+      on VRAM-constrained models. The 100K-chunk real corpus already exists
+      (scripts/build_benchmark_packs.py); the gap is trustworthy gold labels at
+      that scale.
+
+      The open research question this spike resolves: does the dual-model,
+      persona-based, vocabulary-decoupled generation methodology (Sonnet 4.6 +
+      Qwen3-30B-A3B; capability-extraction → persona-synthesis → measured tiering →
+      human-audited calibration) produce gold questions that (a) read like real
+      human queries rather than reverse-engineered chunk restatements, and (b) have
+      a low enough false-gold rate to base roadmap decisions on?
+    task: |
+      1. Implement Stages A-D on a small pilot (2-3 packs, ~150 questions).
+      2. Hand-audit the pilot: measure false-gold rate, query-realism (blind A/B
+         vs the existing hand-written hermetic questions), and tier-threshold
+         stability across the two generator models.
+      3. Decide go/no-go on scaling to the full labeling subset (15-20 packs), and
+         record tier thresholds + the audited false-gold bound in decisions.md.
+    success: |
+      A decision recorded in decisions.md: generation methodology accepted (with
+      tuned tier thresholds and a stated false-gold bound) or rejected with the
+      failure mode. If accepted, the pilot dataset is committed and the ledger
+      chunks e10+ (see eval-harness-design.md section 7) are unblocked.
+    files:
+      - docs/eval-harness-design.md
+      - tests/evals/generation/
+      - docs/decisions.md
+    blocked_by: []
