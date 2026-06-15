@@ -2043,31 +2043,50 @@ chunks:
   # llama-server accepts top_k and min_p as OpenAI-API extensions.
   # These params go in the live run request payload in chunk-e8's driver.
   #
-  # Model capability ladder — fully measured end-to-end (2026-06-11):
-  # all 10 seed tasks, real synd search_docs/fetch_docs against an index
-  # built from the eval corpus, Alibaba sampling, verified query guidance.
-  # Retrieval hits = model's queries surfaced the task's 'teaches' target.
+  # Model capability ladder — fully measured end-to-end (2026-06-11/15):
+  # all 10 seed tasks, real synd search_docs/fetch_docs (with query
+  # relaxation from 2026-06-14) against an index built from the eval corpus,
+  # Alibaba sampling, verified query guidance. Full progression:
   #
-  #   - Qwen3-8B Q4_K_M (Qwen/Qwen3-8B-GGUF, ~4.7GB, ~6GB RAM):
-  #     SMOKE-ONLY. Retrieval 10/10, passes 3/10. Good enough to test
-  #     harness mechanics (tool loop, dispatch, grading wiring) and confirm
-  #     the retrieval path works. NOT large enough to measure A/B lift —
-  #     7 of 10 failures were code-gen errors (hallucinated API surface from
-  #     priors) despite fetching the right documentation. Pass rates at 8B
-  #     are not directionally meaningful for the eval's main question.
-  #     ~2-4 min/task on 4 CPU cores with Alibaba sampling.
-  #   - Qwen3-4B-Instruct-2507 Q4_K_M (unsloth/Qwen3-4B-Instruct-2507-GGUF,
-  #     ~2.4GB; Qwen's own -2507-GGUF repo 401s on anonymous download):
-  #     LOOP-MECHANICS ONLY. Skips retrieval 3/4 tasks even with guidance;
-  #     code-gen quality below 8B.
-  #   - Qwen3-0.6B-Q8_0 (~610MB): tool-call WIRE FORMAT only (OpenAI-format
-  #     tool_calls, JSON-string arguments, role='tool' feedback, follow-up
-  #     fetch). Answers are not gradeable.
-  #   - Qwen2.5-0.5B-Instruct: NOT suitable; ignores tools entirely.
+  #   Run | Model | Relaxation | Retrieval | Passes | Notes
+  #   ----+-------+------------+-----------+--------+----------------------------
+  #    1  |  8B   |    no      |   2/10    |  2/10  | greedy, no guidance
+  #    2  |  8B   |    no      |   3/3*    |  1/3*  | greedy + query wording (*partial)
+  #    3  |  8B   |    no      |  10/10    |  2/10  | Alibaba sampling + guidance
+  #    4  |  8B   |    no      |  10/10    |  3/10  | + fetch-then-answer, 12T
+  #    5  | 14B   |    no      |   4/10    |  4/10  | verbose queries defeat AND
+  #    6  | 14B   |    YES     |   6/10    |  7/10  | query relaxation in server
   #
-  # For real measurements, use your vLLM-served model. A model in the 14B+
-  # range (or a well-instruction-tuned smaller model) is the minimum for
-  # code-synthesis from docs to be reliable enough to measure A/B lift.
+  # RECOMMENDED SANDBOX MODEL: Qwen3-14B UD-Q4_K_XL
+  #   (unsloth/Qwen3-14B-GGUF, ~8.6GB, ~11GB RAM; ~1.5-4 min/task on 4 CPU)
+  #   7/10 passes with real retrieval + relaxation. 3 remaining failures are
+  #   corpus vocabulary gaps (FTS5 no stemming: "prompts"≠"prompt") and
+  #   semantic gaps (model searches "language model", corpus says "sampling")
+  #   — not harness bugs. This is directionally meaningful signal for A/B.
+  #
+  # - Qwen3-8B Q4_K_M (Qwen/Qwen3-8B-GGUF, ~4.7GB, ~6GB RAM):
+  #   HARNESS SMOKE ONLY. 3/10 passes even with 10/10 retrieval hits;
+  #   code-gen at 8B is too unreliable to measure A/B lift. Use for:
+  #   verifying tool-call wire format, loop mechanics, dispatch wiring.
+  # - Qwen3-4B-Instruct-2507 Q4_K_M (unsloth/Qwen3-4B-Instruct-2507-GGUF,
+  #   ~2.4GB; Qwen's own -2507-GGUF repo 401s on anonymous download):
+  #   LOOP-MECHANICS ONLY. Skips retrieval without forceful prompting;
+  #   code-gen below 8B.
+  # - Qwen3-0.6B-Q8_0 (~610MB): WIRE FORMAT only. Answers not gradeable.
+  # - Qwen2.5-0.5B-Instruct: NOT suitable; ignores tools entirely.
+  #
+  # Remaining 3 failures at 14B with relaxation — not harness bugs:
+  #   t07 (prompts): FTS5 no stemming — "prompt" ≠ "prompts" in heading;
+  #       "register prompt" relaxes to "register" and hits wrong chunk.
+  #       Fixable by stemming tokenizer or synonym expansion (future spike).
+  #   t09 (sampling): semantic gap — model searches "language model" /
+  #       "client rejection"; FastMCP uses "sampling"/"ctx.sample". Right
+  #       chunk IS findable via "sample client" but model never tries it.
+  #   t10 (read resource): relaxation lands on wrong chunk (chunk 20 with
+  #       get_resource vocabulary); right chunk findable via "read resource".
+  #
+  # For real measurements, use your vLLM-served model. 14B+ is the minimum
+  # for code-synthesis from fetched docs to be reliable enough to detect lift.
   # ===========================================================================
 
   # ---------------------------------------------------------------------------
@@ -3442,7 +3461,7 @@ chunks:
       outputs:
         - path: "docs/evals.md"
           exports:
-            - "sections: Why these evals exist; Layer 1 hermetic retrieval (commands, metrics definitions, floor values and the measured baseline table); Layer 1b live retrieval; Layer 2 end-task A/B (vLLM setup: --enable-auto-tool-choice, --tool-call-parser hermes for Qwen, env vars with the operator example endpoint; Alibaba-recommended sampling: temperature=0.7 top_p=0.8 top_k=20 min_p=0 — greedy causes repetition loops; max_turns=12 verified); Smoke-testing without vLLM (llama.cpp + Qwen3-8B recipe from the stream header PLANNER NOTE; 8B validates harness mechanics and retrieval path but 3/10 on code-gen means pass rates are not directionally meaningful — real measurements need 14B+ or your vLLM model); Reading the results JSON; Extending the datasets (ref format, rot guard, re-validation procedure)"
+            - "sections: Why these evals exist; Layer 1 hermetic retrieval (commands, metrics definitions, floor values and the measured baseline table); Layer 1b live retrieval; Layer 2 end-task A/B (vLLM setup: --enable-auto-tool-choice, --tool-call-parser hermes for Qwen, env vars with the operator example endpoint; Alibaba-recommended sampling: temperature=0.7 top_p=0.8 top_k=20 min_p=0 — greedy causes repetition loops; max_turns=12 verified); Smoke-testing without vLLM (llama.cpp + Qwen3-14B-UD-Q4_K_XL recipe from the stream header PLANNER NOTE; 14B with query relaxation reaches 7/10 on seed tasks — directionally meaningful signal; 8B is harness-mechanics only at 3/10; full progression table in the PLANNER NOTE); Reading the results JSON; Extending the datasets (ref format, rot guard, re-validation procedure)"
         - path: "docs/roadmap.md"
           exports:
             - "v0.2.0 'Eval harness' subsection: checklist entries for chunks e1-e8 marked done with one-line descriptions"
