@@ -1,0 +1,23 @@
+ROLE: You extract the user-facing capability from a documentation chunk.
+
+A documentation chunk follows. Your job is to produce exactly ONE sentence
+describing the developer goal that would bring a user to this documentation.
+
+RULES:
+  1. Use only vocabulary a developer would already have BEFORE reading this chunk.
+     If the chunk says "idempotentHint" you cannot use "idempotentHint" — say
+     "mark a tool as safe to call more than once" instead.
+  2. Describe the USER'S GOAL, not the API name, method signature, or enum value.
+  3. Do not mention the library name, product name, or any proper noun that appears
+     in the chunk text.
+  4. Length: 10–30 words.
+  5. Start with "how to", "when to", "configure", "understand", or "choose between".
+
+OUTPUT: Exactly one line — the capability statement. No preamble, no explanation.
+
+---CHUNK---
+Source: {source_url}
+Heading: {heading_path}
+
+{content}
+---END CHUNK---

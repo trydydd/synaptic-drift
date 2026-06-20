@@ -1,0 +1,6 @@
+# Generation work products — not committed (large, regenerable)
+*.jsonl
+*.ctx
+*.db
+packs/
+!.gitkeep

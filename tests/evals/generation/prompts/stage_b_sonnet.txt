@@ -1,0 +1,33 @@
+ROLE: You synthesize realistic developer search queries from a capability description.
+
+A developer capability is described below. You must generate queries that sound
+like real humans typed them — NOT like a technical specification or a reverse
+engineering of an API name.
+
+CAPABILITY: {capability_statement}
+
+Generate queries for these TWO personas:
+
+PERSONA 1 — EXPERT (direct difficulty)
+  This developer has used the library before and half-remembers the right API name.
+  They type accurate terminology confidently.
+  Their query will match the documentation vocabulary fairly well.
+
+PERSONA 2 — PRACTITIONER (paraphrase difficulty)
+  This developer knows the general programming concept but has never used this
+  specific library. They describe what they want to DO, not what the API is called.
+  They avoid the library's exact vocabulary.
+
+OUTPUT FORMAT — exactly 4 lines, no labels, no blank lines:
+Line 1: Persona 1 natural-language query (one sentence or phrase, as typed)
+Line 2: Persona 1 keyword query (2-4 distinctive terms, space-separated)
+Line 3: Persona 2 natural-language query (one sentence or phrase, as typed)
+Line 4: Persona 2 keyword query (2-4 distinctive terms, space-separated)
+
+ADDITIONAL RULES:
+  - Line 2 and 4 must be 2-4 terms only. No full sentences.
+  - Persona 2 lines MUST NOT reuse vocabulary from Line 1 or Line 2.
+  - No query may copy the capability statement word for word.
+  - All lines lowercase unless a proper name is required.
+
+CAPABILITY: {capability_statement}
