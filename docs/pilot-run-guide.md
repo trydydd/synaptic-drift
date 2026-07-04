@@ -276,33 +276,50 @@ git push -u origin claude/local-first-context-review-fzlvng
 
 ---
 
-## Step 8 — L1 Evaluation: Model-Free Retrieval Quality (Future Work)
+## Step 8 — L1 Evaluation: Model-Free Retrieval Quality
 
-The gold dataset unlocks **L1 evaluation** — measuring FTS5 retrieval performance without a model in the loop. This is the foundation for answering: "Does FTS5 hit a wall that embeddings/hybrid search would fix?"
+The gold dataset unlocks **L1 evaluation** — measuring FTS5 retrieval performance
+without a model in the loop. This is the evidence for: "Does FTS5 hit a wall that
+embeddings/hybrid search would fix?"
 
-L1 evaluation will:
-1. **For each gold question**, run both query forms (`query` as NL, `keyword_query` as keywords) through `synd search-docs` against the pilot DB
-2. **Score the results** against the gold chunk set using:
-   - Recall@{1,5,10,20}: fraction of gold chunks in top-k results
-   - MRR (Mean Reciprocal Rank): average rank of first gold hit
-   - nDCG@10: normalized discounted cumulative gain
-3. **Slice metrics** by:
-   - Difficulty tier (direct / paraphrase / vocabulary_mismatch)
-   - Pack (mcp / trigger / resend)
-   - Query form (NL vs keyword) — the gap between them is the query-formulation tax
-4. **Output**: baseline JSON with per-tier/per-pack breakdowns, committed to git
+`tests/evals/l1_retrieval.py` runs both query forms (`query` = natural language,
+`keyword_query` = well-formed terms) from every gold question through the public
+`synd.server.search_docs` API against the indexed pilot DB, matches ranked chunk
+IDs to gold via `content_hash` (the same stable join key `stage_c_tier.py` uses),
+and scores with `tests/evals/metrics.py` (`recall_at_k`, `reciprocal_rank`,
+`ndcg_at_k`):
 
-**Infrastructure status**:
-- `pilot_v1.json` (this run's output) is the gold dataset ✓
-- `tests/evals/generation/work/pilot.db` is the indexed corpus (populated via `synd add`)
-- L1 runner script (`tests/evals/runners/l1_retrieval.py`) — **planned, not yet implemented**
-- Metrics library — **planned**
+```bash
+python tests/evals/l1_retrieval.py \
+  tests/evals/datasets/real/pilot_v1.json \
+  --db tests/evals/generation/work/pilot.db \
+  --output tests/evals/results/pilot_l1_baseline.json
+```
 
-**Next steps** (ledger chunk e13):
-- Implement `l1_retrieval.py`: loop over questions, call `search_docs`, score, aggregate by tier/pack
-- Commit baseline JSON to `tests/evals/baselines/pilot_l1_baseline.json`
-- Wire up `pytest tests/evals/ --evals l1` to run and compare against baseline
-- This baseline then feeds L2 (agent retrieval competence) and L3 (end-task lift) evaluations
+Prints a summary (overall by query form, sliced by difficulty tier and pack) and
+writes the full per-question breakdown to `--output`. Exit 0 on a completed run
+— this is a measurement, not a pass/fail gate — non-zero only if the dataset/DB
+can't be read or every question's gold is unresolvable (a stale/mismatched DB).
+
+**Pilot result** (114 questions, mcp/trigger/resend, `pilot.db`):
+
+| | recall@1 | recall@5 | recall@10 | recall@20 | MRR | nDCG@10 |
+|---|---:|---:|---:|---:|---:|---:|
+| `keyword_query` | 0.367 | 0.723 | 0.777 | 0.841 | 0.536 | 0.594 |
+| `query` (NL) | 0.110 | 0.167 | 0.184 | 0.184 | 0.135 | 0.146 |
+
+By tier (NL form): `direct` recall@20 = 0.452, `paraphrase` = 0.029,
+`vocabulary_mismatch` = 0.000 (n=2, too small to trust on its own). This
+reproduces the toy-corpus finding — NL paraphrase/vocab-mismatch queries score
+near zero — at real scale, with realistic distractors in the index. That is the
+sized evidence for `docs/hybrid-search.md` / decision D25.
+
+**Next steps** (ledger chunks e13+):
+- Scale the labeling subset past 3 packs to tighten the `vocabulary_mismatch`
+  tier (n=2 here is not enough to size an embeddings investment on its own)
+- Commit the baseline JSON and wire a `compare.py`-style delta report so the
+  roadmap number stays live across corpus/harness changes
+- Feed this baseline into L2 (agent retrieval competence) and L3 (end-task lift)
 
 ---
 
@@ -310,10 +327,12 @@ L1 evaluation will:
 
 After Step 7, paste:
 1. The assembler's summary (question count + tier breakdown by pack)
-2. The rot-guard result line (or note: "not yet validated — database needs population")
+2. The rot-guard result line
+
+After Step 8, paste the L1 summary printed to stdout.
 
 If any step fails, paste the last 20 lines of output from the failing command.
 
-The committed `pilot_v1.json` is the artifact that unlocks the L1 retrieval runner.
-Once L1 infrastructure exists, it will measure the FTS5 ceiling per difficulty tier,
-informing the case for/against embeddings investment.
+The committed `pilot_v1.json` is the gold dataset; `l1_retrieval.py` turns it into
+the FTS5-ceiling evidence per difficulty tier, informing the case for/against
+embeddings investment.
