@@ -1,0 +1,80 @@
+{"pack_name": "trigger", "chunk_id": 27, "capability": "how to let a user send a new message while an agent is mid-execution so it steers the next step"}
+{"pack_name": "trigger", "chunk_id": 103, "capability": "how to automatically summarize a long running conversation once its token usage crosses a threshold so it stays within context limits"}
+{"pack_name": "trigger", "chunk_id": 109, "capability": "how to customize what the model sees as conversation history after it has been automatically summarized"}
+{"pack_name": "trigger", "chunk_id": 123, "capability": "how to register a background task as a visible, listed agent while choosing between a managed turn loop and writing your own loop by hand"}
+{"pack_name": "trigger", "chunk_id": 131, "capability": "how to accumulate a conversation's messages across turns, replacing history on the first turn or a regenerate and otherwise appending each new message"}
+{"pack_name": "trigger", "chunk_id": 132, "capability": "understand the pitfalls to avoid when writing your own conversation loop by hand instead of relying on a managed one"}
+{"pack_name": "trigger", "chunk_id": 178, "capability": "configure a separate handler that only the very first message of a brand new conversation routes through before later turns use the normal path"}
+{"pack_name": "trigger", "chunk_id": 189, "capability": "understand how a durable record backs each conversation across multiple runs so a returning visitor can resume without creating a new one"}
+{"pack_name": "trigger", "chunk_id": 231, "capability": "understand when a one-time setup hook fires for a worker process handling a conversation versus when a separate resume hook is needed instead"}
+{"pack_name": "trigger", "chunk_id": 286, "capability": "how to automatically mint a fresh access token when a session's short-lived credential expires without running any extra backend job"}
+{"pack_name": "trigger", "chunk_id": 294, "capability": "understand why a paused run stops billing compute once it suspends so a person can take as long as they need to respond"}
+{"pack_name": "trigger", "chunk_id": 324, "capability": "understand why the full conversation history is written to a fixed storage location synchronously right after each turn completes"}
+{"pack_name": "trigger", "chunk_id": 328, "capability": "understand why a quick side action does not save its changes to storage until the next full conversation turn completes"}
+{"pack_name": "trigger", "chunk_id": 358, "capability": "understand how a model discovers and loads only the detailed instructions it actually needs instead of paying for everything up front"}
+{"pack_name": "trigger", "chunk_id": 381, "capability": "how to make a logging write idempotent on a stable identifier so retried failures do not create duplicate records"}
+{"pack_name": "trigger", "chunk_id": 385, "capability": "how to deliver signals that only a trusted edge proxy can see into an agent run without letting the browser spoof them"}
+{"pack_name": "trigger", "chunk_id": 398, "capability": "how to move a paused conversation off an old code version onto the newest deployment when it wakes back up"}
+{"pack_name": "trigger", "chunk_id": 415, "capability": "how to use a frontend hook that tracks pending user messages and renders where they were injected into the ongoing conversation"}
+{"pack_name": "trigger", "chunk_id": 420, "capability": "understand the order in which automatic history summarization and message injection run when both features are enabled together"}
+{"pack_name": "trigger", "chunk_id": 421, "capability": "understand how caching the unchanged beginning of a prompt lowers cost and latency on every subsequent request"}
+{"pack_name": "trigger", "chunk_id": 458, "capability": "understand the configuration options available for deciding when and how pending messages get merged into an ongoing conversation"}
+{"pack_name": "trigger", "chunk_id": 514, "capability": "how to permanently close a conversation session and optionally record a reason, safely even if called more than once"}
+{"pack_name": "trigger", "chunk_id": 574, "capability": "how to convert your own message history for a model call when you are managing the conversation loop yourself instead of a managed one"}
+{"pack_name": "trigger", "chunk_id": 639, "capability": "configure a client library automatically using environment variables for your secret key and, when self-hosting, a custom server address"}
+{"pack_name": "trigger", "chunk_id": 657, "capability": "understand the options available when running the command-line setup tool to initialize a new project"}
+{"pack_name": "trigger", "chunk_id": 670, "capability": "understand the single argument accepted by a command that archives a preview environment, defaulting to the current folder"}
+{"pack_name": "trigger", "chunk_id": 673, "capability": "how to promote a previously deployed build to become the currently active version using a command-line tool"}
+{"pack_name": "trigger", "chunk_id": 704, "capability": "configure custom import resolution conditions for your build process so certain packages resolve to a different version"}
+{"pack_name": "trigger", "chunk_id": 794, "capability": "understand how to read fixed information about the current run that does not change while your code is executing"}
+{"pack_name": "trigger", "chunk_id": 821, "capability": "understand why automatically synced environment variables from another service do not apply when running your project locally and what to use instead"}
+{"pack_name": "trigger", "chunk_id": 865, "capability": "configure a continuous-integration workflow that automatically creates, deploys, and later archives a preview environment for each pull request"}
+{"pack_name": "trigger", "chunk_id": 888, "capability": "how to automatically deploy your code whenever you push to a connected repository's tracked branch without running a manual command"}
+{"pack_name": "trigger", "chunk_id": 902, "capability": "choose between permission modes that control how much an AI coding assistant can do without asking for your approval first"}
+{"pack_name": "trigger", "chunk_id": 906, "capability": "understand where to find further reading on building coding agents, streaming progress updates, and adding human approval steps"}
+{"pack_name": "trigger", "chunk_id": 909, "capability": "how to run a test job from a dashboard using a sample payload to verify a multi-step content generation workflow"}
+{"pack_name": "trigger", "chunk_id": 921, "capability": "understand a pattern where one model produces a response while a second model evaluates and refines it in a loop"}
+{"pack_name": "trigger", "chunk_id": 940, "capability": "understand where to find further documentation and source code for an example project that automates a web browser"}
+{"pack_name": "trigger", "chunk_id": 945, "capability": "understand where to learn more about subscribing to live run updates, streaming data, and running many jobs in a batch"}
+{"pack_name": "trigger", "chunk_id": 968, "capability": "understand where to find more resources on subscribing to live updates, streaming data, and starting many runs at once"}
+{"pack_name": "trigger", "chunk_id": 969, "capability": "how to run a headless coding agent inside a background job and stream its live output to a web frontend"}
+{"pack_name": "trigger", "chunk_id": 1018, "capability": "understand where to find more information on pausing for webhook callbacks, real-time frontend updates, batch execution, model integration, and file uploads"}
+{"pack_name": "trigger", "chunk_id": 1019, "capability": "understand an example of building a file uploader that streams live progress updates to the frontend as it processes"}
+{"pack_name": "trigger", "chunk_id": 1106, "capability": "how to write a background job that crawls an entire website and limits how many pages it visits"}
+{"pack_name": "trigger", "chunk_id": 1117, "capability": "how to write a background job that runs whenever an external service forwards a webhook payload to your API"}
+{"pack_name": "trigger", "chunk_id": 1121, "capability": "configure your build process to install an extra system package needed by a task before it deploys"}
+{"pack_name": "trigger", "chunk_id": 1132, "capability": "understand how long a remote browser session stays alive before it automatically closes on its own"}
+{"pack_name": "trigger", "chunk_id": 1154, "capability": "how to manually run a test of a background job that needs no input payload from a dashboard"}
+{"pack_name": "trigger", "chunk_id": 1168, "capability": "how to send a templated email from within a background job using a third-party email API client"}
+{"pack_name": "trigger", "chunk_id": 1169, "capability": "understand how to resolve a rendering error that occurs when generating email markup on the server"}
+{"pack_name": "trigger", "chunk_id": 1220, "capability": "understand the key steps for setting up a database client and inserting a new row into a table"}
+{"pack_name": "trigger", "chunk_id": 1236, "capability": "how to download a file from a URL, save it temporarily, and then upload it to cloud object storage"}
+{"pack_name": "trigger", "chunk_id": 1328, "capability": "understand where to find the full source code for an example project so you can fork it as a starting point"}
+{"pack_name": "trigger", "chunk_id": 1364, "capability": "configure environment variables for third-party secret keys used by a task in a project dashboard"}
+{"pack_name": "trigger", "chunk_id": 1418, "capability": "understand the full local setup and testing steps for a background job written in a different programming language, from creating a virtual environment through deploying"}
+{"pack_name": "trigger", "chunk_id": 1433, "capability": "understand how to build data pipelines that process large datasets with automatic retries and progress tracking without hitting timeouts"}
+{"pack_name": "trigger", "chunk_id": 1448, "capability": "understand a workflow pattern that routes a user to their preferred communication channel and schedules delayed follow-up messages"}
+{"pack_name": "trigger", "chunk_id": 1496, "capability": "understand why using a built-in wait function instead of a polling loop avoids paying for idle compute time"}
+{"pack_name": "trigger", "chunk_id": 1512, "capability": "how to clear a previously used deduplication key so a job can be started again using that exact same key"}
+{"pack_name": "trigger", "chunk_id": 1523, "capability": "understand the foundational concepts behind background jobs, how to start them from your code, their run instances, and API key authentication"}
+{"pack_name": "trigger", "chunk_id": 1536, "capability": "understand the maximum size limits for job inputs and outputs and how oversized data is automatically offloaded to storage"}
+{"pack_name": "trigger", "chunk_id": 1559, "capability": "how to define reusable custom measurement instruments at module scope so they persist across every execution of a job"}
+{"pack_name": "trigger", "chunk_id": 1594, "capability": "how to bulk upload many environment variables at once for a specific project and environment through an API call"}
+{"pack_name": "trigger", "chunk_id": 1598, "capability": "how to catch and handle a typed error that a client library throws when a request to a remote server fails"}
+{"pack_name": "trigger", "chunk_id": 1600, "capability": "how to mute a recurring error for a fixed period or until it crosses a configured threshold again"}
+{"pack_name": "trigger", "chunk_id": 1694, "capability": "understand the next steps for giving an AI coding assistant direct tool access and comparing two ways of teaching it task patterns"}
+{"pack_name": "trigger", "chunk_id": 1769, "capability": "understand how to call another job and wait for its result, replacing a workflow tool's sub-workflow node concept"}
+{"pack_name": "trigger", "chunk_id": 1779, "capability": "how to export the data behind a dashboard chart as a downloadable file format from its menu"}
+{"pack_name": "trigger", "chunk_id": 1782, "capability": "understand how to speed up a slow-loading dashboard widget by narrowing its time range and simplifying its underlying query"}
+{"pack_name": "trigger", "chunk_id": 1891, "capability": "how to look up a job queue by its identifier or by its type and name and inspect its current state"}
+{"pack_name": "trigger", "chunk_id": 1909, "capability": "how to create a single public access token from your backend that is scoped to start more than one named job from the browser"}
+{"pack_name": "trigger", "chunk_id": 1935, "capability": "how to subscribe to live updates for every run inside a batch using an iterator that you must manually stop yourself"}
+{"pack_name": "trigger", "chunk_id": 1947, "capability": "understand the plan-based limit on how many live subscriptions can be open at the same time"}
+{"pack_name": "trigger", "chunk_id": 2126, "capability": "understand the minimum compute and memory resources needed to self-host the full stack across its individual components"}
+{"pack_name": "trigger", "chunk_id": 2246, "capability": "how to consume a strongly typed data stream inside a frontend component using a dedicated hook"}
+{"pack_name": "trigger", "chunk_id": 2255, "capability": "how to send a data stream to a different run than the current one, whether its parent, the root, or a specific target"}
+{"pack_name": "trigger", "chunk_id": 2292, "capability": "how to start a single run of a background job from your backend code while keeping full type checking without importing its implementation"}
+{"pack_name": "trigger", "chunk_id": 2293, "capability": "how to start many runs of the same background job at once by passing an array of separate inputs"}
+{"pack_name": "trigger", "chunk_id": 2323, "capability": "understand how oversized job inputs and outputs are automatically stored externally and made available through a temporary download link"}
+{"pack_name": "trigger", "chunk_id": 2343, "capability": "understand why running more than one pause-and-resume wait at the same time is not supported and what to use instead"}
+{"pack_name": "trigger", "chunk_id": 2360, "capability": "understand the payload fields included in a webhook notification that fires whenever a background job run fails"}
