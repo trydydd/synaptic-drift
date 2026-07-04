@@ -45,7 +45,7 @@ The pipeline has four stages:
 | Stage | What | Model |
 |---|---|---|
 | A | Chunk → neutral capability statement | Claude, authored in a Claude Code session |
-| B | Capability → persona query pairs | Claude (fresh Code session) + Qwen3-35B-A3B (vLLM) |
+| B | Capability → persona query pairs | Claude (fresh Code session) + local vLLM (Qwen3.6:27b w/o reasoning in pilot) |
 | C | Measure actual retrieval difficulty | Model-free (Jaccard + FTS5 rank) |
 | D | Assemble + rot-guard → dataset JSON | Model-free |
 
@@ -66,7 +66,7 @@ sessions hand off through files in `work/`.
 
 - `synd` CLI: `.venv/bin/synd` or `synd` in PATH (`pip install -e '.[all]'`)
 - Claude Code, for the two authoring sessions (Stage A, Stage B strong half)
-- vLLM serving Qwen3-35B-A3B locally — for the 35B half of Stage B
+- vLLM serving a model locally — for the weak half of Stage B (pilot used Qwen3.6:27b with reasoning off)
 - Network access to modelcontextprotocol.io, trigger.dev, resend.com
 
 ---
@@ -144,9 +144,9 @@ python tests/evals/generation/finalize_stage_a.py \
 
 ---
 
-## Step 4 — Stage B: query synthesis (fresh Claude session + 35B-A3B)
+## Step 4 — Stage B: query synthesis (fresh Claude session + vLLM)
 
-Two models per chunk: Claude generates expert + paraphrase queries; 35B
+Two models per chunk: Claude generates expert + paraphrase queries; vLLM
 generates vocabulary-mismatch + hurried-user queries. The halves can run in
 either order — both append into the same `raw_queries_<pack>.jsonl`.
 

@@ -1,9 +1,12 @@
 """Stage B (weak half): synthesize persona queries via the local vLLM model.
 
-Generates the vocab_mismatch and hurried persona queries with Qwen3-35B-A3B
-served by vLLM. The strong-model half (expert, paraphrase personas) is authored
-by Claude in a Claude Code session and merged by finalize_stage_b.py — this
+Generates the vocab_mismatch and hurried persona queries with a local vLLM
+model. The strong-model half (expert, paraphrase personas) is authored by
+Claude in a Claude Code session and merged by finalize_stage_b.py — this
 script no longer calls the Anthropic API.
+
+Model label is fixed as "35b" (representing the weak-model half, regardless of
+the actual served model). Pilot run used Qwen3.6:27b with reasoning disabled.
 
 Always appends to --output and skips (pack_name, chunk_id, model) keys already
 present, so it is safe to re-run after an interruption and composes with
