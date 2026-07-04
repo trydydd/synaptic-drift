@@ -276,14 +276,44 @@ git push -u origin claude/local-first-context-review-fzlvng
 
 ---
 
+## Step 8 — L1 Evaluation: Model-Free Retrieval Quality (Future Work)
+
+The gold dataset unlocks **L1 evaluation** — measuring FTS5 retrieval performance without a model in the loop. This is the foundation for answering: "Does FTS5 hit a wall that embeddings/hybrid search would fix?"
+
+L1 evaluation will:
+1. **For each gold question**, run both query forms (`query` as NL, `keyword_query` as keywords) through `synd search-docs` against the pilot DB
+2. **Score the results** against the gold chunk set using:
+   - Recall@{1,5,10,20}: fraction of gold chunks in top-k results
+   - MRR (Mean Reciprocal Rank): average rank of first gold hit
+   - nDCG@10: normalized discounted cumulative gain
+3. **Slice metrics** by:
+   - Difficulty tier (direct / paraphrase / vocabulary_mismatch)
+   - Pack (mcp / trigger / resend)
+   - Query form (NL vs keyword) — the gap between them is the query-formulation tax
+4. **Output**: baseline JSON with per-tier/per-pack breakdowns, committed to git
+
+**Infrastructure status**:
+- `pilot_v1.json` (this run's output) is the gold dataset ✓
+- `tests/evals/generation/work/pilot.db` is the indexed corpus (populated via `synd add`)
+- L1 runner script (`tests/evals/runners/l1_retrieval.py`) — **planned, not yet implemented**
+- Metrics library — **planned**
+
+**Next steps** (ledger chunk e13):
+- Implement `l1_retrieval.py`: loop over questions, call `search_docs`, score, aggregate by tier/pack
+- Commit baseline JSON to `tests/evals/baselines/pilot_l1_baseline.json`
+- Wire up `pytest tests/evals/ --evals l1` to run and compare against baseline
+- This baseline then feeds L2 (agent retrieval competence) and L3 (end-task lift) evaluations
+
+---
+
 ## What to report back
 
-After Step 6, paste:
+After Step 7, paste:
 1. The assembler's summary (question count + tier breakdown by pack)
-2. The rot-guard result line
+2. The rot-guard result line (or note: "not yet validated — database needs population")
 
 If any step fails, paste the last 20 lines of output from the failing command.
 
-The committed `pilot_v1.json` is the artifact that unlocks the L1 retrieval runner
-(ledger chunks e10+). Once it exists, the next session wires up
-`pytest tests/evals/ --evals` against the real corpus.
+The committed `pilot_v1.json` is the artifact that unlocks the L1 retrieval runner.
+Once L1 infrastructure exists, it will measure the FTS5 ceiling per difficulty tier,
+informing the case for/against embeddings investment.
