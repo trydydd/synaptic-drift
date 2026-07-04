@@ -205,34 +205,61 @@ Follow-up analysis of the per-question data, run against the same frozen
 dataset and DB. Three findings that change how the headline numbers should be
 read, and one methodology bug to fix before scaling.
 
-### 1. The NL wall is two problems, not one — and one of them is cheap
+### 1. Term selection matters, but the obvious fix doesn't work (tested, reverted)
 
 Per-question hit/miss buckets at recall@10 (unscoped): both forms hit on 19
 questions, keyword-only on 70, NL-only on 2, neither on 23. For the 70
 keyword-only failures, NL hit rate falls monotonically with query length —
 from 0.67 at 3 effective (post-stopword) terms to 0.05 at 12+. FTS5's
 implicit-AND plus rightmost-first relaxation degrades predictably as
-sentences get longer: the limiting factor is partly *term selection*, not
-only vocabulary.
+sentences get longer, which reads as a term-selection problem, not only a
+vocabulary one.
 
-Tested directly with a model-free rewrite — reduce each NL query to its 3
-rarest corpus terms (by document frequency) and re-score recall@10:
+A model-free rewrite — reduce each NL query to its 3 rarest corpus terms (by
+document frequency) — supported that reading: recall@10 on the paraphrase
+tier jumped 6x (0.029 → 0.171) with no embeddings and no model. But this was
+an *upfront truncation* experiment, not a change to how `search_relaxed`
+actually relaxes queries, and it came with a warning sign that turned out to
+matter: naive rare-term truncation *hurt* the direct tier (0.452 → 0.310).
 
-| variant | overall | direct | paraphrase |
+That warning was the real signal. Implementing the natural-seeming fix —
+change `search_relaxed`'s relaxation order from rightmost-drop to
+highest-document-frequency-drop — and measuring it against the full pilot
+baseline (not just the paraphrase slice) shows a **net regression**, not a
+win:
+
+| | before | after (DF-priority) | Δ |
 |---|---:|---:|---:|
-| NL as-is | 0.184 | 0.452 | 0.029 |
-| NL → 3 rarest terms | 0.219 | 0.310 | 0.171 |
-| keyword_query | 0.781 | 0.857 | 0.757 |
+| query (NL) recall@10 | 0.184 | 0.263 | +0.079 |
+| query direct recall@10 | 0.452 | 0.357 | **−0.095** |
+| keyword_query recall@10 | 0.777 | 0.576 | **−0.202** |
+| keyword_query recall@20 | 0.841 | 0.602 | **−0.239** |
 
-Paraphrase improves 6x (0.029 → 0.171) from pure mechanical term selection —
-no embeddings, no model. But it recovers only a quarter of the keyword
-ceiling, and naive rare-term truncation *hurts* the direct tier (0.452 →
-0.310). Interpretation: an IDF-aware relaxation order in `search_relaxed`
-(drop the most-common term first, instead of the rightmost) is a real,
-cheap win worth ~10–15pp on hard NL queries — and the residual gap
-(0.17 vs 0.76) is the honestly-sized vocabulary problem that lexical search
-cannot close. That residual, not the raw 0.029, is the number the
-embeddings decision (D25) should use.
+Traced mechanism (question r0003, `"console output corrupts communication"`):
+rightmost-drop reaches the 2-term query `"console output"` (document
+frequency 295/295), which correctly ranks the gold chunk at #4. DF-priority
+instead permanently drops `"console"` first (highest DF), then `"output"`,
+cascading down to the single rarest term `"corrupts"` (DF=1) alone — which
+matches an unrelated chunk. Once a common term is dropped it can never be
+tried again in combination with anything: greedy single-path descent by pure
+frequency destroys co-occurring pairs where two moderately-common terms,
+taken *together*, were the actual signal. Rightmost-drop implicitly exploits
+a real structural prior — subject terms tend to come first, qualifiers last,
+in both keyword and NL queries — and pure DF-order discards that prior
+entirely. A narrower hybrid (special-case only terms with zero document
+frequency — i.e. genuinely absent from the corpus — and fall back to
+rightmost-drop otherwise) was also tested and produced **no measurable
+change**: DF=0 terms are rare in this corpus, so the safe version has no
+effect worth shipping either.
+
+**This change was reverted**; the working tree is clean of it. The residual
+question — whether a relaxation strategy exists that captures the
+paraphrase-tier gain without the keyword-form regression — is open. See
+spike S13 for candidates not yet tried (bounded leave-one-out search per
+relaxation level; adjacency-limited reordering; OR-semantics with IDF
+scoring instead of sequential AND-shrinking). Any candidate must be measured
+against all forms/tiers in `pilot_l1_baseline.json`, not just the slice it
+targets — that is the discipline this attempt was missing.
 
 ### 2. Scoping mismatch between Stage C and L1 (inflates neither, but document it)
 
@@ -274,34 +301,38 @@ hardness.
 ### Revised reading of the headline
 
 The pilot's core claim stands — FTS5 cannot bridge natural phrasing to doc
-vocabulary, at real scale, under either scoping — but the pipeline currently
-*understates* the hard tier's size (finding 3) while the NL number
-*overstates* the unfixable portion of the gap (finding 1). Both corrections
-are implementable without regenerating the pilot dataset.
+vocabulary, at real scale, under either scoping. Finding 3 (the pipeline
+understates the hard tier's size) is implementable without regenerating the
+pilot dataset. Finding 1 turned out to be a dead end on the first attempt:
+the raw 0.029 paraphrase number is not simply "a relaxation bug away" from
+0.17 — the mechanical fix that promised that gain regresses the keyword form
+by more than it helps NL, so 0.029 stands as the honest number pending a
+materially different relaxation design.
 
 ---
 
 ## Next steps (chosen, in order)
 
-Priorities follow from the post-run analysis: fix the cheap product win and
-the pipeline bug first, because both change the numbers the expensive
-decisions (embeddings, full-scale generation) will be based on.
+Priorities follow from the post-run analysis, updated after testing (and
+reverting) the first relaxation-order attempt.
 
-1. **IDF-aware query relaxation in `search_relaxed`** (spike S13, now with
-   measured evidence): drop the highest-document-frequency term first instead
-   of the rightmost. Predicted ~10–15pp recovery on hard-tier NL queries at
-   near-zero cost; re-run L1 against the committed baseline to confirm. This
-   is a product improvement, not just eval work — it moves the real MCP
-   search tool.
-2. **Fix Stage C's oracle filter + Stage D dedup** (spike S15) so the hard
+1. **Fix Stage C's oracle filter + Stage D dedup** (spike S15) so the hard
    tier survives generation: oracle reachability from gold-chunk terms, not
    the persona's own keyword form; persona-diverse dedup. Re-run Stages C–D
    on the *existing* pilot raw queries (no regeneration needed) and measure
-   how the tier composition shifts.
-3. **Scale the labeling subset** (S14 go/no-go): with 1–2 landed, extend to
+   how the tier composition shifts. Promoted to first because it needs no
+   further research — the fix is specified, not experimental.
+2. **Search relaxation strategy** (spike S13) remains open, not closed: the
+   global-DF-priority approach is now a confirmed non-solution (see finding 1
+   above). Worth revisiting with a materially different mechanism (bounded
+   leave-one-out search, adjacency-limited reordering, or OR+IDF scoring
+   instead of sequential AND-shrinking) — but only if measured against every
+   form/tier in the baseline, not just the slice being optimized.
+3. **Scale the labeling subset** (S14 go/no-go): once S15 lands, extend to
    ~15–20 packs to get `vocabulary_mismatch` to n≥30 and per-pack slices
-   worth reading. Only then is the embeddings case (D25) properly sized —
-   using the post-relaxation residual gap, not the raw 0.029.
+   worth reading. The embeddings case (D25) should be sized on the raw
+   0.029 NL-paraphrase number as it stands today — no relaxation fix has
+   earned the right to discount it yet.
 4. **L2 — agent retrieval competence**: the search→fetch loop with served
    models over the same questions; `reachability_gap = L1 − L2` isolates
    query-formulation skill from the retrieval ceiling.
@@ -309,7 +340,8 @@ decisions (embeddings, full-scale generation) will be based on.
    L2.
 
 The L1 baseline (`tests/evals/results/pilot_l1_baseline.json`) is committed;
-every change above gets measured as a delta against it.
+every change above gets measured as a delta against it — including negative
+results, as with the relaxation-order attempt.
 
 Full per-question scores are in `tests/evals/results/pilot_l1_baseline.json`;
 the generation pipeline and step-by-step commands are in

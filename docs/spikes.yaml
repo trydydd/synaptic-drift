@@ -677,20 +677,67 @@ spikes:
       Update 2026-07-04 — items 1 and 2 have landed (server.py docstring;
       search_relaxed with rightmost-first drop + query_used). What remains
       open is the DROP ORDER, and the pilot L1 analysis
-      (docs/pilot-results.md, post-run analysis §1) now sizes it: NL hit@10
-      falls from 0.67 at 3 effective terms to 0.05 at 12+, and a model-free
-      rewrite to the 3 rarest corpus terms (by document frequency) lifts the
-      paraphrase tier from 0.029 to 0.171 recall@10 — a 6x gain from term
-      selection alone. Naive rare-only truncation hurts the direct tier
-      (0.452 -> 0.310), so the right shape is progressive IDF-ordered
-      relaxation (drop the most-common term first, keep relaxing only on
-      zero/weak results), not up-front truncation. Corpus document
-      frequencies are cheap to maintain in SQLite at import time.
+      (docs/pilot-results.md, post-run analysis §1) sized the opportunity: NL
+      hit@10 falls from 0.67 at 3 effective terms to 0.05 at 12+, and a
+      model-free rewrite to the 3 rarest corpus terms (by document frequency)
+      lifted the paraphrase tier from 0.029 to 0.171 recall@10 — a 6x gain
+      from term selection alone, suggesting the drop order was leaving
+      recall on the table.
+
+      Update 2026-07-04 (later same day) — TRIED AND REVERTED: implemented
+      global-DF-priority relaxation (drop the single highest-document-frequency
+      term across the whole remaining token set at each zero-result retry,
+      replacing rightmost-first). Measured against the same pilot L1 baseline,
+      this is a NET REGRESSION, not a win:
+
+        query(NL)      recall@10  0.184 -> 0.263  (+0.079)
+        query direct   recall@10  0.452 -> 0.357  (-0.095)
+        keyword_query  recall@10  0.777 -> 0.576  (-0.202)
+        keyword_query  recall@20  0.841 -> 0.602  (-0.239)
+
+      Mechanism (traced on r0003, "console output corrupts communication"):
+      rightmost-drop reaches "console output" (2 terms, DF 295/225) which
+      co-occur and correctly rank gold at #4. Global-DF-priority instead
+      permanently drops "console" first (highest DF), then "output", cascading
+      to the single rarest term "corrupts" (DF=1) alone, which matches an
+      unrelated chunk. Once a common term is dropped it can never be tried
+      again in combination with anything — greedy single-path descent by pure
+      frequency destroys co-occurring pairs where the moderately-common terms,
+      taken together, were actually the discriminative signal. Rightmost-drop
+      implicitly exploits a real structural prior (subject terms tend to come
+      first, qualifiers last in both keyword and NL queries); pure DF-order
+      discards that prior and is worse in aggregate despite being much better
+      on the specific NL-paraphrase slice that motivated it.
+
+      Also tried and measured: a narrow hybrid (drop only true DF=0 terms
+      first — i.e. terms absent from the corpus entirely — falling back to
+      rightmost-drop for everything else). This produced ZERO measurable
+      change from the current baseline: DF=0 terms are rare in practice
+      (almost every LLM-authored query term matches something in a
+      6181-chunk corpus), so this safe version has no effect worth shipping
+      either. The reverted diff is not preserved in the repo (working tree
+      only) — this entry is the record.
+
+      Open question for the next attempt: is there a relaxation strategy
+      that gets the paraphrase-tier gain without the keyword-form regression?
+      Candidates not yet tried: (a) a bounded leave-one-out search at each
+      relaxation level — test removing each remaining term individually
+      (up to n queries per level) and take the first removal whose resulting
+      query succeeds, rather than committing to one global drop order; (b)
+      only reorder among ADJACENT positions rather than the whole remaining
+      set, preserving most of the positional prior; (c) treat this as a
+      ranking/scoring problem instead of a term-dropping problem — e.g. widen
+      to OR semantics with IDF-weighted scoring rather than sequentially
+      shrinking an AND. Any candidate must be measured against
+      tests/evals/results/pilot_l1_baseline.json on ALL forms/tiers
+      (not just the one being optimized) before being considered a win.
     success: |
-      Decision recorded in decisions.md: IDF-aware drop order implemented in
-      search_relaxed (or explicitly rejected with rationale), with L1
-      before/after deltas against tests/evals/results/pilot_l1_baseline.json
-      showing the hard-tier NL recovery without regressing the direct tier
+      A relaxation strategy change (or explicit decision not to pursue one)
+      recorded in decisions.md, with L1 before/after deltas against
+      tests/evals/results/pilot_l1_baseline.json showing improvement on at
+      least one form/tier with NO regression exceeding noise on any other
+      form/tier — global-DF-priority is now a confirmed non-solution and
+      should not be re-attempted without a materially different mechanism
       or keyword-form results.
     files:
       - src/synd/server.py
