@@ -6,6 +6,34 @@
 
 ---
 
+## Why this exists
+
+Synaptic Drift is a local search index for library/API documentation: it lets a
+coding agent (or a small, VRAM-constrained local model that doesn't have much
+memorized knowledge) look up real docs instead of guessing from what it learned
+in training. Whether that's actually *useful* depends entirely on one thing:
+can the search actually find the right doc page when someone asks in the way
+real developers ask — vague, paraphrased, or using the wrong vocabulary — not
+just when they type the exact words from the docs?
+
+Right now that question is answered by a 90-chunk toy dataset that was hand-built
+for convenience, not realism. It's too small to say anything with confidence, and
+on the hardest query types it already shows scores near zero — which could mean
+"the search engine has a real ceiling" or could just mean "42 questions isn't
+enough data to trust." Nobody can currently tell which.
+
+This pilot run is the first real-world-scale test of that question, plus a dry
+run of the pipeline that will produce it at full scale. It builds a small
+(3-library, ~240-chunk) but methodologically honest gold-label dataset — one
+where the "queries" are authored from an abstract description of what a chunk is
+useful for, never from the chunk's own wording, so the exercise doesn't
+accidentally test whether the query repeats the answer. Getting this pilot right
+is what justifies (or rules out) investing in more advanced search (e.g. semantic
+embeddings) before doing so at the full ~100K-chunk scale, and it's a cheap,
+fast way to catch pipeline bugs before that much bigger run.
+
+---
+
 ## Context
 
 This is the generation pipeline for the scaled retrieval-quality eval harness
