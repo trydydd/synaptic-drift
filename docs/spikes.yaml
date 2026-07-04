@@ -673,13 +673,25 @@ spikes:
            semantics) and return the relaxed results plus a query_used field
            so the caller sees what actually matched. Interacts with S11's
            return-type work (query_used is already proposed there).
+
+      Update 2026-07-04 — items 1 and 2 have landed (server.py docstring;
+      search_relaxed with rightmost-first drop + query_used). What remains
+      open is the DROP ORDER, and the pilot L1 analysis
+      (docs/pilot-results.md, post-run analysis §1) now sizes it: NL hit@10
+      falls from 0.67 at 3 effective terms to 0.05 at 12+, and a model-free
+      rewrite to the 3 rarest corpus terms (by document frequency) lifts the
+      paraphrase tier from 0.029 to 0.171 recall@10 — a 6x gain from term
+      selection alone. Naive rare-only truncation hurts the direct tier
+      (0.452 -> 0.310), so the right shape is progressive IDF-ordered
+      relaxation (drop the most-common term first, keep relaxing only on
+      zero/weak results), not up-front truncation. Corpus document
+      frequencies are cheap to maintain in SQLite at import time.
     success: |
-      Decision recorded in decisions.md: tool description updated (or reason
-      not to), and query relaxation either speced with concrete semantics
-      (term-drop order, ranking implications, how relaxed results are
-      labeled) or explicitly rejected with rationale. Evidence from the
-      hermetic retrieval eval (chunk-e4) re-run before/after any relaxation
-      change.
+      Decision recorded in decisions.md: IDF-aware drop order implemented in
+      search_relaxed (or explicitly rejected with rationale), with L1
+      before/after deltas against tests/evals/results/pilot_l1_baseline.json
+      showing the hard-tier NL recovery without regressing the direct tier
+      or keyword-form results.
     files:
       - src/synd/server.py
       - src/synd/search/fts.py
@@ -720,5 +732,61 @@ spikes:
     files:
       - docs/eval-harness-design.md
       - tests/evals/generation/
+      - docs/decisions.md
+    blocked_by: []
+
+  - id: S15
+    title: Stage C oracle filter and Stage D dedup select away the hard tier
+    status: open
+    outcome: null
+    context: |
+      Found in the pilot post-run analysis (docs/pilot-results.md, 2026-07-04,
+      §3). The pilot dataset came out 64% expert-persona (73/114): the
+      deliberately-hard personas barely survive generation (paraphrase persona
+      n=8, vocab_mismatch persona n=5) and the vocabulary_mismatch TIER landed
+      at n=2 — too small to size the embeddings decision, which is the tier's
+      entire purpose.
+
+      Mechanism, two parts:
+        1. stage_c_tier.py's reachability check drops any question whose OWN
+           keyword query cannot reach gold in the FTS5 top-50. But the
+           vocab_mismatch persona's keyword query is written in foreign
+           vocabulary BY DESIGN — its failure to retrieve is the phenomenon
+           under study, not evidence of bad generation. The filter conflates
+           "unanswerable question" with "hard question" and deletes the hard
+           ones.
+        2. assemble_dataset.py dedups by (source_url, heading_path,
+           difficulty), keeping the hardest tier but not persona diversity —
+           so the surviving (mostly expert) query fills each slot.
+
+      Related: Stage C ranks with packages=[pack] (single-pack scope) while
+      the L1 runner searches unscoped; see pilot-results.md §2. The oracle
+      check should run at the scope L1 reports, or L1 should report both.
+    task: |
+      1. Change stage_c_tier.py's reachability gate to a true oracle query
+         constructed from the gold chunk itself (e.g. its N rarest distinctive
+         terms by corpus document frequency), independent of any persona's
+         phrasing. The persona's keyword form still feeds tiering — it no
+         longer gates the question's existence.
+      2. Make the dedup in assemble_dataset.py persona-aware: within a
+         (gold, difficulty) slot, prefer keeping persona diversity across the
+         dataset rather than always the same surviving persona.
+      3. Align scoping between the Stage C oracle check and the L1 runner
+         (run the oracle unscoped, or have L1 report scoped + unscoped).
+      4. Re-run Stages C-D on the EXISTING pilot raw queries
+         (tests/evals/generation/work/raw_queries_*.jsonl — no regeneration
+         needed), producing pilot_v2, and compare tier/persona composition
+         against pilot_v1.
+    success: |
+      pilot_v2 assembled from the same raw queries with a materially larger
+      hard tier (vocabulary_mismatch n comparable to its share of raw
+      generation, not n=2) and documented persona composition. Outcome and
+      revised tier thresholds recorded in decisions.md; feeds the S14
+      go/no-go on scaling to 15-20 packs.
+    files:
+      - tests/evals/generation/stage_c_tier.py
+      - tests/evals/generation/assemble_dataset.py
+      - tests/evals/l1_retrieval.py
+      - docs/pilot-results.md
       - docs/decisions.md
     blocked_by: []

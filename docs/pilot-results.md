@@ -199,25 +199,117 @@ Beyond the retrieval numbers, this pilot validated the mechanism itself:
 
 ---
 
-## What this unlocks / next steps
+## Post-run analysis (2026-07-04)
 
-1. **The sized case for embeddings** (feeds `docs/hybrid-search.md` / decision
-   D25): NL paraphrase queries recovering only 2.9% of gold at k=20, at real
-   corpus scale, is now real evidence rather than a 42-question toy result.
-   Scaling the labeling subset (more packs, larger per-pack sample) would
-   tighten the confidence interval and, specifically, grow the
-   `vocabulary_mismatch` tier past n=2.
-2. **L2 — agent retrieval competence**: run the search→fetch agent loop with a
-   real served model over these same questions; `reachability_gap =
-   L1_recall − L2_achieved_recall` isolates query-formulation skill from
-   ceiling.
-3. **L3 — end-task docs A/B lift**: the project's central question, gated by
-   L2 — does having synd in the loop actually help a model complete a task,
-   and does that lift scale inversely with model size as the VRAM-constrained
-   thesis predicts.
-4. **Baseline tracking**: commit `pilot_l1_baseline.json` as the first point in
-   a `compare.py`-style delta report so this number stays live as the corpus
-   and harness evolve (see `docs/pilot-run-guide.md` Step 8).
+Follow-up analysis of the per-question data, run against the same frozen
+dataset and DB. Three findings that change how the headline numbers should be
+read, and one methodology bug to fix before scaling.
+
+### 1. The NL wall is two problems, not one — and one of them is cheap
+
+Per-question hit/miss buckets at recall@10 (unscoped): both forms hit on 19
+questions, keyword-only on 70, NL-only on 2, neither on 23. For the 70
+keyword-only failures, NL hit rate falls monotonically with query length —
+from 0.67 at 3 effective (post-stopword) terms to 0.05 at 12+. FTS5's
+implicit-AND plus rightmost-first relaxation degrades predictably as
+sentences get longer: the limiting factor is partly *term selection*, not
+only vocabulary.
+
+Tested directly with a model-free rewrite — reduce each NL query to its 3
+rarest corpus terms (by document frequency) and re-score recall@10:
+
+| variant | overall | direct | paraphrase |
+|---|---:|---:|---:|
+| NL as-is | 0.184 | 0.452 | 0.029 |
+| NL → 3 rarest terms | 0.219 | 0.310 | 0.171 |
+| keyword_query | 0.781 | 0.857 | 0.757 |
+
+Paraphrase improves 6x (0.029 → 0.171) from pure mechanical term selection —
+no embeddings, no model. But it recovers only a quarter of the keyword
+ceiling, and naive rare-term truncation *hurts* the direct tier (0.452 →
+0.310). Interpretation: an IDF-aware relaxation order in `search_relaxed`
+(drop the most-common term first, instead of the rightmost) is a real,
+cheap win worth ~10–15pp on hard NL queries — and the residual gap
+(0.17 vs 0.76) is the honestly-sized vocabulary problem that lexical search
+cannot close. That residual, not the raw 0.029, is the number the
+embeddings decision (D25) should use.
+
+### 2. Scoping mismatch between Stage C and L1 (inflates neither, but document it)
+
+Stage C measured ranks with `packages=[pack]` (single-pack scope); the L1
+runner searches the whole 3-pack corpus unscoped. Re-running L1 both ways:
+
+| form | scope | r@5 | r@10 | r@20 |
+|---|---|---:|---:|---:|
+| NL | unscoped | 0.167 | 0.184 | 0.184 |
+| NL | scoped | 0.228 | 0.254 | 0.263 |
+| keyword | unscoped | 0.737 | 0.781 | 0.851 |
+| keyword | scoped | 0.825 | 0.877 | 0.921 |
+
+The story survives both conditions (NL collapses either way), but this
+explains the questions whose Stage C `kw_rank` was 1–4 yet miss at k=10 in
+L1: cross-pack distractors. The full-scale run indexes ~59 packs, so the
+unscoped condition will get harder still — L1 should report both scopes,
+and Stage C's oracle check should run at the scope L1 reports.
+
+### 3. Stage C's oracle filter is eating the hard tier (methodology bug)
+
+The final dataset is 64% expert-persona (73/114); the deliberately-hard
+personas barely survive (paraphrase persona n=8, vocab_mismatch persona
+n=5), and the `vocabulary_mismatch` *tier* landed at n=2. Mechanism: Stage C
+drops any question whose **own keyword query** can't reach gold in the
+top-50 — but the vocab_mismatch persona's keyword query is *written in
+foreign vocabulary by design*, so its failure to retrieve is the phenomenon
+under study, not evidence of bad generation. The filter conflates the two,
+selects away the hard cases, and Stage D's dedup then fills each slot with
+the surviving (mostly expert) query.
+
+Fix before scaling: Stage C's reachability check should use a true oracle
+query constructed from the gold chunk itself (e.g. its rarest distinctive
+terms), independent of any persona's phrasing. The persona's keyword form
+still feeds tiering — it just no longer gates the question's existence.
+Dedup should also prefer persona diversity within a tier, not just tier
+hardness.
+
+### Revised reading of the headline
+
+The pilot's core claim stands — FTS5 cannot bridge natural phrasing to doc
+vocabulary, at real scale, under either scoping — but the pipeline currently
+*understates* the hard tier's size (finding 3) while the NL number
+*overstates* the unfixable portion of the gap (finding 1). Both corrections
+are implementable without regenerating the pilot dataset.
+
+---
+
+## Next steps (chosen, in order)
+
+Priorities follow from the post-run analysis: fix the cheap product win and
+the pipeline bug first, because both change the numbers the expensive
+decisions (embeddings, full-scale generation) will be based on.
+
+1. **IDF-aware query relaxation in `search_relaxed`** (spike S13, now with
+   measured evidence): drop the highest-document-frequency term first instead
+   of the rightmost. Predicted ~10–15pp recovery on hard-tier NL queries at
+   near-zero cost; re-run L1 against the committed baseline to confirm. This
+   is a product improvement, not just eval work — it moves the real MCP
+   search tool.
+2. **Fix Stage C's oracle filter + Stage D dedup** (spike S15) so the hard
+   tier survives generation: oracle reachability from gold-chunk terms, not
+   the persona's own keyword form; persona-diverse dedup. Re-run Stages C–D
+   on the *existing* pilot raw queries (no regeneration needed) and measure
+   how the tier composition shifts.
+3. **Scale the labeling subset** (S14 go/no-go): with 1–2 landed, extend to
+   ~15–20 packs to get `vocabulary_mismatch` to n≥30 and per-pack slices
+   worth reading. Only then is the embeddings case (D25) properly sized —
+   using the post-relaxation residual gap, not the raw 0.029.
+4. **L2 — agent retrieval competence**: the search→fetch loop with served
+   models over the same questions; `reachability_gap = L1 − L2` isolates
+   query-formulation skill from the retrieval ceiling.
+5. **L3 — end-task docs A/B lift**: the project's central question, gated by
+   L2.
+
+The L1 baseline (`tests/evals/results/pilot_l1_baseline.json`) is committed;
+every change above gets measured as a delta against it.
 
 Full per-question scores are in `tests/evals/results/pilot_l1_baseline.json`;
 the generation pipeline and step-by-step commands are in
