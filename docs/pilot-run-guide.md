@@ -16,19 +16,28 @@ The pipeline has four stages:
 
 | Stage | What | Model |
 |---|---|---|
-| A | Chunk → neutral capability statement | Sonnet 4.6 (API) |
-| B | Capability → persona query pairs | Sonnet + Qwen3-35B-A3B (vLLM) |
+| A | Chunk → neutral capability statement | Claude, authored in a Claude Code session |
+| B | Capability → persona query pairs | Claude (fresh Code session) + Qwen3-35B-A3B (vLLM) |
 | C | Measure actual retrieval difficulty | Model-free (Jaccard + FTS5 rank) |
 | D | Assemble + rot-guard → dataset JSON | Model-free |
 
-Work products go in `tests/evals/generation/work/` (gitignored).
+No Anthropic API key is needed: the Claude halves of Stages A and B are
+authored by Claude inside Claude Code sessions on this repo, then checked and
+merged by model-free finalizer scripts (`finalize_stage_a.py`,
+`finalize_stage_b.py`). The finalizers validate prompt-rule conformance and
+join all chunk metadata mechanically, so the sessions never transcribe hashes
+or URLs.
+
+Work products go in `tests/evals/generation/work/` (gitignored). Run every
+step — including both Claude Code sessions — on the same checkout, since the
+sessions hand off through files in `work/`.
 
 ---
 
 ## Prerequisites
 
 - `synd` CLI: `.venv/bin/synd` or `synd` in PATH (`pip install -e '.[all]'`)
-- `ANTHROPIC_API_KEY` — for Stage A and the Sonnet half of Stage B
+- Claude Code, for the two authoring sessions (Stage A, Stage B strong half)
 - vLLM serving Qwen3-35B-A3B locally — for the 35B half of Stage B
 - Network access to modelcontextprotocol.io, trigger.dev, resend.com
 
@@ -73,37 +82,89 @@ python tests/evals/generation/extract_chunks.py \
 
 ---
 
-## Step 3 — Stage A: capability extraction (Sonnet)
+## Step 3 — Stage A: capability extraction (Claude Code session)
 
-One API call per chunk. ~2–3 minutes per pack. Costs < $0.10 for 80 chunks.
+Open a Claude Code session on this repo and give it this task:
+
+> Read `tests/evals/generation/prompts/stage_a.txt`. For each record in
+> `tests/evals/generation/work/chunks_<pack>.jsonl`, apply the prompt's rules
+> to the chunk's content and write one JSON line to
+> `tests/evals/generation/work/session_a_<pack>.jsonl` with exactly these
+> fields: `pack_name`, `chunk_id` (copied from the input record), and
+> `capability` (the one-sentence statement you authored). Do this for all
+> three packs (mcp, trigger, resend), then run the finalizer for each and fix
+> any listed failures until it exits 0.
+
+Then finalize (validates rules + coverage, joins metadata):
 
 ```bash
-export ANTHROPIC_API_KEY=<your-key>
+python tests/evals/generation/finalize_stage_a.py \
+  --chunks  tests/evals/generation/work/chunks_mcp.jsonl \
+  --session tests/evals/generation/work/session_a_mcp.jsonl \
+  --output  tests/evals/generation/work/capabilities_mcp.jsonl
 
-python tests/evals/generation/generate_stage_a.py \
-  tests/evals/generation/work/chunks_mcp.jsonl \
-  --output tests/evals/generation/work/capabilities_mcp.jsonl
+python tests/evals/generation/finalize_stage_a.py \
+  --chunks  tests/evals/generation/work/chunks_trigger.jsonl \
+  --session tests/evals/generation/work/session_a_trigger.jsonl \
+  --output  tests/evals/generation/work/capabilities_trigger.jsonl
 
-python tests/evals/generation/generate_stage_a.py \
-  tests/evals/generation/work/chunks_trigger.jsonl \
-  --output tests/evals/generation/work/capabilities_trigger.jsonl
-
-python tests/evals/generation/generate_stage_a.py \
-  tests/evals/generation/work/chunks_resend.jsonl \
-  --output tests/evals/generation/work/capabilities_resend.jsonl
+python tests/evals/generation/finalize_stage_a.py \
+  --chunks  tests/evals/generation/work/chunks_resend.jsonl \
+  --session tests/evals/generation/work/session_a_resend.jsonl \
+  --output  tests/evals/generation/work/capabilities_resend.jsonl
 ```
-
-Add `--resume` to any command to skip already-processed chunks if interrupted.
 
 ---
 
-## Step 4 — Stage B: query synthesis (Sonnet + 35B-A3B)
+## Step 4 — Stage B: query synthesis (fresh Claude session + 35B-A3B)
 
-Two models per chunk: Sonnet generates expert + paraphrase queries; 35B generates
-vocabulary-mismatch + hurried-user queries.
+Two models per chunk: Claude generates expert + paraphrase queries; 35B
+generates vocabulary-mismatch + hurried-user queries. The halves can run in
+either order — both append into the same `raw_queries_<pack>.jsonl`.
+
+### 4a — Strong half (Claude Code session)
+
+**Isolation rule**: this must be a *fresh* session — not the Stage A session,
+and not one that has read any pack, chunk file, or the pilot DB. The query
+author must see only the capability statements; that is what keeps gold-chunk
+vocabulary from leaking into the queries (`docs/eval-harness-design.md` §5).
+
+Give the fresh session this task:
+
+> Do not open any file under `tests/evals/generation/work/` except the
+> `session_a_*.jsonl` files named here, and do not open any `.ctx` pack or
+> database. Read `tests/evals/generation/prompts/stage_b_claude.txt`. For each
+> record in `tests/evals/generation/work/session_a_<pack>.jsonl`, using ONLY
+> the `capability` field, author the two persona query pairs the prompt
+> describes and write two JSON lines to
+> `tests/evals/generation/work/session_b_<pack>.jsonl`, one per persona, with
+> exactly these fields: `pack_name`, `chunk_id` (copied), `persona`
+> (`"expert"` or `"paraphrase"`), `nl_query`, `keyword_query`. Do this for all
+> three packs, then run the finalizer for each and fix any listed failures
+> until it exits 0.
+
+Then finalize (validates personas + query shapes, joins metadata, merges):
 
 ```bash
-export ANTHROPIC_API_KEY=<your-key>
+python tests/evals/generation/finalize_stage_b.py \
+  --capabilities tests/evals/generation/work/capabilities_mcp.jsonl \
+  --session      tests/evals/generation/work/session_b_mcp.jsonl \
+  --output       tests/evals/generation/work/raw_queries_mcp.jsonl
+
+python tests/evals/generation/finalize_stage_b.py \
+  --capabilities tests/evals/generation/work/capabilities_trigger.jsonl \
+  --session      tests/evals/generation/work/session_b_trigger.jsonl \
+  --output       tests/evals/generation/work/raw_queries_trigger.jsonl
+
+python tests/evals/generation/finalize_stage_b.py \
+  --capabilities tests/evals/generation/work/capabilities_resend.jsonl \
+  --session      tests/evals/generation/work/session_b_resend.jsonl \
+  --output       tests/evals/generation/work/raw_queries_resend.jsonl
+```
+
+### 4b — Weak half (vLLM)
+
+```bash
 export SYND_GEN_VLLM_URL=http://192.168.0.214:8000/v1
 export SYND_GEN_VLLM_MODEL=<name from /v1/models>
 # export SYND_GEN_VLLM_API_KEY=<token>   # only if your vLLM requires auth
@@ -121,10 +182,8 @@ python tests/evals/generation/generate_stage_b.py \
   --output tests/evals/generation/work/raw_queries_resend.jsonl
 ```
 
-**Flags**:
-- `--only-sonnet` — skip 35B (run Sonnet first, then come back for 35B)
-- `--only-35b` — skip Sonnet
-- `--resume` — skip chunks already in the output file
+The script always appends and skips chunks already present in the output, so
+re-running after an interruption is safe.
 
 ---
 

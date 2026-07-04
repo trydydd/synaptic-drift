@@ -536,3 +536,17 @@ The URL noise filter (`DEFAULT_NOISE_URL_PATTERNS`) already handles the canonica
 **Contract**: `SearchError` is raised for (1) empty input, (2) input that sanitizes to empty (all special chars), (3) input that filters to empty (all stopwords). `SearchResponse` is returned only for inputs that reach FTS5 — `results=[]` then means exactly one thing.
 
 **Revisit when**: FTS5 is replaced by a hybrid backend, at which point `total` (before-limit count from the underlying engine) becomes cheap to obtain and worth including.
+
+## D28: Gold Generation — Claude Halves Authored In-Session, Not Via API
+
+**Decision**: Stage A (capability extraction) and the strong-model half of Stage B (expert + paraphrase personas) of the gold-generation pipeline are authored by Claude inside Claude Code sessions, not by scripts calling the Anthropic Messages API. Model-free finalizers — `tests/evals/generation/finalize_stage_a.py` and `finalize_stage_b.py` — validate the session output and join chunk metadata. The weak-model half (Qwen3-35B-A3B via vLLM) remains scripted in `generate_stage_b.py`.
+
+**Background**: the original skeleton (`generate_stage_a.py`, the Sonnet path in `generate_stage_b.py`) required an `ANTHROPIC_API_KEY`, per-call cost, and rate-limit handling. The operator already works in Claude Code sessions, where the same model family is available without any of that. The API scripts were removed before any pilot run had used them.
+
+**Division of labor**: the session authors only what a model must author — `(pack_name, chunk_id, capability)` for Stage A, `(pack_name, chunk_id, persona, nl_query, keyword_query)` for Stage B. The finalizers do everything mechanical: coverage checks, prompt-rule conformance (word counts, allowed prefixes, pack-name leak, persona set, keyword term counts), and joining `heading_path` / `source_url` / `content_hash` from the upstream files. The model never transcribes metadata, so transcription errors are structurally impossible; a finalizer failure lists the offending records and exits 1 without writing.
+
+**Leakage isolation**: the design requirement that Stage B sees only capability statements (eval-harness-design §5) is enforced by process: the Stage B strong half must run in a fresh session whose only pipeline inputs are the `session_a_*.jsonl` files, which contain nothing but ids and capabilities. This is stronger than the API path, where `heading_path` and `source_url` rode along in the capabilities JSONL even though the prompt template excluded them.
+
+**Methodology impact**: none to the dual-family design — the strong half was Claude before and is Claude now; only the transport changed. Records carry `model: "claude-session"` (previously `"sonnet"`).
+
+**Revisit when**: generation scales past the point where in-session authoring is practical (thousands of chunks per run), at which point a batched API path can be reintroduced behind the same finalizer validation.

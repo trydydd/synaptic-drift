@@ -16,7 +16,9 @@ Each output line is a JSON object:
         "content": "..."   # truncated to 2000 chars
     }
 
-Run once per pack; the output is the input to generate_stage_a.py.
+Run once per pack; the output is the input to Stage A, which is authored by
+Claude in a Claude Code session and finalized by finalize_stage_a.py (see
+docs/pilot-run-guide.md).
 """
 
 from __future__ import annotations

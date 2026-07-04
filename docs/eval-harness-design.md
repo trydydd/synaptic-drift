@@ -112,21 +112,27 @@ model reverse-engineering**. The naive "read this chunk, write a question it ans
 approach leaks the chunk's vocabulary and manufactures only easy `direct` cases. We
 decouple the query from the chunk text in four stages.
 
-**Stage A — Capability extraction (Sonnet 4.6).**
+**Stage A — Capability extraction (Claude, in a Claude Code session).**
 Read a chunk → emit a neutral, vocabulary-stripped statement of the *user-facing
 intent* it serves (e.g. "how to stream incremental progress from a long-running tool
 to the client"). This is the bridge; the chunk's exact wording is dropped here.
+Authored in-session rather than via API calls (D28); `finalize_stage_a.py`
+validates rule conformance and joins chunk metadata mechanically.
 
-**Stage B — Persona query synthesis (Sonnet 4.6 *and* Qwen3-30B-A3B, independently).**
+**Stage B — Persona query synthesis (Claude in a *fresh* Code session *and*
+Qwen3-30B-A3B, independently).**
 Given **only the capability statement** (never the chunk text) plus a user persona,
-produce the query a real user would type. Personas span the realistic query-quality
+produce the query a real user would type. The fresh-session requirement enforces
+the decoupling structurally: the authoring session's only inputs are
+`(pack_name, chunk_id, capability)` records, so gold vocabulary cannot leak
+through context carried over from Stage A. Personas span the realistic query-quality
 spectrum:
 - Expert who knows the exact term → tends toward `direct`.
 - Developer who knows the concept but not this library's vocabulary → `paraphrase`.
 - Developer arriving from a different ecosystem using foreign terms → `vocabulary_mismatch`.
 - Hurried user typing fragments / lowercase / partial → realistic noise.
 
-The **strong+weak model mix is itself the instrument**: Sonnet produces well-formed
+The **strong+weak model mix is itself the instrument**: Claude produces well-formed
 and deliberately-varied queries; Qwen3-30B-A3B's terser, rougher output mirrors the
 hurried-user and the small-model-operator population. Two model families also reduce
 single-model stylistic bias.
@@ -179,9 +185,10 @@ stays live across releases.
 
 - **e10 — corpus fixture & rot-guard**: pin/build the labeling-subset packs; rot-guard
   validator (`content_hash`+anchor); full-corpus index loader for distractor realism.
-- **e11 — gold generation pipeline**: Stages A–D as offline scripts under
-  `tests/evals/generation/`; dual-model clients (Sonnet via API, Qwen3-30B-A3B via the
-  same OpenAI-compatible client as e6); measured tiering; outputs versioned JSON.
+- **e11 — gold generation pipeline**: Stages A–D under `tests/evals/generation/`;
+  Claude halves authored in Claude Code sessions with model-free finalizers
+  (D28); Qwen3-30B-A3B via the same OpenAI-compatible client as e6; measured
+  tiering; outputs versioned JSON.
 - **e12 — human-audit tooling**: sampling + review CLI; false-gold-rate report.
 - **e13 — L1 runner at scale**: extend the e4/e5 retrieval runner to the new dataset;
   per-tier/per-pack slicing; baseline JSON.

@@ -59,7 +59,9 @@ _JACCARD_PARAPHRASE_MIN = 0.04
 _FTS5_DIRECT_RANK = 5
 _FTS5_PARAPHRASE_RANK = 20
 _FTS5_VOCABMISS_RANK = 50
-_FTS5_ORACLE_RANK = 50  # keyword query must reach gold within this rank to keep question
+_FTS5_ORACLE_RANK = (
+    50  # keyword query must reach gold within this rank to keep question
+)
 
 
 def _tokenize(text: str) -> set[str]:
@@ -225,9 +227,13 @@ def tier_queries(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Stage C: measured tiering")
     parser.add_argument("--raw-queries", type=Path, required=True)
-    parser.add_argument("--chunks", type=Path, required=True, help="extract_chunks output")
+    parser.add_argument(
+        "--chunks", type=Path, required=True, help="extract_chunks output"
+    )
     parser.add_argument("--db", type=Path, required=True, help="Pilot synd DB path")
-    parser.add_argument("--pack", required=True, help="Pack name to filter (e.g. 'mcp')")
+    parser.add_argument(
+        "--pack", required=True, help="Pack name to filter (e.g. 'mcp')"
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--fts-limit", type=int, default=_FTS5_ORACLE_RANK)
     args = parser.parse_args()

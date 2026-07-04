@@ -90,9 +90,7 @@ def validate(dataset_path: Path, db_path: Path) -> bool:
 
             chunk = _find_chunk(db, source_url, heading_path, pack)
             if chunk is None:
-                failures.append(
-                    f"  [{q_id}] MISSING: heading_path={heading_path!r}"
-                )
+                failures.append(f"  [{q_id}] MISSING: heading_path={heading_path!r}")
                 checked += 1
                 continue
 

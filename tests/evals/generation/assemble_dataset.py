@@ -73,7 +73,11 @@ def assemble(
                 else:
                     # Prefer vocab_mismatch > paraphrase > direct (harder is rarer)
                     existing = seen_keys[key]
-                    tier_priority = {"vocabulary_mismatch": 2, "paraphrase": 1, "direct": 0}
+                    tier_priority = {
+                        "vocabulary_mismatch": 2,
+                        "paraphrase": 1,
+                        "direct": 0,
+                    }
                     if tier_priority.get(rec["difficulty"], 0) > tier_priority.get(
                         existing["difficulty"], 0
                     ):
@@ -153,7 +157,9 @@ def main() -> None:
         type=Path,
         help="One or more Stage C output JSONL files",
     )
-    parser.add_argument("--output", type=Path, required=True, help="Output dataset JSON")
+    parser.add_argument(
+        "--output", type=Path, required=True, help="Output dataset JSON"
+    )
     parser.add_argument(
         "--corpus-version",
         default="2025-05-29",
