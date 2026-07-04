@@ -78,6 +78,9 @@ def _call_vllm(prompt_text: str, base_url: str, model: str, api_key: str) -> str
         "top_p": 0.8,
         "top_k": 20,
         "min_p": 0.0,
+        # Qwen3's reasoning mode otherwise burns the whole max_tokens budget
+        # on a <think> block, leaving `content` null (finish_reason "length").
+        "chat_template_kwargs": {"enable_thinking": False},
         "messages": [{"role": "user", "content": prompt_text}],
     }
     data = json.dumps(payload).encode("utf-8")
@@ -88,7 +91,13 @@ def _call_vllm(prompt_text: str, base_url: str, model: str, api_key: str) -> str
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             body = json.loads(resp.read().decode("utf-8"))
-            return body["choices"][0]["message"]["content"].strip()
+            content = body["choices"][0]["message"]["content"]
+            if not content:
+                raise RuntimeError(
+                    f"vLLM returned empty content (finish_reason="
+                    f"{body['choices'][0].get('finish_reason')!r}); raw: {body}"
+                )
+            return content.strip()
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"vLLM API error {exc.code}: {body}") from exc

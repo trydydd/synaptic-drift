@@ -55,7 +55,15 @@ def main() -> None:
 
         print(f"build {name:<12} {url}")
         result = subprocess.run(
-            [synd, "build", f"{name}@{VERSION}", "--source", url, "--output", str(PACK_DIR)],
+            [
+                synd,
+                "build",
+                f"{name}@{VERSION}",
+                "--source",
+                url,
+                "--output",
+                str(PACK_DIR),
+            ],
             capture_output=True,
             text=True,
         )
@@ -67,18 +75,31 @@ def main() -> None:
             print(f"  -> FAILED: {err}")
 
     print(f"\nImporting {len(built)} packs into {DB_PATH}")
+    # `synd add` has no --db flag: it always writes to .synd/index.db relative
+    # to cwd. Import with cwd set to the work dir, then move that index.db to
+    # DB_PATH so it matches the path the rest of the pipeline expects.
+    synd_dir = DB_PATH.parent / ".synd"
     for pack_path in built:
         print(f"  add {pack_path.name}")
         result = subprocess.run(
-            [synd, "add", str(pack_path), "--db", str(DB_PATH)],
+            [Path(synd).resolve().as_posix(), "add", str(pack_path.resolve())],
             capture_output=True,
             text=True,
+            cwd=DB_PATH.parent,
         )
         if result.returncode != 0:
             err = (result.stderr or result.stdout or "").strip().splitlines()[-1:]
             print(f"    FAILED: {err}")
         else:
             print("    ok")
+
+    built_index = synd_dir / "index.db"
+    if built_index.exists():
+        built_index.replace(DB_PATH)
+        for extra in ("index.db-wal", "index.db-shm"):
+            extra_path = synd_dir / extra
+            if extra_path.exists():
+                extra_path.unlink()
 
     print(f"\nDone. Pilot DB: {DB_PATH}")
     print(

@@ -125,6 +125,22 @@ def _anchor(content: str, length: int = 80) -> str:
     return cleaned[:length]
 
 
+def _load_hash_to_db_id(db: Database, pack_name: str) -> dict[str, int]:
+    """Map content_hash -> current DB chunk id for one package.
+
+    `synd add` assigns chunk ids via a global AUTOINCREMENT at import time —
+    it does not preserve the id a chunk had inside its source .ctx pack (see
+    Database.import_pack). The chunk_id in chunks_<pack>.jsonl (from
+    extract_chunks.py) is therefore only a label, not a valid lookup key into
+    this DB once more than one pack has been imported. content_hash is the
+    stable join key between the two.
+    """
+    cursor = db.conn.execute(
+        "SELECT content_hash, id FROM chunks WHERE package = ?", (pack_name,)
+    )
+    return {row["content_hash"]: row["id"] for row in cursor.fetchall()}
+
+
 def tier_queries(
     raw_queries_path: Path,
     chunks_path: Path,
@@ -147,6 +163,7 @@ def tier_queries(
                 chunk_hash[rec["chunk_id"]] = rec["content_hash"]
 
     db = Database(db_path)
+    hash_to_db_id = _load_hash_to_db_id(db, pack_name)
 
     kept = dropped = 0
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -173,8 +190,17 @@ def tier_queries(
                 dropped += 1
                 continue
 
+            db_chunk_id = hash_to_db_id.get(content_hash)
+            if db_chunk_id is None:
+                print(
+                    f"  DROP chunk {chunk_id} [{rec['persona']}]: "
+                    f"content_hash not found in {pack_name} pack in DB (stale/rebuilt db?)"
+                )
+                dropped += 1
+                continue
+
             # Oracle check: keyword query must reach gold in top-N
-            kw_rank = _fts5_rank(db, kw_query, pack_name, chunk_id, fts_limit)
+            kw_rank = _fts5_rank(db, kw_query, pack_name, db_chunk_id, fts_limit)
             if kw_rank is None:
                 print(
                     f"  DROP chunk {chunk_id} [{rec['persona']}]: "
@@ -183,7 +209,7 @@ def tier_queries(
                 dropped += 1
                 continue
 
-            nl_rank = _fts5_rank(db, nl_query, pack_name, chunk_id, fts_limit)
+            nl_rank = _fts5_rank(db, nl_query, pack_name, db_chunk_id, fts_limit)
             j = _jaccard(nl_query, content)
             tier = _assign_tier(j, nl_rank)
 
