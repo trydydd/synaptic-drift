@@ -6,7 +6,8 @@ Claude in a Claude Code session and merged by finalize_stage_b.py — this
 script no longer calls the Anthropic API.
 
 Model label is fixed as "35b" (representing the weak-model half, regardless of
-the actual served model). Pilot run used Qwen3.6:27b with reasoning disabled.
+the actual served model). Pilot run used Qwen3.6:27b (fp8 quantization with
+unquantized KV cache) with reasoning disabled.
 
 Always appends to --output and skips (pack_name, chunk_id, model) keys already
 present, so it is safe to re-run after an interruption and composes with

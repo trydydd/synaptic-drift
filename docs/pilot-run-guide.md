@@ -45,7 +45,7 @@ The pipeline has four stages:
 | Stage | What | Model |
 |---|---|---|
 | A | Chunk → neutral capability statement | Claude, authored in a Claude Code session |
-| B | Capability → persona query pairs | Claude (fresh Code session) + local vLLM (Qwen3.6:27b w/o reasoning in pilot) |
+| B | Capability → persona query pairs | Claude (fresh Code session) + local vLLM (Qwen3.6:27b fp8 + unquantized KV cache, no reasoning in pilot) |
 | C | Measure actual retrieval difficulty | Model-free (Jaccard + FTS5 rank) |
 | D | Assemble + rot-guard → dataset JSON | Model-free |
 
@@ -66,7 +66,7 @@ sessions hand off through files in `work/`.
 
 - `synd` CLI: `.venv/bin/synd` or `synd` in PATH (`pip install -e '.[all]'`)
 - Claude Code, for the two authoring sessions (Stage A, Stage B strong half)
-- vLLM serving a model locally — for the weak half of Stage B (pilot used Qwen3.6:27b with reasoning off)
+- vLLM serving a model locally — for the weak half of Stage B (pilot used Qwen3.6:27b with fp8 quantization, unquantized KV cache, reasoning off)
 - Network access to modelcontextprotocol.io, trigger.dev, resend.com
 
 ---
