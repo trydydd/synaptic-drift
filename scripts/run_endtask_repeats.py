@@ -13,11 +13,24 @@ mode, not a general-purpose repeat runner. Reuses tests/evals/endtask.py's
 run_endtask_eval() and tests/evals/conftest.py's corpus-build helper directly
 (no subprocess/pytest overhead per repeat).
 
+Sampling defaults to Alibaba's recommended Qwen3 "instruct, no thinking"
+preset (see tests/evals/model_client.py's SamplingParams). Override via a
+TOML config file and/or CLI flags; precedence is
+built-in defaults < --sampling-config file < individual CLI flags.
+
 Usage:
     export SYND_EVAL_BASE_URL=http://<host>:8000/v1
     export SYND_EVAL_MODEL=<served-model-name>
     # export SYND_EVAL_API_KEY=...   # only if the endpoint requires auth
-    python scripts/run_endtask_repeats.py [--runs 10] [--max-turns 8]
+    python scripts/run_endtask_repeats.py [--runs 10] [--max-turns 8] \\
+        [--sampling-config sampling.toml] \\
+        [--temperature 0.7] [--top-p 0.8] [--top-k 20] [--min-p 0.0] \\
+        [--presence-penalty 1.5] [--repetition-penalty 1.0] [--max-tokens 2048]
+
+--sampling-config expects a TOML file shaped like:
+    [sampling]
+    temperature = 0.7
+    top_p = 0.80
 
 Writes:
     tests/evals/results/endtask_repeats/run_XX.json   (one per repeat)
@@ -44,11 +57,32 @@ TASKS_PATH = REPO_ROOT / "tests" / "evals" / "datasets" / "tasks" / "seed_tasks.
 _ARMS = ("no_docs", "with_docs")
 
 
-def _build_client() -> object:
+def _resolve_sampling(args: argparse.Namespace) -> object:
+    from tests.evals.model_client import ModelClientError, resolve_sampling_params
+
+    overrides = {
+        "temperature": args.temperature,
+        "top_p": args.top_p,
+        "top_k": args.top_k,
+        "min_p": args.min_p,
+        "presence_penalty": args.presence_penalty,
+        "repetition_penalty": args.repetition_penalty,
+        "max_tokens": args.max_tokens,
+    }
+    try:
+        return resolve_sampling_params(
+            config_path=args.sampling_config, overrides=overrides
+        )
+    except ModelClientError as exc:  # bad/missing config file
+        print(f"error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+def _build_client(sampling: object) -> object:
     from tests.evals.model_client import ModelClientError, client_from_env
 
     try:
-        client = client_from_env()
+        client = client_from_env(sampling=sampling)  # type: ignore[arg-type]
     except ModelClientError as exc:
         print(f"error: {exc}", file=sys.stderr)
         print(
@@ -65,12 +99,9 @@ def _build_client() -> object:
 
 
 def _build_header(client: object) -> dict[str, object]:
-    from tests.evals.model_client import (
-        DEFAULT_MAX_TOKENS,
-        DEFAULT_TEMPERATURE,
-        ModelClientError,
-        fetch_model_info,
-    )
+    from dataclasses import asdict
+
+    from tests.evals.model_client import ModelClientError, fetch_model_info
 
     try:
         model_info = fetch_model_info(client.base_url, client.model, client.api_key)  # type: ignore[attr-defined]
@@ -84,9 +115,11 @@ def _build_header(client: object) -> dict[str, object]:
         "model_root": model_info.get("root"),
         "max_model_len": model_info.get("max_model_len"),
         "owned_by": model_info.get("owned_by"),
-        "sampling_params": {
-            "temperature": DEFAULT_TEMPERATURE,
-            "max_tokens": DEFAULT_MAX_TOKENS,
+        # These are what THIS client sends on every request — the OpenAI
+        # /models surface has no way to read a server's configured sampling
+        # defaults, so this is not server-verified, just what we requested.
+        "requested_sampling_params": {
+            **asdict(client.sampling),  # type: ignore[attr-defined]
             "disable_thinking": client.disable_thinking,  # type: ignore[attr-defined]
         },
         "request_timeout_s": client.timeout,  # type: ignore[attr-defined]
@@ -94,7 +127,7 @@ def _build_header(client: object) -> dict[str, object]:
 
 
 def _print_header(header: dict[str, object]) -> None:
-    sp = header["sampling_params"]
+    sp = header["requested_sampling_params"]
     print("=== run header ===", file=sys.stderr)
     print(f"endpoint:        {header['base_url']}", file=sys.stderr)
     print(
@@ -104,10 +137,10 @@ def _print_header(header: dict[str, object]) -> None:
         file=sys.stderr,
     )
     print(
-        f"sampling:        temperature={sp['temperature']} max_tokens={sp['max_tokens']} "
-        f"disable_thinking={sp['disable_thinking']}",
+        "sampling (client-requested, not server-verified):",
         file=sys.stderr,
     )
+    print(f"  {sp}", file=sys.stderr)
     print(f"request_timeout: {header['request_timeout_s']}s", file=sys.stderr)
 
 
@@ -145,12 +178,26 @@ def main() -> None:
     )
     parser.add_argument("--runs", type=int, default=10, help="Number of repeats")
     parser.add_argument("--max-turns", type=int, default=8)
+    parser.add_argument(
+        "--sampling-config",
+        type=Path,
+        default=None,
+        help="TOML file with a [sampling] table of overrides",
+    )
+    parser.add_argument("--temperature", type=float, default=None)
+    parser.add_argument("--top-p", type=float, default=None)
+    parser.add_argument("--top-k", type=int, default=None)
+    parser.add_argument("--min-p", type=float, default=None)
+    parser.add_argument("--presence-penalty", type=float, default=None)
+    parser.add_argument("--repetition-penalty", type=float, default=None)
+    parser.add_argument("--max-tokens", type=int, default=None)
     args = parser.parse_args()
 
     from tests.evals.endtask import run_endtask_eval
     from tests.evals.tasks import load_tasks
 
-    client = _build_client()
+    sampling = _resolve_sampling(args)
+    client = _build_client(sampling)
     header = _build_header(client)
     _print_header(header)
     taskset = load_tasks(TASKS_PATH)

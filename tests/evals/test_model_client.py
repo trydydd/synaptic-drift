@@ -5,14 +5,18 @@ import json
 import threading
 from collections.abc import Iterator
 from email.message import Message
+from pathlib import Path
 
 import pytest
 
 from tests.evals.model_client import (
     ChatClient,
     ModelClientError,
+    SamplingParams,
     client_from_env,
     fetch_model_info,
+    load_sampling_overrides,
+    resolve_sampling_params,
 )
 
 
@@ -196,6 +200,68 @@ def test_fetch_model_info_missing_model_raises(
 
     with pytest.raises(ModelClientError, match="not found"):
         fetch_model_info(base_url, "red")
+
+
+def test_default_sampling_params_match_alibaba_preset() -> None:
+    defaults = SamplingParams()
+    assert defaults.temperature == 0.7
+    assert defaults.top_p == 0.80
+    assert defaults.top_k == 20
+    assert defaults.min_p == 0.0
+    assert defaults.presence_penalty == 1.5
+    assert defaults.repetition_penalty == 1.0
+
+
+def test_chat_sends_full_sampling_payload(stub_server: tuple[str, _StubState]) -> None:
+    base_url, stub = stub_server
+    stub.response_body = _ok_reply()
+    client = ChatClient(base_url=base_url, model="test-model")
+
+    client.chat([{"role": "user", "content": "hi"}])
+
+    assert stub.last_request_body is not None
+    assert stub.last_request_body["temperature"] == 0.7
+    assert stub.last_request_body["top_p"] == 0.80
+    assert stub.last_request_body["top_k"] == 20
+    assert stub.last_request_body["min_p"] == 0.0
+    assert stub.last_request_body["presence_penalty"] == 1.5
+    assert stub.last_request_body["repetition_penalty"] == 1.0
+    assert stub.last_request_body["max_tokens"] == 2048
+
+
+def test_resolve_sampling_params_precedence(tmp_path: Path) -> None:
+    config = tmp_path / "sampling.toml"
+    config.write_text("[sampling]\ntemperature = 0.3\ntop_p = 0.5\n")
+
+    # No config, no overrides -> built-in defaults.
+    assert resolve_sampling_params() == SamplingParams()
+
+    # Config file alone overrides just the keys it names.
+    from_config = resolve_sampling_params(config_path=config)
+    assert from_config.temperature == 0.3
+    assert from_config.top_p == 0.5
+    assert from_config.top_k == 20  # untouched default
+
+    # An explicit override (e.g. a CLI flag) beats the config file.
+    from_both = resolve_sampling_params(
+        config_path=config, overrides={"temperature": 0.9, "max_tokens": None}
+    )
+    assert from_both.temperature == 0.9  # override wins over config's 0.3
+    assert from_both.top_p == 0.5  # config value still applies
+    assert from_both.max_tokens == 2048  # None override is "not provided"
+
+
+def test_load_sampling_overrides_rejects_unknown_key(tmp_path: Path) -> None:
+    config = tmp_path / "sampling.toml"
+    config.write_text("[sampling]\nnonsense_key = 1\n")
+
+    with pytest.raises(ModelClientError, match="unknown"):
+        load_sampling_overrides(config)
+
+
+def test_load_sampling_overrides_missing_file_raises(tmp_path: Path) -> None:
+    with pytest.raises(ModelClientError, match="cannot read"):
+        load_sampling_overrides(tmp_path / "does-not-exist.toml")
 
 
 def test_http_error_raises_model_client_error(

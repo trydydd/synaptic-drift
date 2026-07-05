@@ -11,15 +11,15 @@ from __future__ import annotations
 import json
 import os
 import time
+import tomllib
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, replace
+from pathlib import Path
 
 from tests.evals.eval_errors import EvalError
 
 _DEFAULT_FINISH_REASON = "stop"
-DEFAULT_TEMPERATURE = 0.0
-DEFAULT_MAX_TOKENS = 2048
 
 
 class ModelClientError(EvalError):
@@ -43,6 +43,68 @@ class ChatReply:
     tool_calls: list[ToolCall]
     finish_reason: str
     elapsed_s: float = 0.0
+
+
+@dataclass
+class SamplingParams:
+    """Request-time sampling knobs sent on every /chat/completions call.
+
+    Defaults are Alibaba's recommended Qwen3 "instruct, no thinking" preset.
+    Callers can override individual fields via a TOML config file and/or
+    explicit values (e.g. CLI flags) — see resolve_sampling_params() for the
+    precedence between the two.
+    """
+
+    temperature: float = 0.7
+    top_p: float = 0.80
+    top_k: int = 20
+    min_p: float = 0.0
+    presence_penalty: float = 1.5
+    repetition_penalty: float = 1.0
+    max_tokens: int = 2048
+
+
+_SAMPLING_FIELD_NAMES = tuple(f.name for f in fields(SamplingParams))
+
+
+def load_sampling_overrides(config_path: Path) -> dict[str, object]:
+    """Read the [sampling] table from a TOML config file.
+
+    Only keys matching a SamplingParams field are allowed — an unknown key
+    (typo, wrong section) raises rather than being silently ignored.
+    """
+    try:
+        with config_path.open("rb") as fh:
+            data = tomllib.load(fh)
+    except tomllib.TOMLDecodeError as exc:
+        raise ModelClientError(f"invalid TOML in {config_path}: {exc}") from exc
+    except OSError as exc:
+        raise ModelClientError(f"cannot read {config_path}: {exc}") from exc
+
+    table = data.get("sampling", {})
+    unknown = set(table) - set(_SAMPLING_FIELD_NAMES)
+    if unknown:
+        raise ModelClientError(
+            f"{config_path}: unknown [sampling] key(s) {sorted(unknown)}; "
+            f"expected one of {_SAMPLING_FIELD_NAMES}"
+        )
+    return dict(table)
+
+
+def resolve_sampling_params(
+    config_path: Path | None = None,
+    overrides: dict[str, object] | None = None,
+) -> SamplingParams:
+    """Merge sampling params with precedence: built-in defaults < config file
+    < explicit overrides (e.g. CLI flags). `overrides` values that are None
+    are treated as "not provided" and don't participate.
+    """
+    merged: dict[str, object] = {}
+    if config_path is not None:
+        merged.update(load_sampling_overrides(config_path))
+    if overrides:
+        merged.update({k: v for k, v in overrides.items() if v is not None})
+    return replace(SamplingParams(), **merged) if merged else SamplingParams()
 
 
 def _parse_tool_calls(raw_tool_calls: list[dict[str, object]]) -> list[ToolCall]:
@@ -75,6 +137,7 @@ class ChatClient:
         api_key: str | None = None,
         timeout: float = 1800.0,
         disable_thinking: bool = False,
+        sampling: SamplingParams | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
@@ -84,19 +147,29 @@ class ChatClient:
         # a <think> block before the real answer; opt-in since a non-reasoning
         # or non-Qwen endpoint may not recognize chat_template_kwargs at all.
         self.disable_thinking = disable_thinking
+        self.sampling = sampling if sampling is not None else SamplingParams()
 
     def chat(
         self,
         messages: list[dict[str, object]],
         tools: list[dict[str, object]] | None = None,
-        temperature: float = DEFAULT_TEMPERATURE,
-        max_tokens: int = DEFAULT_MAX_TOKENS,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> ChatReply:
         payload: dict[str, object] = {
             "model": self.model,
             "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
+            "temperature": (
+                temperature if temperature is not None else self.sampling.temperature
+            ),
+            "max_tokens": (
+                max_tokens if max_tokens is not None else self.sampling.max_tokens
+            ),
+            "top_p": self.sampling.top_p,
+            "top_k": self.sampling.top_k,
+            "min_p": self.sampling.min_p,
+            "presence_penalty": self.sampling.presence_penalty,
+            "repetition_penalty": self.sampling.repetition_penalty,
         }
         if tools is not None:
             payload["tools"] = tools
@@ -183,10 +256,14 @@ def fetch_model_info(
     raise ModelClientError(f"model {model!r} not found in {url} response")
 
 
-def client_from_env() -> ChatClient:
+def client_from_env(sampling: SamplingParams | None = None) -> ChatClient:
     """Build a ChatClient from SYND_EVAL_BASE_URL / SYND_EVAL_MODEL /
     SYND_EVAL_API_KEY / SYND_EVAL_DISABLE_THINKING. Raises ModelClientError
     naming any missing required var.
+
+    `sampling` is accepted (not read from env) so callers with their own
+    config-file/CLI-flag precedence (see resolve_sampling_params) can inject
+    the resolved SamplingParams; defaults to the built-in preset otherwise.
     """
     base_url = os.environ.get("SYND_EVAL_BASE_URL")
     model = os.environ.get("SYND_EVAL_MODEL")
@@ -214,4 +291,5 @@ def client_from_env() -> ChatClient:
         model=model,
         api_key=api_key,
         disable_thinking=disable_thinking,
+        sampling=sampling,
     )
