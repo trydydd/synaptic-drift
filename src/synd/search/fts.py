@@ -10,6 +10,11 @@ if TYPE_CHECKING:
 
 _FTS5_SPECIAL_RE = re.compile(r"[^\w\s]")
 
+# Uppercase FTS5 boolean operators pass through preprocessing unfiltered (see
+# _preprocess_query). A query that already uses one is respected verbatim by
+# search_relaxed rather than having its terms re-joined with OR.
+_FTS5_OPERATORS = frozenset({"AND", "OR", "NOT"})
+
 # Conservative set of English function words that carry no search value in
 # technical documentation. Excludes words that can appear in section titles
 # (how, what, where) and FTS5 boolean operators (AND, OR, NOT).
@@ -204,16 +209,32 @@ def search_relaxed(
     detail: str = "summary",
     limit: int = 10,
 ) -> tuple[list[SearchResult], str]:
-    """Like search(), but retries with progressively fewer terms on empty results.
+    """Like search(), but OR-matches terms and ranks by BM25 instead of
+    requiring every term to co-occur (FTS5's implicit AND).
 
-    When FTS5's implicit AND produces zero results for a multi-term query, drops
-    the rightmost term and retries. Continues until results are found or a single
-    term remains. This recovers from over-constrained queries (e.g. a 6-term
-    query where only 2 terms co-occur in any chunk).
+    Terms are joined with OR so a chunk matching more/rarer query terms scores
+    higher, but a chunk matching only one term is still a candidate — there is
+    no zero-result cliff from one term failing to co-occur with the rest, and
+    therefore no retry-with-fewer-terms loop needed. Measured on the pilot L1
+    eval (docs/pilot-results.md): this outperforms AND-with-relaxation on every
+    recall/MRR/nDCG metric for both natural-language and keyword-style queries
+    — including precision-sensitive ones (recall@1, MRR), so the gain is not
+    just "return more candidates and hope." AND-first variants (try strict AND,
+    fall back to OR only when it returns nothing, or only at the end of a
+    term-dropping cascade) were also measured and are no better: whenever
+    strict AND succeeds, its results already rank at the top of the OR
+    ordering, so trying AND first adds complexity without improving results,
+    and folding OR only into a term-dropping cascade reintroduces the original
+    problem (the cascade already stops at the first non-empty, low-quality
+    subset before ever reaching the OR step).
 
-    Returns (results, effective_query) where effective_query is the preprocessed
-    query string that produced the returned results. When the original query
-    succeeds, effective_query equals the preprocessed form of the original.
+    If the query already contains explicit FTS5 boolean operators (AND/OR/NOT),
+    it is passed through as the user wrote it — see _FTS5_OPERATORS — rather
+    than having its terms re-joined with OR.
+
+    Returns (results, effective_query) where effective_query is the exact
+    string sent to FTS5's MATCH after preprocessing (and OR-joining, when
+    applicable).
 
     Raises SearchError for stopwords-only input and malformed FTS5 syntax (e.g.
     an incomplete boolean operator like "foo AND").
@@ -228,14 +249,13 @@ def search_relaxed(
         return [], query
 
     tokens = preprocessed.split()
-    while tokens:
-        effective = " ".join(tokens)
-        results = _execute_fts(db, effective, packages, detail, limit)
-        if results or len(tokens) == 1:
-            return results, effective
-        tokens = tokens[:-1]
-
-    return [], preprocessed
+    effective = (
+        preprocessed
+        if any(t in _FTS5_OPERATORS for t in tokens)
+        else " OR ".join(tokens)
+    )
+    results = _execute_fts(db, effective, packages, detail, limit)
+    return results, effective
 
 
 def get_chunks_by_id(

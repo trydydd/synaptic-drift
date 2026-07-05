@@ -168,10 +168,12 @@ def _register_tools(mcp: FastMCP) -> None:
     ) -> str:
         """Returns summaries and chunk_ids for matching docs — no content.
         Call fetch with the chunk_ids to get full text.
-        Exact keyword AND-matching: ALL terms must appear in a chunk. Use
-        1-3 distinctive terms (e.g. 'progress', 'prompt template', 'stdio'),
-        never full sentences. Empty results mean the terms were too many or
-        too specific — retry with fewer, different terms.
+        Terms are matched independently and ranked by relevance — a chunk
+        matching more of your terms ranks higher, but doesn't need to match
+        all of them. You can use a few distinctive terms (e.g. 'progress
+        report_progress') or a natural-language question; both work. Empty
+        results mean none of your terms appear anywhere in the index — try
+        different words, not fewer of the same ones.
         Unknown package name → {"status": "not_indexed"}.
         """
         db = Database(_db_path())

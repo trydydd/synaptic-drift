@@ -71,10 +71,7 @@ def query(
         sys.exit(exit_code_for(exc))
 
     if effective_query is not None and effective_query != query.strip():
-        console.print(
-            f"[yellow]Note: search relaxed to '{effective_query}' "
-            f"(original query returned no results)[/yellow]"
-        )
+        console.print(f"[yellow]Note: searched as '{effective_query}'[/yellow]")
 
     if not results:
         console.print("[yellow]No results found.[/yellow]")

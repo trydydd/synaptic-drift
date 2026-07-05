@@ -643,8 +643,26 @@ spikes:
 
   - id: S13
     title: Search query relaxation and tool-description guidance for model callers
-    status: open
-    outcome: null
+    status: done
+    outcome: |
+      Resolved via D29 (docs/decisions.md): search_relaxed() now OR-joins
+      query terms and ranks by BM25, replacing implicit-AND with a
+      term-dropping relaxation loop entirely (no drop-order tuning needed —
+      the AND stage itself was the problem, not the order it relaxed in).
+      Measured on the pilot L1 baseline: NL recall@20 0.184 -> 0.868, MRR
+      0.135 -> 0.554; keyword recall@20 0.841 -> 0.891 (also improves, no
+      regression). Verified against metric gaming via precision-sensitive
+      metrics (recall@1, MRR) and direct content inspection of sampled
+      result lists (docs/pilot-results.md has the full writeup). The
+      residual 13% NL miss rate was root-caused into four patterns, three
+      of which are non-embeddings engineering (corpus duplicate-content
+      dilution, heading-phrasing echo, chunking-granularity mismatch); only
+      ~6% is genuine lexical vocabulary mismatch, the real sized case for
+      D25's hybrid-search contingency. Two AND-first hybrids were tested
+      and rejected: AND-first/OR-fallback is statistically indistinguishable
+      from pure OR; keeping the term-drop cascade with OR only as a final
+      fallback exactly reproduces the original numbers (the cascade already
+      stops at its first non-empty subset before reaching OR).
     context: |
       End-to-end smoke runs (2026-06-11, Qwen3-8B on llama-server, all 10 seed
       eval tasks, tool calls dispatched to the real search_docs/fetch_docs
@@ -732,17 +750,19 @@ spikes:
       tests/evals/results/pilot_l1_baseline.json on ALL forms/tiers
       (not just the one being optimized) before being considered a win.
     success: |
-      A relaxation strategy change (or explicit decision not to pursue one)
-      recorded in decisions.md, with L1 before/after deltas against
-      tests/evals/results/pilot_l1_baseline.json showing improvement on at
-      least one form/tier with NO regression exceeding noise on any other
-      form/tier — global-DF-priority is now a confirmed non-solution and
-      should not be re-attempted without a materially different mechanism
-      or keyword-form results.
+      A relaxation strategy change recorded in decisions.md, with L1
+      before/after deltas against tests/evals/results/pilot_l1_baseline.json
+      showing improvement on at least one form/tier with no regression on
+      any other. Met by D29 (OR+BM25) — every metric on both forms improved,
+      no regression.
     files:
       - src/synd/server.py
       - src/synd/search/fts.py
+      - src/synd/cli/query.py
+      - docs/MCP.md
       - docs/decisions.md
+      - docs/pilot-results.md
+      - tests/test_search/test_fts.py
     blocked_by: []
 
   - id: S14

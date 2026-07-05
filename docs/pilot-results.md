@@ -125,6 +125,14 @@ python tests/evals/l1_retrieval.py \
 
 ## Results
 
+> **Superseded 2026-07-04**: the numbers in this section reflect the
+> original AND+relaxation search backend, measured at the start of the
+> pilot. They are kept as the historical baseline. The current backend is
+> OR+BM25 (decision D29) — see "Shipped: OR+BM25 replaces AND+relaxation"
+> below for the current numbers, which are substantially better on every
+> metric. `tests/evals/results/pilot_l1_baseline.json` reflects the current
+> (OR+BM25) backend, not the numbers below.
+
 ### Overall — the query-formulation tax
 
 | | recall@1 | recall@5 | recall@10 | recall@20 | MRR | nDCG@10 |
@@ -252,14 +260,10 @@ rightmost-drop otherwise) was also tested and produced **no measurable
 change**: DF=0 terms are rare in this corpus, so the safe version has no
 effect worth shipping either.
 
-**This change was reverted**; the working tree is clean of it. The residual
-question — whether a relaxation strategy exists that captures the
-paraphrase-tier gain without the keyword-form regression — is open. See
-spike S13 for candidates not yet tried (bounded leave-one-out search per
-relaxation level; adjacency-limited reordering; OR-semantics with IDF
-scoring instead of sequential AND-shrinking). Any candidate must be measured
-against all forms/tiers in `pilot_l1_baseline.json`, not just the slice it
-targets — that is the discipline this attempt was missing.
+**This change was reverted**; the working tree was clean of it before the
+next attempt. The lesson it left behind — *question the AND default itself,
+not the order terms are dropped from it* — is what led to the fix in
+"Shipped: OR+BM25 replaces AND+relaxation" below, which resolves spike S13.
 
 ### 2. Scoping mismatch between Stage C and L1 (inflates neither, but document it)
 
@@ -300,48 +304,177 @@ hardness.
 
 ### Revised reading of the headline
 
-The pilot's core claim stands — FTS5 cannot bridge natural phrasing to doc
-vocabulary, at real scale, under either scoping. Finding 3 (the pipeline
-understates the hard tier's size) is implementable without regenerating the
-pilot dataset. Finding 1 turned out to be a dead end on the first attempt:
-the raw 0.029 paraphrase number is not simply "a relaxation bug away" from
-0.17 — the mechanical fix that promised that gain regresses the keyword form
-by more than it helps NL, so 0.029 stands as the honest number pending a
-materially different relaxation design.
+The pilot's core claim stood at this point — FTS5 cannot bridge natural
+phrasing to doc vocabulary, at real scale, under either scoping. Finding 3
+(the pipeline understates the hard tier's size) is implementable without
+regenerating the pilot dataset. Finding 1 was a dead end on the first
+attempt: the raw 0.029 paraphrase number was not simply "a relaxation bug
+away" from 0.17. The actual fix, described next, changed the picture
+substantially.
+
+---
+
+## Shipped: OR+BM25 replaces AND+relaxation (2026-07-04)
+
+Finding 1's real lesson was that the fix was being sought at the wrong
+layer. `search_relaxed` used FTS5's implicit AND (every term must co-occur
+in a chunk) with a fallback that dropped terms one at a time on zero
+results. Every attempt to tune the *drop order* — rightmost, highest
+document frequency — was still choosing among subsets of an AND query. The
+actual fix was to stop using AND as the default at all: join query terms
+with OR and let BM25 rank by relevance, so a chunk matching more/rarer terms
+scores higher without a chunk matching only some terms being excluded
+outright. This removed the relaxation loop entirely rather than replacing
+it with a smarter version — there is no zero-result cliff for OR to recover
+from in the first place.
+
+### Before / after (full pilot L1 baseline, 114 questions)
+
+| | recall@1 | recall@5 | recall@10 | recall@20 | MRR | nDCG@10 |
+|---|---:|---:|---:|---:|---:|---:|
+| NL — AND+relax (before) | 0.110 | 0.167 | 0.184 | 0.184 | 0.135 | 0.146 |
+| **NL — OR+BM25 (shipped)** | **0.409** | **0.692** | **0.765** | **0.868** | **0.554** | **0.610** |
+| keyword — AND+relax (before) | 0.367 | 0.723 | 0.777 | 0.841 | 0.536 | 0.594 |
+| **keyword — OR+BM25 (shipped)** | **0.394** | **0.717** | **0.828** | **0.891** | **0.572** | **0.634** |
+
+By difficulty tier (NL form): direct recall@20 0.452 → **1.000**, paraphrase
+0.029 → **0.800**, vocabulary_mismatch 0.000 → 0.500 (n=2, too small to
+trust alone). Every metric improved on both query forms — no regression
+anywhere, including the well-formed keyword form that a naive "just broaden
+the query" change might have been expected to hurt.
+
+Two AND-first hybrids were measured and rejected before settling on pure OR:
+**AND-first, OR-backfill** (try strict AND, fill remaining result slots with
+OR-ranked candidates) is statistically indistinguishable from pure OR —
+whenever AND succeeds, its results are already top-ranked under OR anyway,
+so trying AND first adds a second query for no benefit. **Keep the
+term-dropping cascade, use OR only if every drop fails** exactly reproduces
+the original AND+relax numbers — the cascade already stops at its first
+non-empty (and often low-quality) subset long before it would ever reach
+the OR fallback. Pure OR, with no AND stage at all, is the only variant that
+wins.
+
+### Verification this isn't gaming the metric
+
+recall@20 alone can be gamed by simply returning a bigger candidate pool —
+it only asks "is gold anywhere in the top 20," not "is the ranking any
+good." Before shipping, this was checked directly rather than assumed away:
+
+- **Precision-sensitive metrics moved with it.** recall@1 and MRR both
+  require gold to rank near the very top, not just appear somewhere in a
+  20-wide window. Both improved by the same 3–4x factor as recall@20 (NL
+  recall@1: 0.110 → 0.409; NL MRR: 0.135 → 0.554). If OR were only adding
+  noise deep in the list, these would not have moved.
+- **Manual inspection of sampled result lists** (2 direct, 4 paraphrase, both
+  vocabulary_mismatch questions) found 7 of 8 genuinely relevant: gold
+  ranked #1 on `"why msg slow far away"` (a heavily obfuscated
+  vocabulary_mismatch query — DNS-region latency doc, correctly top-ranked
+  from three garbled words) and on `"what does the mcp project's lead
+  maintainer role have final say over"` (governance doc, with ranks #2–5
+  also genuinely on-topic). Two cases (`"idempotency key to safely retry a
+  send"`, `"send html email"`) had the literal labeled gold chunk outside
+  the top 5, but *every* top-5 result was the same correct answer restated
+  for a different SDK language — a dataset-labeling artifact (below), not
+  retrieval noise.
+- **One real, disclosed precision cost.** `"how to add row to db"` returned
+  two off-topic "AI chat lifecycle hooks" chunks ahead of the correct
+  Supabase doc (rank #3), apparently via generic term overlap on `db` and
+  `hooks`. This is an honest trade-off of OR vs. AND: AND never returns
+  wrong-topic noise (it returns nothing instead), OR always returns
+  *something*, occasionally ranking something off-topic above the right
+  answer. Not disqualifying, but real, and not observable from the
+  aggregate metric alone.
+
+### The residual 13% miss, root-caused
+
+15 of 114 NL queries (13.2%) still miss entirely (gold not in top 20) after
+this change — all in the paraphrase and vocabulary_mismatch tiers; the
+direct tier reaches 1.000. Every one of the 15 was inspected directly rather
+than assumed to be "vocabulary mismatch" by default. They cluster into four
+overlapping patterns, and only the last is a genuine limit of lexical search:
+
+1. **Corpus duplicate-content dilution** (~5 of 15 — `r0090`, `r0092`,
+   `r0097`, `r0099`, `r0080`). Resend's docs restate the same content once
+   per SDK language (astro/bun/express/hono/nextjs/php/ruby/sinatra/django/
+   elixir/remix/phoenix — 10+ near-identical siblings per topic). Either the
+   labeled gold sibling gets crowded out of the ranking by its own
+   near-duplicates, or a *different, equally correct* sibling is returned
+   and the single-gold-chunk dataset schema can't credit it. Not a retrieval
+   defect — the fix is dataset-side (deduplication-aware sampling in gold
+   generation), not a search change.
+2. **Heading-phrasing echo** (~2 of 15, overlapping with the above —
+   `r0092`, `r0097`, `r0051` partially). A query phrased as generic "how do
+   I..." coincidentally matches unrelated KB article headings that also
+   start with "How do I..." — a common doc title pattern — amplified by the
+   2.5x heading_path BM25 weight rewarding the phrasing match over topical
+   relevance.
+3. **Chunking-granularity / near-sibling ranking** (~2 of 15 — `r0055`,
+   `r0036`). The correct *parent* section, or a closely related sibling API
+   (`onChatStart` vs. the labeled gold `chat.headStart`), outranks the
+   specific child chunk holding the literal gold content. A user or agent
+   would likely still land on useful material one hop away.
+4. **Genuine lexical vocabulary mismatch** (~7 of 15 — `r0028`, `r0031`,
+   `r0032`, `r0056`, `r0066`, `r0076`, `r0102`). Formal spec language vs.
+   colloquial paraphrase (`r0028`); cross-ecosystem jargon used deliberately
+   by the vocabulary_mismatch persona (`r0031`: "bundler or pip" vs. the
+   docs' own package-manager terms); compressed abbreviations that never
+   appear in the corpus (`r0102`: "creds"; `r0032`: "auto renew token no
+   code"); or a genuinely different term for the same concept (`r0076`:
+   "sending a group of messages together" vs. the docs' "batch-sending").
+   This is the honest, irreducible residual — the real, now much smaller,
+   sized case for semantic/embedding-based matching.
+
+Three of the four patterns are addressable without embeddings (corpus
+deduplication, heading-weight or generic-phrase down-weighting, parent-chunk
+fallback). Only pattern 4 — roughly half the residual, so ~6% of all NL
+queries, not 13% — is what decision D25 (hybrid search, deferred pending
+"real evidence of vocabulary-mismatch failures that tuned FTS5 cannot
+address") was waiting for. That evidence now exists, but it's an order of
+magnitude smaller than the pre-OR baseline (~87% NL-paraphrase failure)
+suggested.
+
+Full details, including the rejected AND-first hybrids' numbers, are in
+decision D29 (`docs/decisions.md`).
 
 ---
 
 ## Next steps (chosen, in order)
 
-Priorities follow from the post-run analysis, updated after testing (and
-reverting) the first relaxation-order attempt.
+Spike S13 (search relaxation strategy) is resolved — see "Shipped: OR+BM25"
+above and decision D29. Priorities below follow from what that work
+revealed.
 
 1. **Fix Stage C's oracle filter + Stage D dedup** (spike S15) so the hard
    tier survives generation: oracle reachability from gold-chunk terms, not
    the persona's own keyword form; persona-diverse dedup. Re-run Stages C–D
    on the *existing* pilot raw queries (no regeneration needed) and measure
-   how the tier composition shifts. Promoted to first because it needs no
-   further research — the fix is specified, not experimental.
-2. **Search relaxation strategy** (spike S13) remains open, not closed: the
-   global-DF-priority approach is now a confirmed non-solution (see finding 1
-   above). Worth revisiting with a materially different mechanism (bounded
-   leave-one-out search, adjacency-limited reordering, or OR+IDF scoring
-   instead of sequential AND-shrinking) — but only if measured against every
-   form/tier in the baseline, not just the slice being optimized.
-3. **Scale the labeling subset** (S14 go/no-go): once S15 lands, extend to
-   ~15–20 packs to get `vocabulary_mismatch` to n≥30 and per-pack slices
-   worth reading. The embeddings case (D25) should be sized on the raw
-   0.029 NL-paraphrase number as it stands today — no relaxation fix has
-   earned the right to discount it yet.
+   how the tier composition shifts. Needs no further research — the fix is
+   specified, not experimental.
+2. **Corpus-side dedup for the gold-generation pipeline** (new, from the
+   miss root-cause analysis): patterns 1–2 above account for roughly a third
+   of the residual NL misses and are dataset artifacts, not search defects —
+   near-duplicate SDK-language pages produce single-gold-chunk labels that
+   can't credit an equally correct sibling. Worth a lightweight fix (dedupe
+   near-identical pages before sampling, or allow multiple gold chunks per
+   question) before scaling generation further, so the next pilot's miss
+   rate reflects genuine difficulty, not this artifact.
+3. **Scale the labeling subset** (S14 go/no-go): once S15 (and ideally the
+   dedup fix) lands, extend to ~15–20 packs to get `vocabulary_mismatch` to
+   n≥30 and per-pack slices worth reading. Size the embeddings case (D25) on
+   the ~6% genuine-vocabulary-mismatch rate found here, not the pre-OR 0.029
+   NL-paraphrase number, which is now known to overstate it by conflating it
+   with dataset artifacts and fixable precision issues.
 4. **L2 — agent retrieval competence**: the search→fetch loop with served
    models over the same questions; `reachability_gap = L1 − L2` isolates
-   query-formulation skill from the retrieval ceiling.
+   query-formulation skill from the retrieval ceiling. Re-run against the
+   OR+BM25 backend, not the AND+relax numbers this doc originally reported.
 5. **L3 — end-task docs A/B lift**: the project's central question, gated by
    L2.
 
-The L1 baseline (`tests/evals/results/pilot_l1_baseline.json`) is committed;
-every change above gets measured as a delta against it — including negative
-results, as with the relaxation-order attempt.
+The L1 baseline (`tests/evals/results/pilot_l1_baseline.json`) now reflects
+OR+BM25 and is committed; every change above gets measured as a delta
+against it — including negative results, as with the relaxation-order
+attempt that preceded this fix.
 
 Full per-question scores are in `tests/evals/results/pilot_l1_baseline.json`;
 the generation pipeline and step-by-step commands are in
