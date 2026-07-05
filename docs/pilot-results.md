@@ -1,8 +1,12 @@
-# Pilot Results — Scaled Eval Harness, L1 Retrieval
+# Pilot Results — Scaled Eval Harness, L1 Retrieval + L2/L3 Harness
 
-**Status**: Complete (2026-07-04). First real-corpus run of the gold-generation
-pipeline (`docs/eval-harness-design.md`) and the L1 (model-free retrieval)
-evaluation layer.
+**Status**: L1 complete (2026-07-04) — first real-corpus run of the
+gold-generation pipeline (`docs/eval-harness-design.md`) and the model-free
+retrieval evaluation layer. L2/L3 harness built (2026-07-05) — the
+infrastructure to actually run search→fetch agent loops and no_docs/with_docs
+end-task comparisons against a served model now exists and is unit-tested;
+see "L2/L3: end-task A/B harness" below for what it measures and how to run
+it against a real model.
 
 **Dataset**: `tests/evals/datasets/real/pilot_v1.json` — 114 questions
 **Corpus**: mcp · trigger · resend, pinned `2025-05-29`, 6,181 indexed chunks
@@ -479,3 +483,108 @@ attempt that preceded this fix.
 Full per-question scores are in `tests/evals/results/pilot_l1_baseline.json`;
 the generation pipeline and step-by-step commands are in
 `docs/pilot-run-guide.md`.
+
+---
+
+## L2/L3: end-task A/B harness (2026-07-05)
+
+`docs/eval-harness-design.md` describes L2 (agent retrieval competence) and
+L3 (end-task docs A/B lift) as layers built on top of L1, and its status
+line originally claimed the underlying mechanism (`chunk-e1..e9`) already
+existed. Checking `.work/ledger.yaml` rather than trusting that claim: every
+one of chunk-e1 through chunk-e9 was still `status: PENDING`. Only the data
+existed (`tests/evals/datasets/tasks/seed_tasks.json`, 10 hand-written coding
+tasks) and a prior session's ad-hoc, non-reusable manual smoke test recorded
+directly in the ledger (someone ran `llama-server` by hand and wrote down
+what happened — no runnable script).
+
+This session built the dependency chain needed to actually run an L3-style
+no_docs vs. with_docs comparison: chunk-e1 (metrics — reworked from the
+pilot's ad-hoc L1 harness to the ledger's exact contract), e2 (gold dataset
+loader, unused by e8 directly but part of the chain), e3 (`--evals` /
+`--live-model` pytest flags + the `evalcorpus` fixture corpus), e6 (stdlib
+OpenAI-compatible `ChatClient`), e7 (static-only task loader/grader — model
+output is `ast.parse`d, never executed), and e8 (the actual driver: the
+agent loop over `search`/`fetch`, dispatched in-process to the real
+`synd.server` public API, graded, aggregated into per-arm pass rates).
+e4/e5/e9 remain `PENDING` — e4's job (a retrieval eval runner with committed
+baselines) is already covered by `tests/evals/l1_retrieval.py` from the pilot
+run above; e5/e9 are reporting/docs polish, not blocking.
+
+**What it measures**: 10 seed coding tasks (`tests/evals/datasets/tasks/seed_tasks.json`,
+FastMCP-library questions) against the hermetic `evalcorpus` fixture corpus
+(19 markdown files under `tests/evals/fixtures/corpus/`, ~97+ chunks — not
+the 3-pack real pilot corpus above; this is the smaller, committed corpus
+the original ledger scoped end-task grading against). Each task runs twice:
+`no_docs` (task prompt only, no tools) and `with_docs` (the model gets
+`search`/`fetch` tools backed by the real `search_docs`/`fetch_docs` API).
+Grading is static — regex + `ast.parse` over extracted code, never execution
+of model output. The gap between the two arms' pass rates is the lift synd's
+retrieval actually gives this model on this task set.
+
+**Caveat carried over from the build**: the system prompt and search-tool
+description handed to the model in the `with_docs` arm were updated to
+describe the *current* OR+BM25 search behavior (decision D29), not the
+AND-semantics wording the original ledger verified live on 2026-06-11 (that
+wording is now stale and would mislead the model about how search behaves
+today — see the chunk-e8 handoff note in `.work/ledger.yaml`). This updated
+wording has not itself been verified against a live model yet. The run below
+is that verification.
+
+### Running it against a real model
+
+Assuming vLLM is serving on `192.168.0.214:8000`:
+
+```bash
+# 1. Confirm the endpoint is up and get the exact served model name —
+#    SYND_EVAL_MODEL must match a name from this list exactly.
+curl -s http://192.168.0.214:8000/v1/models | python3 -m json.tool
+
+# 2. Tool calling requires vLLM to have been launched with these flags
+#    (restart vLLM if it wasn't):
+#      --enable-auto-tool-choice --tool-call-parser hermes   # hermes for Qwen models
+
+# 3. Run the live end-task eval — 10 tasks x 2 arms x 1 rep = 20 model turns
+#    minimum (more if with_docs needs multiple search/fetch round trips).
+export SYND_EVAL_BASE_URL=http://192.168.0.214:8000/v1
+export SYND_EVAL_MODEL=<exact-name-from-step-1>
+# export SYND_EVAL_API_KEY=...   # only if vLLM requires auth
+
+.venv/bin/pytest tests/evals/test_endtask.py --evals --live-model -s \
+  -k test_endtask_eval_live
+```
+
+Writes `tests/evals/results/endtask_latest.json`:
+
+```json
+{
+  "meta": {"timestamp": "...", "git_commit": "...", "model": "...",
+            "reps": 1, "max_turns": 8, "task_count": 10},
+  "arms": {"no_docs": {"pass_rate": 0.0, "n": 10},
+           "with_docs": {"pass_rate": 0.0, "n": 10}},
+  "per_task": [ {"task_id": "t01", "arm": "no_docs", "rep": 0, "passed": false,
+                 "failures": [...], "turns_used": 1, "tool_calls_made": 0,
+                 "reply_chars": 0, "error": null}, ... ]
+}
+```
+
+`arms.with_docs.pass_rate − arms.no_docs.pass_rate` is the headline number.
+`per_task[].error == "max_turns"` flags a task where the model looped tool
+calls without converging (8-turn budget by default); `per_task[].failures`
+names which specific `must_match`/`must_not_match`/`must_parse` criterion
+failed, for reading *why* a task failed, not just that it did.
+
+Without `--live-model` (or without both env vars set), the live test skips
+cleanly with the exact command above printed as the skip reason — safe to
+leave in the default `--evals` run. The other 9 tests in
+`tests/evals/test_endtask.py` use a scripted `FakeChatClient` and need no
+endpoint at all.
+
+### Next step once a run exists
+
+Repeat across the model-size sweep the design doc calls for (Qwen3 0.6B /
+4B / 8B / 14B / 30B-A3B, or whatever the operator's vLLM serves) to get the
+`reachability_gap` (L1 − L2) and docs-lift-by-size curves — the project's
+actual headline deliverable. Commit each `endtask_latest.json` under a
+model-specific name (e.g. `endtask_qwen3-8b.json`) before the next run
+overwrites it.

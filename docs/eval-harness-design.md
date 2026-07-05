@@ -1,9 +1,21 @@
 # Evaluation Harness Design — Retrieval Quality at Scale
 
-**Status**: Design (2026-06-15). Supersedes the scope of the `chunk-e1..e9` eval
-stream, which built the *mechanism* (metrics, loaders, runners, graders) against a
-90-chunk toy corpus. This document scales that mechanism onto the real 100K-chunk
-corpus with a defensible gold-label methodology.
+**Status**: Design (2026-06-15), scoped over the `chunk-e1..e9` eval stream
+(`.work/ledger.yaml`), which builds the *mechanism* (metrics, loaders, runners,
+graders) against a 90-chunk toy corpus. This document scales that mechanism onto
+the real 100K-chunk corpus with a defensible gold-label methodology.
+
+**chunk-e1..e9 build status** (2026-07-05, checked against `.work/ledger.yaml`
+directly — an earlier version of this doc's status line implied the whole
+stream was already built as of 2026-06-15; it was not):
+`e1` (metrics), `e2` (gold dataset loader), `e3` (pytest flags + fixture
+corpus), `e6` (model client), `e7` (task loader/grader), and `e8` (the
+end-task A/B driver) are DONE — see `docs/pilot-results.md` §"L2/L3:
+end-task A/B harness" for what they do and how to run e8 against a real
+model. `e4` (retrieval eval runner) and `e5` (live mode + compare tool) are
+PENDING, but e4's job is already covered by `tests/evals/l1_retrieval.py`
+(built directly against the real pilot corpus below, not the toy corpus this
+stream targets). `e9` (docs) is PENDING.
 
 ## 1. Purpose
 
