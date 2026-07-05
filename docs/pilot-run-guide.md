@@ -323,6 +323,78 @@ sized evidence for `docs/hybrid-search.md` / decision D25.
 
 ---
 
+## Step 9 — L2/L3: end-task A/B harness
+
+L1 (Step 8) measures retrieval with no model in the loop. The next question —
+does a *served model* actually benefit from that retrieval — needs an agent
+loop and a real coding-task comparison. That harness (`tests/evals/endtask.py`)
+was built 2026-07-05; see `docs/pilot-results.md` §"L2/L3: end-task A/B
+harness" for what it measures, what it's built on (chunk-e1/e2/e3/e6/e7/e8),
+and the caveat about the system prompt's search-semantics wording being
+unverified against a live model until you run this.
+
+It targets a different, smaller corpus than Steps 1–8: the hermetic
+`evalcorpus` fixture (`tests/evals/fixtures/corpus/`, 19 markdown files) —
+not the mcp/trigger/resend pilot corpus. No setup needed; the fixture builds
+itself on first use.
+
+**Prerequisites**: a vLLM (or any OpenAI-compatible server) endpoint reachable
+from this machine, with tool calling enabled.
+
+```bash
+# 1. Confirm the endpoint is up and get the exact served model name —
+#    SYND_EVAL_MODEL must match a name from this list exactly.
+curl -s http://192.168.0.214:8000/v1/models | python3 -m json.tool
+
+# 2. Tool calling requires vLLM to have been launched with these flags
+#    (restart vLLM if it wasn't):
+#      --enable-auto-tool-choice --tool-call-parser hermes   # hermes for Qwen models
+
+# 3. Run the live end-task eval — 10 tasks x 2 arms x 1 rep = 20 model turns
+#    minimum (more if with_docs needs multiple search/fetch round trips).
+export SYND_EVAL_BASE_URL=http://192.168.0.214:8000/v1
+export SYND_EVAL_MODEL=<exact-name-from-step-1>
+# export SYND_EVAL_API_KEY=...   # only if vLLM requires auth
+
+.venv/bin/pytest tests/evals/test_endtask.py --evals --live-model -s \
+  -k test_endtask_eval_live
+```
+
+Writes `tests/evals/results/endtask_latest.json`:
+
+```json
+{
+  "meta": {"timestamp": "...", "git_commit": "...", "model": "...",
+            "reps": 1, "max_turns": 8, "task_count": 10},
+  "arms": {"no_docs": {"pass_rate": 0.0, "n": 10},
+           "with_docs": {"pass_rate": 0.0, "n": 10}},
+  "per_task": [ {"task_id": "t01", "arm": "no_docs", "rep": 0, "passed": false,
+                 "failures": [...], "turns_used": 1, "tool_calls_made": 0,
+                 "reply_chars": 0, "error": null}, ... ]
+}
+```
+
+`arms.with_docs.pass_rate − arms.no_docs.pass_rate` is the headline number.
+`per_task[].error == "max_turns"` flags a task where the model looped tool
+calls without converging (8-turn budget by default); `per_task[].failures`
+names which specific `must_match`/`must_not_match`/`must_parse` criterion
+failed, for reading *why* a task failed, not just that it did.
+
+Without `--live-model` (or without both env vars set), the live test skips
+cleanly with the exact command above printed as the skip reason — safe to
+leave in the default `--evals` run. The other 9 tests in
+`tests/evals/test_endtask.py` use a scripted `FakeChatClient` and need no
+endpoint at all.
+
+**Next step once a run exists**: repeat across the model-size sweep the
+design doc calls for (Qwen3 0.6B / 4B / 8B / 14B / 30B-A3B, or whatever the
+operator's vLLM serves) to get the `reachability_gap` (L1 − L2) and
+docs-lift-by-size curves — the project's actual headline deliverable. Commit
+each `endtask_latest.json` under a model-specific name (e.g.
+`endtask_qwen3-8b.json`) before the next run overwrites it.
+
+---
+
 ## What to report back
 
 After Step 7, paste:
@@ -330,6 +402,9 @@ After Step 7, paste:
 2. The rot-guard result line
 
 After Step 8, paste the L1 summary printed to stdout.
+
+After Step 9, paste the `arms` block from `endtask_latest.json` (or the
+skip message, if no endpoint was available).
 
 If any step fails, paste the last 20 lines of output from the failing command.
 

@@ -528,63 +528,9 @@ describe the *current* OR+BM25 search behavior (decision D29), not the
 AND-semantics wording the original ledger verified live on 2026-06-11 (that
 wording is now stale and would mislead the model about how search behaves
 today — see the chunk-e8 handoff note in `.work/ledger.yaml`). This updated
-wording has not itself been verified against a live model yet. The run below
-is that verification.
+wording has not itself been verified against a live model yet.
 
-### Running it against a real model
-
-Assuming vLLM is serving on `192.168.0.214:8000`:
-
-```bash
-# 1. Confirm the endpoint is up and get the exact served model name —
-#    SYND_EVAL_MODEL must match a name from this list exactly.
-curl -s http://192.168.0.214:8000/v1/models | python3 -m json.tool
-
-# 2. Tool calling requires vLLM to have been launched with these flags
-#    (restart vLLM if it wasn't):
-#      --enable-auto-tool-choice --tool-call-parser hermes   # hermes for Qwen models
-
-# 3. Run the live end-task eval — 10 tasks x 2 arms x 1 rep = 20 model turns
-#    minimum (more if with_docs needs multiple search/fetch round trips).
-export SYND_EVAL_BASE_URL=http://192.168.0.214:8000/v1
-export SYND_EVAL_MODEL=<exact-name-from-step-1>
-# export SYND_EVAL_API_KEY=...   # only if vLLM requires auth
-
-.venv/bin/pytest tests/evals/test_endtask.py --evals --live-model -s \
-  -k test_endtask_eval_live
-```
-
-Writes `tests/evals/results/endtask_latest.json`:
-
-```json
-{
-  "meta": {"timestamp": "...", "git_commit": "...", "model": "...",
-            "reps": 1, "max_turns": 8, "task_count": 10},
-  "arms": {"no_docs": {"pass_rate": 0.0, "n": 10},
-           "with_docs": {"pass_rate": 0.0, "n": 10}},
-  "per_task": [ {"task_id": "t01", "arm": "no_docs", "rep": 0, "passed": false,
-                 "failures": [...], "turns_used": 1, "tool_calls_made": 0,
-                 "reply_chars": 0, "error": null}, ... ]
-}
-```
-
-`arms.with_docs.pass_rate − arms.no_docs.pass_rate` is the headline number.
-`per_task[].error == "max_turns"` flags a task where the model looped tool
-calls without converging (8-turn budget by default); `per_task[].failures`
-names which specific `must_match`/`must_not_match`/`must_parse` criterion
-failed, for reading *why* a task failed, not just that it did.
-
-Without `--live-model` (or without both env vars set), the live test skips
-cleanly with the exact command above printed as the skip reason — safe to
-leave in the default `--evals` run. The other 9 tests in
-`tests/evals/test_endtask.py` use a scripted `FakeChatClient` and need no
-endpoint at all.
-
-### Next step once a run exists
-
-Repeat across the model-size sweep the design doc calls for (Qwen3 0.6B /
-4B / 8B / 14B / 30B-A3B, or whatever the operator's vLLM serves) to get the
-`reachability_gap` (L1 − L2) and docs-lift-by-size curves — the project's
-actual headline deliverable. Commit each `endtask_latest.json` under a
-model-specific name (e.g. `endtask_qwen3-8b.json`) before the next run
-overwrites it.
+**Running it**: see `docs/pilot-run-guide.md` Step 9 for the exact commands
+(including against a vLLM endpoint), the output JSON shape, and how to read
+it. That run against a real model is the verification this wording still
+needs.
