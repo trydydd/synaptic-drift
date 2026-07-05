@@ -34,13 +34,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from metrics import ndcg_at_k, reciprocal_rank, recall_at_k  # noqa: E402
 from synd.search.fts import SearchError  # noqa: E402
 from synd.server import search_docs  # noqa: E402
 from synd.storage.db import Database  # noqa: E402
+from tests.evals.metrics import mrr, ndcg_at_k, recall_at_k  # noqa: E402
 
 _K_VALUES = (1, 5, 10, 20)
 _NDCG_K = 10
@@ -93,7 +93,7 @@ def _score_one(ranked_ids: list[int], gold_ids: set[int]) -> dict[str, float]:
     scores: dict[str, float] = {
         f"recall@{k}": recall_at_k(ranked_ids, gold_ids, k) for k in _K_VALUES
     }
-    scores["mrr"] = reciprocal_rank(ranked_ids, gold_ids)
+    scores["mrr"] = mrr(ranked_ids, gold_ids)
     scores[f"ndcg@{_NDCG_K}"] = ndcg_at_k(ranked_ids, gold_ids, _NDCG_K)
     return scores
 

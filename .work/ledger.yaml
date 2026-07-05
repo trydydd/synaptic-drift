@@ -2092,7 +2092,7 @@ chunks:
   # ---------------------------------------------------------------------------
   - id: "chunk-e1-eval-metrics"
     title: "Eval errors module and retrieval metrics (recall@k, MRR, nDCG@k)"
-    status: PENDING
+    status: DONE
     depends_on: []
     token_budget_hint: small
 
@@ -2245,8 +2245,22 @@ chunks:
       file_checksums: {}
 
     handoff:
-      status_note: ""
-      files_modified: []
+      status_note: |
+        Implemented per spec. Note: tests/evals/metrics.py and
+        tests/evals/l1_retrieval.py already existed from prior ad-hoc eval
+        work (a pilot-run L1 harness built before this ledger chunk was
+        executed) with a slightly different contract (reciprocal_rank
+        instead of mrr; returned 0.0 on empty gold instead of raising).
+        Reworked both to the exact spec here and updated l1_retrieval.py's
+        call sites accordingly (reciprocal_rank -> mrr); its own behavior
+        with real data is unaffected since it never calls the scoring
+        functions with an empty gold set (already filtered upstream).
+      files_modified:
+        - "tests/evals/__init__.py"
+        - "tests/evals/eval_errors.py"
+        - "tests/evals/metrics.py"
+        - "tests/evals/test_metrics.py"
+        - "tests/evals/l1_retrieval.py"
       open_questions: []
       progress_log_updated: false
 
@@ -2259,7 +2273,7 @@ chunks:
   # ---------------------------------------------------------------------------
   - id: "chunk-e2-eval-dataset"
     title: "Gold dataset loader and gold-ref resolver"
-    status: PENDING
+    status: DONE
     depends_on: ["chunk-e1-eval-metrics"]
     token_budget_hint: small
 
@@ -2410,7 +2424,9 @@ chunks:
 
     handoff:
       status_note: ""
-      files_modified: []
+      files_modified:
+        - "tests/evals/dataset.py"
+        - "tests/evals/test_dataset.py"
       open_questions: []
       progress_log_updated: false
 
@@ -2423,7 +2439,7 @@ chunks:
   # ---------------------------------------------------------------------------
   - id: "chunk-e3-eval-fixtures"
     title: "Pytest gating flags (--evals, --live-model) and eval_db fixture"
-    status: PENDING
+    status: DONE
     depends_on: ["chunk-e2-eval-dataset"]
     token_budget_hint: small
 
@@ -2550,8 +2566,25 @@ chunks:
       file_checksums: {}
 
     handoff:
-      status_note: ""
-      files_modified: []
+      status_note: |
+        Found and fixed a real gating bug while implementing this: gating on
+        `"evals" in item.keywords` (the pattern the existing --network/
+        --benchmark gates use) silently skipped every test under tests/evals/
+        — including chunk-e1/e2's fast, ungated unit tests — because pytest's
+        item.keywords auto-includes path/module name components, and the
+        directory is literally named "evals". ("benchmark"/"network" never
+        collided since the directory is "benchmarks", plural.) Switched all
+        four gates (network, benchmark, evals, live_model) to
+        item.get_closest_marker(name), which checks for an actually-applied
+        marker instead of a keyword-string match. Verified: plain `pytest -q`
+        now runs chunk-e1/e2's 19 tests unconditionally (matching their DoD)
+        and only test_fixtures.py's 3 corpus-building tests are skipped
+        without --evals.
+      files_modified:
+        - "tests/conftest.py"
+        - "pyproject.toml"
+        - "tests/evals/conftest.py"
+        - "tests/evals/test_fixtures.py"
       open_questions: []
       progress_log_updated: false
 
@@ -2877,7 +2910,7 @@ chunks:
   # ---------------------------------------------------------------------------
   - id: "chunk-e6-model-client"
     title: "OpenAI-compatible chat client (stdlib only) for local model endpoints"
-    status: PENDING
+    status: DONE
     depends_on: ["chunk-e1-eval-metrics"]
     token_budget_hint: small
 
@@ -3022,7 +3055,9 @@ chunks:
 
     handoff:
       status_note: ""
-      files_modified: []
+      files_modified:
+        - "tests/evals/model_client.py"
+        - "tests/evals/test_model_client.py"
       open_questions: []
       progress_log_updated: false
 
@@ -3035,7 +3070,7 @@ chunks:
   # ---------------------------------------------------------------------------
   - id: "chunk-e7-tasks-and-graders"
     title: "End-task definitions loader and static graders (no code execution)"
-    status: PENDING
+    status: DONE
     depends_on: ["chunk-e1-eval-metrics"]
     token_budget_hint: small
 
@@ -3189,7 +3224,9 @@ chunks:
 
     handoff:
       status_note: ""
-      files_modified: []
+      files_modified:
+        - "tests/evals/tasks.py"
+        - "tests/evals/test_tasks.py"
       open_questions: []
       progress_log_updated: false
 
@@ -3202,7 +3239,7 @@ chunks:
   # ---------------------------------------------------------------------------
   - id: "chunk-e8-endtask-driver"
     title: "End-task A/B driver: agent loop over search/fetch, per-arm pass rates"
-    status: PENDING
+    status: DONE
     depends_on: ["chunk-e3-eval-fixtures", "chunk-e6-model-client", "chunk-e7-tasks-and-graders"]
     token_budget_hint: medium
 
@@ -3408,9 +3445,36 @@ chunks:
       file_checksums: {}
 
     handoff:
-      status_note: ""
-      files_modified: []
-      open_questions: []
+      status_note: |
+        Deviation from local_context, intentional: SYSTEM_PROMPT_WITH_DOCS and
+        the SEARCH_TOOL_SCHEMA description do NOT use the verbatim AND-semantics
+        wording quoted in this chunk's local_context (verified 2026-06-11,
+        pre-dates this implementation). Between that verification and this
+        chunk being built, search_relaxed was changed from implicit-AND with
+        term-dropping relaxation to OR+BM25 ranking (decision D29,
+        docs/decisions.md, docs/pilot-results.md) — the real server.py tool
+        docstring was updated to match. Copying the old wording verbatim would
+        describe search semantics that no longer exist and would mislead the
+        model (e.g. telling it to avoid full sentences when the current
+        backend handles them fine). Updated the prompt text to describe the
+        current OR-ranking behavior while keeping the verified structural
+        lesson intact (MUST call search before answering — that lesson is
+        about retrieval-skipping, not about AND vs OR, and still holds).
+        Un-verified against a real model in this session (no live endpoint
+        available); the live test path (test_endtask_eval_live) is fully
+        wired and skips cleanly without SYND_EVAL_BASE_URL/SYND_EVAL_MODEL —
+        confirmed by running with --evals --live-model and no env set.
+        The chunk-e4/e5 "same write pattern" reference for results JSON
+        doesn't exist yet either (e4/e5 remain PENDING) — established the
+        meta/timestamp/git_commit convention by following
+        tests/benchmarks/test_token_overhead.py's _git_commit() pattern.
+      files_modified:
+        - "tests/evals/endtask.py"
+        - "tests/evals/test_endtask.py"
+      open_questions:
+        - "SYSTEM_PROMPT_WITH_DOCS's updated wording is unverified against a
+           real served model — worth a live smoke run (--live-model) before
+           trusting a model-size sweep's with_docs numbers."
       progress_log_updated: false
 
     review:
