@@ -32,15 +32,20 @@ Usage:
     temperature = 0.7
     top_p = 0.80
 
-Writes:
-    tests/evals/results/endtask_repeats/run_XX.json   (one per repeat)
-    tests/evals/results/endtask_repeats_summary.json  (all runs + aggregate)
+Results are grouped per model (directory named after the served model id,
+reused across invocations rather than recreated) and every file within it is
+timestamped, so repeated runs against the same model never clobber each
+other's output. Writes:
+
+    tests/evals/results/endtask_repeats/<model>/run_XX_<timestamp>.json
+    tests/evals/results/endtask_repeats/<model>/summary_<timestamp>.json
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import statistics
 import sys
 import tempfile
@@ -51,10 +56,15 @@ REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 RESULTS_DIR = REPO_ROOT / "tests" / "evals" / "results"
-REPEATS_DIR = RESULTS_DIR / "endtask_repeats"
+BASE_REPEATS_DIR = RESULTS_DIR / "endtask_repeats"
 TASKS_PATH = REPO_ROOT / "tests" / "evals" / "datasets" / "tasks" / "seed_tasks.json"
 
 _ARMS = ("no_docs", "with_docs")
+
+
+def _safe_dirname(name: str) -> str:
+    """Filesystem-safe version of a model id/name (slashes, spaces, etc)."""
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", name).strip("_") or "unknown-model"
 
 
 def _resolve_sampling(args: argparse.Namespace) -> object:
@@ -202,7 +212,9 @@ def main() -> None:
     _print_header(header)
     taskset = load_tasks(TASKS_PATH)
 
-    REPEATS_DIR.mkdir(parents=True, exist_ok=True)
+    repeats_dir = BASE_REPEATS_DIR / _safe_dirname(client.model)  # type: ignore[attr-defined]
+    repeats_dir.mkdir(parents=True, exist_ok=True)  # reused if already present
+    run_timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
     runs: list[dict[str, object]] = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -213,7 +225,7 @@ def main() -> None:
                 payload = run_endtask_eval(
                     client, db, taskset, max_turns=args.max_turns
                 )
-                run_path = REPEATS_DIR / f"run_{i:02d}.json"
+                run_path = repeats_dir / f"run_{i:02d}_{run_timestamp}.json"
                 run_path.write_text(json.dumps(payload, indent=2) + "\n")
                 runs.append(payload)
                 for arm in _ARMS:
@@ -250,7 +262,7 @@ def main() -> None:
         },
         "aggregate": aggregate,
     }
-    summary_path = RESULTS_DIR / "endtask_repeats_summary.json"
+    summary_path = repeats_dir / f"summary_{run_timestamp}.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n")
 
     print("\n=== summary across", args.runs, "runs ===")
@@ -260,7 +272,7 @@ def main() -> None:
             f"{arm:10s} pass_rate = {a['pass_rate_mean']:.3f} +/- {a['pass_rate_stdev']:.3f}   "
             f"avg_latency_s = {a['avg_latency_s_mean']:.2f} +/- {a['avg_latency_s_stdev']:.2f}"
         )
-    print(f"\nPer-run detail: {REPEATS_DIR}/run_XX.json")
+    print(f"\nPer-run detail: {repeats_dir}/run_XX_{run_timestamp}.json")
     print(f"Summary: {summary_path}")
 
 
