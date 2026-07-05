@@ -8,7 +8,12 @@ from email.message import Message
 
 import pytest
 
-from tests.evals.model_client import ChatClient, ModelClientError, client_from_env
+from tests.evals.model_client import (
+    ChatClient,
+    ModelClientError,
+    client_from_env,
+    fetch_model_info,
+)
 
 
 class _StubState:
@@ -17,6 +22,9 @@ class _StubState:
         self.response_body: dict[str, object] | str = {}
         self.last_request_body: dict[str, object] | None = None
         self.last_request_headers: Message | None = None
+        self.get_response_body: dict[str, object] | str = {"data": []}
+        self.last_get_path: str | None = None
+        self.last_get_headers: Message | None = None
 
 
 def _make_handler(stub: _StubState) -> type[http.server.BaseHTTPRequestHandler]:
@@ -30,6 +38,16 @@ def _make_handler(stub: _StubState) -> type[http.server.BaseHTTPRequestHandler]:
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             body = stub.response_body
+            payload = body if isinstance(body, str) else json.dumps(body)
+            self.wfile.write(payload.encode("utf-8"))
+
+        def do_GET(self) -> None:
+            stub.last_get_path = self.path
+            stub.last_get_headers = self.headers
+            self.send_response(stub.status_code)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            body = stub.get_response_body
             payload = body if isinstance(body, str) else json.dumps(body)
             self.wfile.write(payload.encode("utf-8"))
 
@@ -118,6 +136,66 @@ def test_tools_field_sent_only_when_provided(
     schema = [{"type": "function", "function": {"name": "search", "parameters": {}}}]
     client.chat([{"role": "user", "content": "hi"}], tools=schema)
     assert stub.last_request_body["tools"] == schema
+
+
+def test_disable_thinking_sends_chat_template_kwargs(
+    stub_server: tuple[str, _StubState],
+) -> None:
+    base_url, stub = stub_server
+    stub.response_body = _ok_reply()
+    client = ChatClient(base_url=base_url, model="test-model")
+
+    client.chat([{"role": "user", "content": "hi"}])
+    assert stub.last_request_body is not None
+    assert "chat_template_kwargs" not in stub.last_request_body
+
+    thinking_off_client = ChatClient(
+        base_url=base_url, model="test-model", disable_thinking=True
+    )
+    thinking_off_client.chat([{"role": "user", "content": "hi"}])
+    assert stub.last_request_body["chat_template_kwargs"] == {"enable_thinking": False}
+
+
+def test_client_from_env_disable_thinking_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SYND_EVAL_BASE_URL", "http://example.invalid/v1")
+    monkeypatch.setenv("SYND_EVAL_MODEL", "test-model")
+    monkeypatch.setenv("SYND_EVAL_DISABLE_THINKING", "1")
+
+    client = client_from_env()
+    assert client.disable_thinking is True
+
+
+def test_fetch_model_info_returns_matching_entry(
+    stub_server: tuple[str, _StubState],
+) -> None:
+    base_url, stub = stub_server
+    stub.get_response_body = {
+        "data": [
+            {"id": "other-model", "root": "Other/Model"},
+            {"id": "red", "root": "Qwen/Qwen3.6-27B-FP8", "max_model_len": 131072},
+        ]
+    }
+
+    info = fetch_model_info(base_url, "red")
+
+    assert info == {
+        "id": "red",
+        "root": "Qwen/Qwen3.6-27B-FP8",
+        "max_model_len": 131072,
+    }
+    assert stub.last_get_path == "/v1/models"
+
+
+def test_fetch_model_info_missing_model_raises(
+    stub_server: tuple[str, _StubState],
+) -> None:
+    base_url, stub = stub_server
+    stub.get_response_body = {"data": [{"id": "other-model"}]}
+
+    with pytest.raises(ModelClientError, match="not found"):
+        fetch_model_info(base_url, "red")
 
 
 def test_http_error_raises_model_client_error(

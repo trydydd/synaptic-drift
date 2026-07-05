@@ -393,6 +393,46 @@ docs-lift-by-size curves — the project's actual headline deliverable. Commit
 each `endtask_latest.json` under a model-specific name (e.g.
 `endtask_qwen3-8b.json`) before the next run overwrites it.
 
+### Reasoning mode is a confound, not just a knob
+
+`ChatClient` defaults to whatever the endpoint's default reasoning behavior is.
+For a reasoning model (Qwen3-family and similar), that matters more than it
+looks: the `no_docs` arm's completions can run 5-10x longer than `with_docs`
+(no retrieved context to converge on, more open-ended reasoning), which both
+inflates wall-clock cost and — on a pilot run — pushed `no_docs` past a
+too-short client timeout far more often than `with_docs`, making the
+"docs lift" mostly an artifact of which arm timed out rather than which arm
+answered correctly. Two things fix this:
+- `ChatClient(..., timeout=1800.0)` (the current default) so slow reasoning
+  completions aren't mistaken for failures.
+- `SYND_EVAL_DISABLE_THINKING=1` (or `ChatClient(..., disable_thinking=True)`)
+  to send `chat_template_kwargs: {"enable_thinking": false}` and get fast,
+  non-reasoning completions instead — changes what's being measured (a
+  model's non-reasoning ability, not its default mode), so treat thinking-on
+  and thinking-off runs as separate conditions, not interchangeable samples.
+
+### Repeat runs for variance (`scripts/run_endtask_repeats.py`)
+
+A single live run is one nondeterministic sample (model sampling, network
+jitter). To get a mean/stdev instead of a single point estimate:
+
+```bash
+export SYND_EVAL_BASE_URL=http://<host>:8000/v1
+export SYND_EVAL_MODEL=<served-model-name>
+python scripts/run_endtask_repeats.py --runs 10
+```
+
+Builds the eval corpus and model client once, then calls `run_endtask_eval()`
+directly `--runs` times (no pytest/subprocess overhead per repeat) — always
+with reasoning disabled, since that's the fast/comparable-latency condition.
+Prints a header (endpoint, model id + root name + max_model_len fetched live
+from `GET /models`, sampling params, timeout) before the run, then each
+repeat's pass_rate/avg_latency_s as it completes. Writes:
+
+- `tests/evals/results/endtask_repeats/run_XX.json` — one full payload per repeat
+- `tests/evals/results/endtask_repeats_summary.json` — per-arm mean/stdev of
+  `pass_rate` and `avg_latency_s` across all repeats, plus the header
+
 ---
 
 ## What to report back

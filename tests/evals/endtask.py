@@ -125,6 +125,7 @@ class TaskRunResult:
     tool_calls_made: int
     reply_chars: int
     error: str | None
+    latency_s: float
 
 
 def dispatch_tool_call(db: Database, package: str, call: ToolCall) -> str:
@@ -201,10 +202,12 @@ def run_task(
 
     tool_calls_made = 0
     turns_used = 0
+    latency_s = 0.0
     try:
         for turn in range(1, max_turns + 1):
             turns_used = turn
             reply = client.chat(messages, tools=tools)
+            latency_s += reply.elapsed_s
 
             if not reply.tool_calls:
                 grade_result = grade(reply.content or "", task)
@@ -217,6 +220,7 @@ def run_task(
                     tool_calls_made=tool_calls_made,
                     reply_chars=len(reply.content or ""),
                     error=None,
+                    latency_s=round(latency_s, 3),
                 )
 
             messages.append(_tool_call_message(reply))
@@ -231,6 +235,7 @@ def run_task(
                     }
                 )
     except ModelClientError as exc:
+        latency_s += exc.elapsed_s
         return TaskRunResult(
             task_id=task.id,
             arm=arm,
@@ -240,6 +245,7 @@ def run_task(
             tool_calls_made=tool_calls_made,
             reply_chars=0,
             error=str(exc),
+            latency_s=round(latency_s, 3),
         )
 
     return TaskRunResult(
@@ -251,6 +257,7 @@ def run_task(
         tool_calls_made=tool_calls_made,
         reply_chars=0,
         error="max_turns",
+        latency_s=round(latency_s, 3),
     )
 
 
@@ -273,6 +280,7 @@ def run_endtask_eval(
     """Execute every task in both arms, `reps` times each, and aggregate."""
     per_task: list[dict[str, object]] = []
     arm_results: dict[str, list[bool]] = {"no_docs": [], "with_docs": []}
+    arm_latencies: dict[str, list[float]] = {"no_docs": [], "with_docs": []}
 
     for arm in ("no_docs", "with_docs"):
         for task in taskset.tasks:
@@ -286,6 +294,7 @@ def run_endtask_eval(
                     max_turns=max_turns,
                 )
                 arm_results[arm].append(result.passed)
+                arm_latencies[arm].append(result.latency_s)
                 per_task.append(
                     {
                         "task_id": result.task_id,
@@ -297,13 +306,23 @@ def run_endtask_eval(
                         "tool_calls_made": result.tool_calls_made,
                         "reply_chars": result.reply_chars,
                         "error": result.error,
+                        "latency_s": result.latency_s,
                     }
                 )
 
-    def _arm_summary(passed_flags: list[bool]) -> dict[str, object]:
+    def _arm_summary(
+        passed_flags: list[bool], latencies: list[float]
+    ) -> dict[str, object]:
         n = len(passed_flags)
         pass_rate = round(sum(passed_flags) / n, 4) if n else 0.0
-        return {"pass_rate": pass_rate, "n": n}
+        total_latency_s = round(sum(latencies), 3)
+        avg_latency_s = round(total_latency_s / n, 3) if n else 0.0
+        return {
+            "pass_rate": pass_rate,
+            "n": n,
+            "avg_latency_s": avg_latency_s,
+            "total_latency_s": total_latency_s,
+        }
 
     return {
         "meta": {
@@ -315,8 +334,10 @@ def run_endtask_eval(
             "task_count": len(taskset.tasks),
         },
         "arms": {
-            "no_docs": _arm_summary(arm_results["no_docs"]),
-            "with_docs": _arm_summary(arm_results["with_docs"]),
+            "no_docs": _arm_summary(arm_results["no_docs"], arm_latencies["no_docs"]),
+            "with_docs": _arm_summary(
+                arm_results["with_docs"], arm_latencies["with_docs"]
+            ),
         },
         "per_task": per_task,
     }
