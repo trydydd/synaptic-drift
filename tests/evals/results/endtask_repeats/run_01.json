@@ -1,7 +1,7 @@
 {
   "meta": {
-    "timestamp": "2026-07-05T16:35:21.779776+00:00",
-    "git_commit": "c4fb4f0",
+    "timestamp": "2026-07-05T19:27:28.631367+00:00",
+    "git_commit": "0cb7548",
     "model": "red",
     "reps": 1,
     "max_turns": 8,
@@ -9,16 +9,16 @@
   },
   "arms": {
     "no_docs": {
-      "pass_rate": 0.7,
+      "pass_rate": 0.5,
       "n": 10,
-      "avg_latency_s": 25.301,
-      "total_latency_s": 253.011
+      "avg_latency_s": 34.491,
+      "total_latency_s": 344.91
     },
     "with_docs": {
-      "pass_rate": 0.8,
+      "pass_rate": 0.9,
       "n": 10,
-      "avg_latency_s": 60.357,
-      "total_latency_s": 603.565
+      "avg_latency_s": 49.134,
+      "total_latency_s": 491.339
     }
   },
   "per_task": [
@@ -26,13 +26,15 @@
       "task_id": "t01",
       "arm": "no_docs",
       "rep": 0,
-      "passed": true,
-      "failures": [],
+      "passed": false,
+      "failures": [
+        "must_match: @mcp\\.tool\\(\\s*name=[\"']search[\"']"
+      ],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 536,
+      "reply_chars": 501,
       "error": null,
-      "latency_s": 20.699
+      "latency_s": 19.435
     },
     {
       "task_id": "t02",
@@ -42,9 +44,9 @@
       "failures": [],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 640,
+      "reply_chars": 714,
       "error": null,
-      "latency_s": 25.612
+      "latency_s": 26.876
     },
     {
       "task_id": "t03",
@@ -54,9 +56,9 @@
       "failures": [],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 924,
+      "reply_chars": 2650,
       "error": null,
-      "latency_s": 34.2
+      "latency_s": 82.125
     },
     {
       "task_id": "t04",
@@ -68,9 +70,9 @@
       ],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 813,
+      "reply_chars": 911,
       "error": null,
-      "latency_s": 27.753
+      "latency_s": 32.051
     },
     {
       "task_id": "t05",
@@ -79,14 +81,13 @@
       "passed": false,
       "failures": [
         "must_match: Client\\(",
-        "must_match: call_tool",
         "must_not_match: subprocess"
       ],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 568,
+      "reply_chars": 952,
       "error": null,
-      "latency_s": 23.865
+      "latency_s": 34.763
     },
     {
       "task_id": "t06",
@@ -96,9 +97,9 @@
       "failures": [],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 464,
+      "reply_chars": 344,
       "error": null,
-      "latency_s": 17.504
+      "latency_s": 12.852
     },
     {
       "task_id": "t07",
@@ -108,21 +109,23 @@
       "failures": [],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 530,
+      "reply_chars": 684,
       "error": null,
-      "latency_s": 18.329
+      "latency_s": 24.781
     },
     {
       "task_id": "t08",
       "arm": "no_docs",
       "rep": 0,
-      "passed": true,
-      "failures": [],
+      "passed": false,
+      "failures": [
+        "must_match: mcp\\.run\\("
+      ],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 534,
+      "reply_chars": 275,
       "error": null,
-      "latency_s": 20.48
+      "latency_s": 10.137
     },
     {
       "task_id": "t09",
@@ -134,9 +137,9 @@
       ],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 735,
+      "reply_chars": 1298,
       "error": null,
-      "latency_s": 25.908
+      "latency_s": 41.586
     },
     {
       "task_id": "t10",
@@ -146,9 +149,9 @@
       "failures": [],
       "turns_used": 1,
       "tool_calls_made": 0,
-      "reply_chars": 1082,
+      "reply_chars": 1819,
       "error": null,
-      "latency_s": 38.661
+      "latency_s": 60.304
     },
     {
       "task_id": "t01",
@@ -158,9 +161,9 @@
       "failures": [],
       "turns_used": 3,
       "tool_calls_made": 2,
-      "reply_chars": 829,
+      "reply_chars": 770,
       "error": null,
-      "latency_s": 43.308
+      "latency_s": 42.282
     },
     {
       "task_id": "t02",
@@ -170,9 +173,9 @@
       "failures": [],
       "turns_used": 3,
       "tool_calls_made": 2,
-      "reply_chars": 990,
+      "reply_chars": 1157,
       "error": null,
-      "latency_s": 45.497
+      "latency_s": 49.963
     },
     {
       "task_id": "t03",
@@ -182,9 +185,9 @@
       "failures": [],
       "turns_used": 5,
       "tool_calls_made": 4,
-      "reply_chars": 1406,
+      "reply_chars": 894,
       "error": null,
-      "latency_s": 64.801
+      "latency_s": 55.353
     },
     {
       "task_id": "t04",
@@ -192,11 +195,11 @@
       "rep": 0,
       "passed": true,
       "failures": [],
-      "turns_used": 6,
-      "tool_calls_made": 6,
-      "reply_chars": 1389,
+      "turns_used": 5,
+      "tool_calls_made": 4,
+      "reply_chars": 1134,
       "error": null,
-      "latency_s": 96.538
+      "latency_s": 60.617
     },
     {
       "task_id": "t05",
@@ -206,9 +209,9 @@
       "failures": [],
       "turns_used": 3,
       "tool_calls_made": 2,
-      "reply_chars": 819,
+      "reply_chars": 726,
       "error": null,
-      "latency_s": 44.645
+      "latency_s": 38.812
     },
     {
       "task_id": "t06",
@@ -218,21 +221,21 @@
       "failures": [],
       "turns_used": 5,
       "tool_calls_made": 4,
-      "reply_chars": 535,
+      "reply_chars": 593,
       "error": null,
-      "latency_s": 39.691
+      "latency_s": 42.787
     },
     {
       "task_id": "t07",
       "arm": "with_docs",
       "rep": 0,
-      "passed": false,
+      "passed": true,
       "failures": [],
-      "turns_used": 8,
-      "tool_calls_made": 8,
-      "reply_chars": 0,
-      "error": "max_turns",
-      "latency_s": 46.978
+      "turns_used": 7,
+      "tool_calls_made": 6,
+      "reply_chars": 716,
+      "error": null,
+      "latency_s": 59.666
     },
     {
       "task_id": "t08",
@@ -242,9 +245,9 @@
       "failures": [],
       "turns_used": 3,
       "tool_calls_made": 2,
-      "reply_chars": 894,
+      "reply_chars": 848,
       "error": null,
-      "latency_s": 44.017
+      "latency_s": 41.771
     },
     {
       "task_id": "t09",
@@ -253,10 +256,10 @@
       "passed": false,
       "failures": [],
       "turns_used": 8,
-      "tool_calls_made": 13,
+      "tool_calls_made": 8,
       "reply_chars": 0,
       "error": "max_turns",
-      "latency_s": 114.118
+      "latency_s": 48.399
     },
     {
       "task_id": "t10",
@@ -264,11 +267,11 @@
       "rep": 0,
       "passed": true,
       "failures": [],
-      "turns_used": 7,
-      "tool_calls_made": 7,
-      "reply_chars": 412,
+      "turns_used": 5,
+      "tool_calls_made": 4,
+      "reply_chars": 886,
       "error": null,
-      "latency_s": 63.972
+      "latency_s": 51.689
     }
   ]
 }
