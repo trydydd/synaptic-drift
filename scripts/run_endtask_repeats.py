@@ -182,6 +182,40 @@ def _mean_stdev(values: list[float]) -> tuple[float, float]:
     return mean, stdev
 
 
+def _convergence(
+    per_task: list[dict[str, object]], max_turns: int
+) -> dict[str, object]:
+    """Pooled convergence metrics for one arm's task-run entries.
+
+    pass_rate alone conflates two different failure modes: answering wrongly
+    vs never converging on an answer (error='max_turns'). This splits them:
+
+    - answered_rate: fraction of task-runs that produced a final graded
+      reply at all (error is None).
+    - correct_given_answered: of those, how many passed. The first live
+      batch (Qwen3.6-27B) measured this at 1.00 for with_docs — the model
+      never wrote wrong code; its only failure mode was not converging.
+    - correct_at_turns: cumulative correct@k — fraction of ALL task-runs
+      that passed using <= k turns. In the with_docs arm, k turns maps to
+      retrieval rounds as rounds = (k-1)/2 (search, fetch, answer = 3 turns
+      = 1 round), so correct@3 reads as "right answer from a single search".
+      In the no_docs arm every run is 1 turn, so correct@1 == pass_rate.
+    """
+    total = len(per_task)
+    answered = sum(1 for t in per_task if t["error"] is None)
+    passed = sum(1 for t in per_task if t["passed"])
+    correct_at: dict[str, float] = {}
+    for k in range(1, max_turns + 1):
+        n = sum(1 for t in per_task if t["passed"] and int(t["turns_used"]) <= k)  # type: ignore[call-overload]
+        correct_at[str(k)] = round(n / total, 4) if total else 0.0
+    return {
+        "n": total,
+        "answered_rate": round(answered / total, 4) if total else 0.0,
+        "correct_given_answered": round(passed / answered, 4) if answered else 0.0,
+        "correct_at_turns": correct_at,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Repeat the live end-task eval N times; report mean/stdev"
@@ -244,6 +278,12 @@ def main() -> None:
         latencies = [r["arms"][arm]["avg_latency_s"] for r in runs]
         pr_mean, pr_stdev = _mean_stdev(pass_rates)
         lat_mean, lat_stdev = _mean_stdev(latencies)
+        arm_tasks = [
+            t
+            for r in runs
+            for t in r["per_task"]
+            if t["arm"] == arm  # type: ignore[union-attr]
+        ]
         aggregate[arm] = {
             "pass_rate_mean": pr_mean,
             "pass_rate_stdev": pr_stdev,
@@ -251,6 +291,7 @@ def main() -> None:
             "avg_latency_s_stdev": lat_stdev,
             "per_run_pass_rate": pass_rates,
             "per_run_avg_latency_s": latencies,
+            "convergence": _convergence(arm_tasks, args.max_turns),
         }
 
     summary = {
@@ -271,6 +312,15 @@ def main() -> None:
         print(
             f"{arm:10s} pass_rate = {a['pass_rate_mean']:.3f} +/- {a['pass_rate_stdev']:.3f}   "
             f"avg_latency_s = {a['avg_latency_s_mean']:.2f} +/- {a['avg_latency_s_stdev']:.2f}"
+        )
+        conv = a["convergence"]
+        correct_at = ", ".join(
+            f"@{k}={v:.2f}" for k, v in conv["correct_at_turns"].items()
+        )
+        print(
+            f"{'':10s} answered = {conv['answered_rate']:.2f}   "
+            f"correct|answered = {conv['correct_given_answered']:.2f}   "
+            f"correct_at_turns: {correct_at}"
         )
     print(f"\nPer-run detail: {repeats_dir}/run_XX_{run_timestamp}.json")
     print(f"Summary: {summary_path}")

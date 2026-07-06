@@ -433,7 +433,12 @@ repeat's pass_rate/avg_latency_s as it completes. Writes:
   full payload per repeat
 - `tests/evals/results/endtask_repeats/<model>/summary_<timestamp>.json` —
   per-arm mean/stdev of `pass_rate` and `avg_latency_s` across all repeats,
-  plus the header
+  plus the header, plus a per-arm `convergence` block: `answered_rate`
+  (fraction of task-runs that produced a graded answer at all),
+  `correct_given_answered` (of those, how many passed — separates "wrong
+  code" from "never converged"), and `correct_at_turns` (cumulative
+  correct@k by turns used; in the with_docs arm 3 turns = 1 search round,
+  so `correct_at_turns["3"]` reads as "right answer from a single search")
 
 Output is model-scoped and timestamped, so successive batches (different
 models, different configs) never overwrite each other. First live results

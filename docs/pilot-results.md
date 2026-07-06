@@ -598,6 +598,44 @@ no-docs arm (0.30 vs 0.70) while leaving with_docs untouched (0.80 both) —
 on these API-recall tasks, more reasoning over absent knowledge produces
 more confident hallucination, not better answers.
 
+**Finding 4 — the arms fail in categorically different ways (correct@k /
+answered-vs-correct split).** `per_task[]` already records `turns_used`
+(each turn = one chat completion; the minimal with_docs success is 3 turns —
+search, fetch, answer — and each extra search round adds 2), so convergence
+metrics are computable from the committed artifacts. From the sampled batch
+(100 with_docs task-runs):
+
+| metric | with_docs | reading |
+|---|---:|---|
+| correct@3 turns (1 search round) | 0.39 | right answer from a single search |
+| correct@5 turns (2 rounds) | 0.73 | most of the value arrives by round 2 |
+| correct@7 turns | 0.81 | |
+| correct@8 turns (= the cap) | 0.83 | |
+
+And the decomposition that reframes the whole comparison:
+
+| | P(answered) | P(correct \| answered) |
+|---|---:|---:|
+| no_docs | 1.00 | 0.43 |
+| with_docs | 0.83 | **1.00** |
+
+**With docs, the model never wrote wrong code — not once in 100 task-runs.**
+Every run that produced an answer passed (81/81 at ≤7 turns, plus 2 that
+answered on the final turn). The only with_docs failure mode is failing to
+stop searching; the no_docs arm answers every time and is wrong 57% of the
+time. "0.43 vs 0.83 pass rate" understates the difference — the honest
+framing is *confidently wrong more often than right* vs *never wrong,
+sometimes indecisive*. It also sharpens the max_turns question: given
+perfect conditional accuracy, a 12-turn budget isn't chasing 2 stubborn
+tasks, it's potentially converting 0.83 into 1.00.
+
+These metrics are now computed automatically by
+`scripts/run_endtask_repeats.py` — each arm's summary block gains a
+`convergence` object (`answered_rate`, `correct_given_answered`,
+`correct_at_turns` as a cumulative correct@k map). The implementation was
+validated by reproducing the hand-computed numbers above from the committed
+2026-07-05 batch exactly.
+
 **Read against the project thesis**: this is the first point on the
 docs-lift-by-size curve. At 27B, under realistic sampling, the model gets
 fewer than half the tasks right on parametric knowledge alone and 83% with
