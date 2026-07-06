@@ -429,9 +429,16 @@ Prints a header (endpoint, model id + root name + max_model_len fetched live
 from `GET /models`, sampling params, timeout) before the run, then each
 repeat's pass_rate/avg_latency_s as it completes. Writes:
 
-- `tests/evals/results/endtask_repeats/run_XX.json` — one full payload per repeat
-- `tests/evals/results/endtask_repeats_summary.json` — per-arm mean/stdev of
-  `pass_rate` and `avg_latency_s` across all repeats, plus the header
+- `tests/evals/results/endtask_repeats/<model>/run_XX_<timestamp>.json` — one
+  full payload per repeat
+- `tests/evals/results/endtask_repeats/<model>/summary_<timestamp>.json` —
+  per-arm mean/stdev of `pass_rate` and `avg_latency_s` across all repeats,
+  plus the header
+
+Output is model-scoped and timestamped, so successive batches (different
+models, different configs) never overwrite each other. First live results
+from this harness are written up in `docs/pilot-results.md` §"First live
+results — Qwen3.6-27B-FP8".
 
 ---
 

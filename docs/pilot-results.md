@@ -527,10 +527,84 @@ description handed to the model in the `with_docs` arm were updated to
 describe the *current* OR+BM25 search behavior (decision D29), not the
 AND-semantics wording the original ledger verified live on 2026-06-11 (that
 wording is now stale and would mislead the model about how search behaves
-today — see the chunk-e8 handoff note in `.work/ledger.yaml`). This updated
-wording has not itself been verified against a live model yet.
+today — see the chunk-e8 handoff note in `.work/ledger.yaml`). At the time
+of writing this caveat, that updated wording had not been verified against a
+live model. **It now has** — see the live results below; the failure mode
+under the new wording is over-searching (turn-budget exhaustion on 2 tasks),
+never failed retrieval, so the wording change did not break the treatment
+arm.
 
 **Running it**: see `docs/pilot-run-guide.md` Step 9 for the exact commands
 (including against a vLLM endpoint), the output JSON shape, and how to read
-it. That run against a real model is the verification this wording still
-needs.
+it.
+
+### First live results — Qwen3.6-27B-FP8 (2026-07-05)
+
+First real model through the harness: `Qwen/Qwen3.6-27B-FP8` served by vLLM
+(model id `red`, max_model_len 131072), 10 seed tasks × 2 arms, `max_turns=8`,
+against the hermetic `evalcorpus` fixture. Four conditions were run — two
+single runs varying reasoning mode, then two 10-repeat batches for variance
+(`scripts/run_endtask_repeats.py`; raw payloads in
+`tests/evals/results/endtask_repeats/red/`, single runs in
+`tests/evals/results/endtask_red_thinking-{on,off}.json`).
+
+| condition | runs | no_docs | with_docs | lift |
+|---|---|---:|---:|---:|
+| thinking ON, single run | 1 | 0.30 | 0.80 | +0.50 |
+| thinking OFF, single run | 1 | 0.70 | 0.80 | +0.10 |
+| thinking OFF, greedy (temp 0) | 10 | 0.70 ± 0.000 | 0.80 ± 0.000 | +0.10 |
+| thinking OFF, sampled (temp 0.7, top_p 0.8, presence_penalty 1.5) | 10 | 0.43 ± 0.125 | **0.83 ± 0.048** | **+0.40** |
+
+(The greedy batch is byte-identical across all 10 repeats — pass rates and
+per-task outcomes — which doubles as an end-to-end determinism check of the
+harness itself. The sampled batch uses the Alibaba-recommended Qwen3
+non-thinking preset.)
+
+**Finding 1 — docs raise *and stabilize* performance.** `with_docs` lands at
+0.80–0.83 in every condition: greedy, sampled, thinking on, thinking off.
+`no_docs` swings 0.30–0.70 across those same conditions and is the only arm
+with meaningful run-to-run variance (stdev 0.125 vs 0.048). Per-task, the
+picture is starker: under realistic sampling, 8 of 10 tasks fail at least
+once without docs (t04/t05/t09 fail 10/10 — knowledge genuinely absent from
+weights; t01 8/10; t02/t03/t07 5/10; t08 4/10), while with docs only t07 and
+t09 ever fail. Retrieval doesn't just add knowledge; it anchors the model
+against its own sampling noise and mode sensitivity. The headline lift
+number depends heavily on decoding config (+10pp greedy, +40pp sampled,
++50pp thinking-on) precisely *because* the docs arm is insensitive to config
+— the "lift" is mostly variance in the baseline arm.
+
+**Finding 2 — the with_docs ceiling is a turn budget, not code quality.**
+Every one of the 17 with_docs failures across the sampled batch (t09: 10/10,
+t07: 7/10) is `error: "max_turns"` — the model loops search/fetch on the
+prompt-template (t07) and client-sampling (t09) tasks without converging in
+8 turns, and never emits code to grade at all. Not once did the with_docs
+arm produce *wrong* code. The original ledger smoke notes flagged exactly
+this: an 8-turn budget caused timeouts on multi-search tasks and 12 was the
+verified-sufficient budget — but the harness default is 8, and these runs
+used the default. A `max_turns=12` re-run is the obvious next experiment and
+could plausibly move with_docs toward 0.9–1.0.
+
+**Finding 3 — reasoning mode is a confound, caught and controlled.**
+The very first run's "lift" was partly an artifact: with thinking enabled,
+`no_docs` completions run 5–10x longer (open-ended reasoning with no
+retrieved context to converge on) and blew past the client's then-short
+timeout — so `no_docs` was losing on timeouts, not correctness. Fixed by
+raising the client timeout to 1800s and adding
+`SYND_EVAL_DISABLE_THINKING=1` (`chat_template_kwargs: {"enable_thinking":
+false}`); thinking-on and thinking-off are now treated as separate
+conditions, never pooled (see `docs/pilot-run-guide.md` Step 9, "Reasoning
+mode is a confound"). Even after the fix, thinking-on genuinely *hurts* the
+no-docs arm (0.30 vs 0.70) while leaving with_docs untouched (0.80 both) —
+on these API-recall tasks, more reasoning over absent knowledge produces
+more confident hallucination, not better answers.
+
+**Read against the project thesis**: this is the first point on the
+docs-lift-by-size curve. At 27B, under realistic sampling, the model gets
+fewer than half the tasks right on parametric knowledge alone and 83% with
+retrieval — and the thesis predicts the gap *widens* as the model shrinks.
+Cost of the treatment: ~1.4–2.3x wall-clock per task (25→58s greedy,
+36→50s sampled).
+
+**Next**: re-run the sampled batch at `max_turns=12` (isolates the t07/t09
+ceiling), then the model-size sweep (Qwen3 0.6B/4B/8B/14B + this 27B as the
+anchor point).
