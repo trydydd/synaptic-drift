@@ -7,23 +7,30 @@ client once, then calls run_endtask_eval() N times against the same
 in-memory fixtures, recording each run's per-arm pass_rate and avg_latency_s,
 plus the mean and (sample) standard deviation across runs.
 
-Always disables reasoning (chat_template_kwargs.enable_thinking=False) —
-this is specifically for comparing repeat variance in the fast/no-reasoning
-mode, not a general-purpose repeat runner. Reuses tests/evals/endtask.py's
-run_endtask_eval() and tests/evals/conftest.py's corpus-build helper directly
-(no subprocess/pytest overhead per repeat).
+Disables reasoning (chat_template_kwargs.enable_thinking=False) by default.
+Pass --thinking to run a thinking-ON batch instead. The two modes are
+separate experimental conditions and must never be pooled (see
+docs/pilot-run-guide.md Step 9, "Reasoning mode is a confound") — thinking
+batches get a "_thinking-on" filename suffix so they can't be mistaken for
+thinking-off output, and the mode is recorded in the summary meta. Reuses
+tests/evals/endtask.py's run_endtask_eval() and tests/evals/conftest.py's
+corpus-build helper directly (no subprocess/pytest overhead per repeat).
 
 Sampling defaults to Alibaba's recommended Qwen3 "instruct, no thinking"
-preset (see tests/evals/model_client.py's SamplingParams). Override via a
-TOML config file and/or CLI flags; precedence is
-built-in defaults < --sampling-config file < individual CLI flags.
+preset (see tests/evals/model_client.py's SamplingParams). With --thinking
+the defaults switch to Alibaba's thinking preset (temperature=0.6,
+top_p=0.95; top_k/min_p unchanged) with max_tokens raised to 8192 so
+reasoning traces aren't truncated mid-think, keeping presence_penalty=1.5
+(the FP8-quantization repetition guidance, which is mode-independent).
+Override via a TOML config file and/or CLI flags; precedence is
+mode defaults < --sampling-config file < individual CLI flags.
 
 Usage:
     export SYND_EVAL_BASE_URL=http://<host>:8000/v1
     export SYND_EVAL_MODEL=<served-model-name>
     # export SYND_EVAL_API_KEY=...   # only if the endpoint requires auth
     python scripts/run_endtask_repeats.py [--runs 10] [--max-turns 8] \\
-        [--sampling-config sampling.toml] \\
+        [--thinking] [--sampling-config sampling.toml] \\
         [--temperature 0.7] [--top-p 0.8] [--top-k 20] [--min-p 0.0] \\
         [--presence-penalty 1.5] [--repetition-penalty 1.0] [--max-tokens 2048]
 
@@ -61,6 +68,17 @@ TASKS_PATH = REPO_ROOT / "tests" / "evals" / "datasets" / "tasks" / "seed_tasks.
 
 _ARMS = ("no_docs", "with_docs")
 
+# Alibaba's recommended Qwen3 "thinking" preset, as deltas from the
+# no-thinking SamplingParams defaults. max_tokens=8192 is not part of the
+# Alibaba preset: reasoning traces routinely blow past the no-thinking
+# default of 2048, and a mid-think truncation grades as a wrong answer,
+# which would contaminate correct_given_answered.
+_THINKING_PRESET: dict[str, object] = {
+    "temperature": 0.6,
+    "top_p": 0.95,
+    "max_tokens": 8192,
+}
+
 
 def _safe_dirname(name: str) -> str:
     """Filesystem-safe version of a model id/name (slashes, spaces, etc)."""
@@ -68,9 +86,13 @@ def _safe_dirname(name: str) -> str:
 
 
 def _resolve_sampling(args: argparse.Namespace) -> object:
-    from tests.evals.model_client import ModelClientError, resolve_sampling_params
+    from tests.evals.model_client import (
+        ModelClientError,
+        load_sampling_overrides,
+        resolve_sampling_params,
+    )
 
-    overrides = {
+    cli_flags = {
         "temperature": args.temperature,
         "top_p": args.top_p,
         "top_k": args.top_k,
@@ -79,16 +101,21 @@ def _resolve_sampling(args: argparse.Namespace) -> object:
         "repetition_penalty": args.repetition_penalty,
         "max_tokens": args.max_tokens,
     }
+    # Precedence: mode defaults < config file < CLI flags. The thinking
+    # preset sits at the defaults layer, so a config file or flag still
+    # overrides it.
+    merged: dict[str, object] = dict(_THINKING_PRESET) if args.thinking else {}
     try:
-        return resolve_sampling_params(
-            config_path=args.sampling_config, overrides=overrides
-        )
+        if args.sampling_config is not None:
+            merged.update(load_sampling_overrides(args.sampling_config))
+        merged.update({k: v for k, v in cli_flags.items() if v is not None})
+        return resolve_sampling_params(overrides=merged)
     except ModelClientError as exc:  # bad/missing config file
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
 
 
-def _build_client(sampling: object) -> object:
+def _build_client(sampling: object, thinking: bool) -> object:
     from tests.evals.model_client import ModelClientError, client_from_env
 
     try:
@@ -104,7 +131,7 @@ def _build_client(sampling: object) -> object:
             file=sys.stderr,
         )
         sys.exit(1)
-    client.disable_thinking = True  # this script always measures thinking-off
+    client.disable_thinking = not thinking
     return client
 
 
@@ -223,6 +250,17 @@ def main() -> None:
     parser.add_argument("--runs", type=int, default=10, help="Number of repeats")
     parser.add_argument("--max-turns", type=int, default=8)
     parser.add_argument(
+        "--thinking",
+        action="store_true",
+        help=(
+            "Enable reasoning mode (default: disabled). Switches sampling "
+            "defaults to the Qwen3 thinking preset (temperature=0.6, "
+            "top_p=0.95, max_tokens=8192) and tags output filenames with "
+            "_thinking-on. Thinking-on and thinking-off batches are separate "
+            "experimental conditions — never pool them."
+        ),
+    )
+    parser.add_argument(
         "--sampling-config",
         type=Path,
         default=None,
@@ -241,7 +279,7 @@ def main() -> None:
     from tests.evals.tasks import load_tasks
 
     sampling = _resolve_sampling(args)
-    client = _build_client(sampling)
+    client = _build_client(sampling, args.thinking)
     header = _build_header(client)
     _print_header(header)
     taskset = load_tasks(TASKS_PATH)
@@ -249,6 +287,8 @@ def main() -> None:
     repeats_dir = BASE_REPEATS_DIR / _safe_dirname(client.model)  # type: ignore[attr-defined]
     repeats_dir.mkdir(parents=True, exist_ok=True)  # reused if already present
     run_timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    if args.thinking:
+        run_timestamp += "_thinking-on"
 
     runs: list[dict[str, object]] = []
     with tempfile.TemporaryDirectory() as tmp:
