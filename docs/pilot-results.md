@@ -522,6 +522,16 @@ Grading is static — regex + `ast.parse` over extracted code, never execution
 of model output. The gap between the two arms' pass rates is the lift synd's
 retrieval actually gives this model on this task set.
 
+The claim that the eval's hand-written tool schemas mirror the real MCP
+server's tools is enforced by a parity test
+(`tests/test_server.py::test_eval_tool_schemas_are_call_compatible_with_server`,
+in the default CI suite, not behind `--evals`). It asserts
+call-compatibility rather than byte equality — the eval schemas
+intentionally omit the server's optional `packages`/`max_tokens` parameters
+— so any tool call a model emits under the eval schemas is a valid call to
+the real server, and a server rename/type change/new required parameter
+fails CI until the eval schemas are updated.
+
 **Caveat carried over from the build**: the system prompt and search-tool
 description handed to the model in the `with_docs` arm were updated to
 describe the *current* OR+BM25 search behavior (decision D29), not the
@@ -646,3 +656,63 @@ Cost of the treatment: ~1.4–2.3x wall-clock per task (25→58s greedy,
 **Next**: re-run the sampled batch at `max_turns=12` (isolates the t07/t09
 ceiling), then the model-size sweep (Qwen3 0.6B/4B/8B/14B + this 27B as the
 anchor point).
+
+### The 12-turn re-run — turn budget partially exonerated (2026-07-06)
+
+The re-run recommended above: setup identical to the sampled batch (Alibaba
+non-thinking preset, thinking disabled, 10 repeats, same endpoint and model)
+with `--max-turns 12` instead of the default 8. Raw payloads:
+`tests/evals/results/endtask_repeats/red/{run_XX,summary}_20260706T045516Z.json`.
+
+| condition | runs | no_docs | with_docs | lift |
+|---|---|---:|---:|---:|
+| sampled, max_turns=8 (above) | 10 | 0.43 ± 0.125 | 0.83 ± 0.048 | +0.40 |
+| sampled, max_turns=12 | 10 | 0.40 ± 0.156 | **0.89 ± 0.032** | **+0.49** |
+
+**The 8-turn budget was binding — and the budget is no longer the lever.**
+The cumulative correct@k curve from this batch replicates the 8-turn batch
+inside noise (correct@8 = 0.82 vs 0.83 above — an internal replication of
+the whole earlier result), then keeps climbing: @9 = 0.87, @10 = 0.88,
+@11 = 0.89. Then it flatlines: @12 = 0.89. Turns 9–11 bought +0.07; turn 12
+bought nothing. Finding 2's prediction ("could plausibly move with_docs
+toward 0.9–1.0") lands at the bottom of that range and stops — raising the
+budget further would not help.
+
+**t07 is fully cured; t09 is not a budget problem.** t07 (prompt templates)
+now converges at mean 8.8 turns (max 11) and passes 10/10 — it was purely a
+victim of the 8-turn cap, exactly as the original ledger smoke notes
+predicted. The residual failures are t09 (10/10) and t10 (1/10), all
+`error: "max_turns"`: on t09 the model makes ~19 tool calls across all 12
+turns and never emits an answer at all.
+
+**Retrieval is exonerated for t09.** Six plausible phrasings of the t09
+question ("ask client's language model for completion", "tool request LLM
+completion from client", "request sampling from client", "ctx.sample", …)
+were run against the same `evalcorpus` index via `search_docs`: every one
+ranks the teaching chunks (`fastmcp/context / … / Requesting Sampling`,
+`mcp/sampling / Sampling`) first or second. The model can find the docs; it
+fails to *stop searching and answer*. Diagnosing why requires the
+conversation transcript, which the harness does not record — `per_task[]`
+stores only counts. Add transcript capture (at minimum on `max_turns`
+failures) before chasing t09 further.
+
+**Conditional accuracy is still perfect.** `answered = 0.89`,
+`correct|answered = 1.00`. Combined with the 8-turn batch, that is 200
+sampled with_docs task-runs without a single wrong answer — the
+never-wrong-sometimes-indecisive characterization survives a 50% larger
+turn budget, and the entire remaining gap to 1.00 is one task's loop
+behavior.
+
+**no_docs is unchanged, as it must be.** 0.400 ± 0.156 vs 0.43 ± 0.125 at
+8 turns — statistically identical, and its correct@k is flat at 0.40 from
+turn 1 (the arm has no tools, so extra turns are inert). A cheap sanity
+check that the harness applied the treatment to the right arm.
+
+**Cost**: with_docs 55.5 ± 5.5 s/task vs no_docs 32.8 ± 6.8 (~1.7x). The
+4 extra turns added only ~5 s to the with_docs average — most runs converge
+well before the cap, so a larger budget is nearly free when it isn't
+needed.
+
+**Next**: (1) add transcript capture to the end-task harness for
+`max_turns` failures and root-cause the t09 loop; (2) the model-size sweep
+(Qwen3 0.6B/4B/8B/14B + this 27B as the anchor), unchanged.
