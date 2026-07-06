@@ -640,3 +640,48 @@ spikes:
       - src/synd/cli/query.py
       - docs/decisions.md
     blocked_by: []
+
+  - id: S13
+    title: General web crawler — design and top-20 acceptance
+    status: done
+    outcome: |
+      Implemented in v0.3.0 (decisions.md D28). synd build --source <url> now
+      crawls any non-llms.txt HTTP(S) URL: sitemap-first discovery with BFS
+      link-following fallback, host+path-prefix scoping, robots.txt honored by
+      default (--no-robots escape hatch), --user-agent override, --max-pages
+      cap (default 500) with crawl_pages_fetched/crawl_truncated/
+      crawl_max_pages provenance recorded in the manifest, crawled pages
+      sorted by canonical URL before chunk-ID assignment for deterministic
+      builds. New module src/synd/builder/crawler.py; extract_links()/
+      fetch_html() in fetch.py; DEFAULT_CRAWL_NOISE_URL_PATTERNS +
+      is_asset_url() in url_filter.py; CrawlError(BuildError) → exit 6.
+      Acceptance harness scripts/build_top20_packs.py covers 19 of the top-20
+      packages (pydantic via llms.txt; boto3 excluded by scope decision, its
+      subtree recipe documented in docs/top20-python-packages.md). Live
+      validation of all 19 sites is a network run to execute before
+      publishing packs; per-site quality notes go into the coverage table.
+    context: |
+      Only 1 of the top 20 most intentionally installed Python packages
+      (pydantic) serves llms.txt (docs/top20-python-packages.md). The rest
+      required the wget mirror workaround scripts/build-pack-html.sh, which
+      bypassed robots.txt unconditionally and needed manual noise pruning.
+      Roadmap v0.3.0 called for a native crawler with robots compliance.
+    task: |
+      Design and implement the general crawler: discovery strategy, scoping,
+      canonicalization/dedup, robots.txt semantics, politeness, CLI surface,
+      deterministic ordering, manifest provenance, noise defaults, error
+      taxonomy, and a top-20 acceptance harness.
+    success: |
+      All top-20 packages (minus boto3 by scope decision) buildable via
+      synd build --source <docs-root>; deterministic pack digests under
+      shuffled discovery order; robots/UA/truncation behavior covered by
+      unit tests; provenance visible via synd inspect.
+    files:
+      - src/synd/builder/crawler.py
+      - src/synd/builder/fetch.py
+      - src/synd/builder/url_filter.py
+      - src/synd/builder/build.py
+      - src/synd/cli/build.py
+      - scripts/build_top20_packs.py
+      - docs/decisions.md
+    blocked_by: []

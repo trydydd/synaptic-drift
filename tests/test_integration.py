@@ -736,3 +736,48 @@ def test_fastmcp_full_pipeline(tmp_path: Path, runner: CliRunner) -> None:
     )
     assert result.exit_code == 0, result.output
     assert "No results found" in result.output
+
+
+# ===========================================================================
+# NETWORK TEST 15 -- Crawled build against a real docs site via CLI
+# ===========================================================================
+
+_CRAWL_SMOKE_URL = "https://www.python-httpx.org/"
+
+
+@pytest.mark.network
+def test_crawl_small_real_site_builds_pack(tmp_path: Path, runner: CliRunner) -> None:
+    """Crawl a real MkDocs site (capped at 5 pages), build, and verify.
+
+    Exercises the full crawler stack — robots.txt, sitemap discovery,
+    HTML→markdown, provenance manifest fields — via the public CLI only.
+    """
+    output_dir = tmp_path / "output"
+    ctx_path = output_dir / "httpx@0.0.0-smoke.ctx"
+
+    result = runner.invoke(
+        cli,
+        [
+            "build",
+            "httpx@0.0.0-smoke",
+            "--source",
+            _CRAWL_SMOKE_URL,
+            "--output",
+            str(output_dir),
+            "--max-pages",
+            "5",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert ctx_path.exists(), f"Expected .ctx at {ctx_path}"
+
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+        chunk_count = zf.read("chunks.jsonl").count(b"\n")
+    assert manifest["crawl_pages_fetched"] >= 1
+    assert manifest["crawl_pages_fetched"] <= 5
+    assert manifest["crawl_max_pages"] == 5
+    assert chunk_count >= 5, f"suspiciously few chunks: {chunk_count}"
+
+    result = runner.invoke(cli, ["verify", str(ctx_path)])
+    assert result.exit_code == 0, result.output

@@ -460,7 +460,9 @@ CREATE TABLE pages (
     version       TEXT NOT NULL,
     url           TEXT NOT NULL,
     content_hash  TEXT,
-    -- etag, last_modified, fetched_at: deferred to Phase 2 (crawl fields)
+    -- etag, last_modified, fetched_at: still deferred (incremental recrawl;
+    -- a re-crawl today is a full rebuild). Crawl provenance lives in the
+    -- manifest instead: crawl_pages_fetched / crawl_truncated / crawl_max_pages.
     UNIQUE(package, version, url),
     FOREIGN KEY (package, version) REFERENCES packages(name, version)
 );

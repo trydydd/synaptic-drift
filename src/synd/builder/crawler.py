@@ -1,10 +1,13 @@
 """General web crawler for documentation sites without llms.txt.
 
-Discovers pages sitemap-first (robots.txt ``Sitemap:`` directives, then
-``<root>/sitemap.xml``, then ``<host>/sitemap.xml``), falling back to BFS
-link-following from the root URL. Scope is confined to the root's host and
-directory path (the wget ``--no-parent`` equivalent). robots.txt is honored
-by default via urllib.robotparser; static HTML only, no JS rendering.
+Discovers pages by BFS link-following from the root URL, seeded with any
+sitemap the site publishes (robots.txt ``Sitemap:`` directives, then
+``<root>/sitemap.xml``, then ``<host>/sitemap.xml``). Sitemap seeds add
+pages unreachable by links; link-following covers sites whose sitemaps are
+incomplete (ReadTheDocs lists only version roots). Scope is confined to the
+root's host and directory path (the wget ``--no-parent`` equivalent).
+robots.txt is honored by default via urllib.robotparser; static HTML only,
+no JS rendering.
 
 The result's page order is discovery order — callers that assign chunk IDs
 must sort pages by canonical URL first (see build_pack_from_url), because
@@ -288,9 +291,16 @@ def crawl(
 ) -> CrawlResult:
     """Crawl a documentation site root and return converted markdown pages.
 
+    Sitemap URLs seed the frontier but never replace link-following: real
+    sitemaps range from exhaustive per-page listings (MkDocs) to version
+    roots only (ReadTheDocs serves a host sitemap listing just /en/latest/
+    etc.), so treating a sitemap as the complete page set silently
+    under-crawls. Seeding adds sitemap-only pages unreachable by links;
+    dedup makes the overlap free.
+
     Raises CrawlError when the crawl as a whole is impossible or empty:
-    robots.txt disallows the root, the root is unreachable in link-following
-    mode, or zero usable pages remain after filtering. Individual page
+    robots.txt disallows the root, the root is unreachable with no sitemap
+    seeds, or zero usable pages remain after filtering. Individual page
     failures are skipped with a warning.
     """
     root = canonicalize_url(root_url)
@@ -302,20 +312,13 @@ def crawl(
             "(pass --no-robots to bypass)"
         )
 
-    sitemap_pages = [
-        canonicalize_url(u) for u in _discover_via_sitemaps(root, gate, user_agent)
+    sitemap_seeds = [
+        canonical
+        for u in _discover_via_sitemaps(root, gate, user_agent)
+        if in_scope(canonical := canonicalize_url(u), root)
     ]
-    in_scope_sitemap_pages = [u for u in sitemap_pages if in_scope(u, root)]
-
-    frontier: deque[str]
-    if in_scope_sitemap_pages:
-        discovered_via = "sitemap"
-        follow_links = False
-        frontier = deque(sitemap_pages)
-    else:
-        discovered_via = "links"
-        follow_links = True
-        frontier = deque([root])
+    discovered_via = "sitemap" if sitemap_seeds else "links"
+    frontier: deque[str] = deque([root, *sitemap_seeds])
 
     delay = max(rate_limit_sleep, gate.crawl_delay(root))
     seen: set[str] = set()
@@ -350,7 +353,7 @@ def crawl(
         try:
             fetched = fetch_html(url, user_agent=user_agent)
         except FetchError as exc:
-            if follow_links and url == root and not pages:
+            if url == root and not pages and not sitemap_seeds:
                 raise CrawlError(f"Failed to fetch crawl root {url}: {exc}") from exc
             logger.warning("crawler: skipping %s: %s", url, exc)
             continue
@@ -381,9 +384,8 @@ def crawl(
             continue
         pages.append(CrawledPage(url=final, content=content))
 
-        if follow_links:
-            for link in extract_links(fetched.text, base_url=fetched.final_url):
-                frontier.append(canonicalize_url(link))
+        for link in extract_links(fetched.text, base_url=fetched.final_url):
+            frontier.append(canonicalize_url(link))
 
     if not pages:
         raise CrawlError(

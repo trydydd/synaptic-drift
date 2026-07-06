@@ -403,24 +403,30 @@ def _urlset(*urls: str) -> str:
     )
 
 
-def test_crawl_prefers_sitemap_and_skips_link_following() -> None:
+def test_crawl_sitemap_seeds_and_links_both_contribute() -> None:
+    """Sitemap URLs seed the frontier but never replace link-following:
+    orphan pages listed only in the sitemap AND pages reachable only by
+    links are both crawled (ReadTheDocs sitemaps list only version roots,
+    so sitemap-exclusive crawling silently under-covers)."""
     site = _FakeSite(
         {
             **_robots(f"User-agent: *\nSitemap: {_ROOT}sitemap.xml"),
             f"{_ROOT}sitemap.xml": (
-                _urlset(_ROOT, f"{_ROOT}a.html"),
+                _urlset(_ROOT, f"{_ROOT}orphan.html"),
                 "application/xml",
             ),
-            _ROOT: _page("Index", ("hidden.html",)),
-            f"{_ROOT}a.html": _page("A"),
-            f"{_ROOT}hidden.html": _page("Hidden"),
+            _ROOT: _page("Index", ("linked.html",)),
+            f"{_ROOT}orphan.html": _page("Orphan"),
+            f"{_ROOT}linked.html": _page("Linked"),
         }
     )
     result = _crawl(site)
     assert result.discovered_via == "sitemap"
-    assert sorted(p.url for p in result.pages) == [_ROOT, f"{_ROOT}a.html"]
-    # linked-but-not-in-sitemap page is never requested in sitemap mode
-    assert f"{_ROOT}hidden.html" not in site.requested
+    assert sorted(p.url for p in result.pages) == [
+        _ROOT,
+        f"{_ROOT}linked.html",
+        f"{_ROOT}orphan.html",
+    ]
 
 
 def test_crawl_falls_back_to_root_sitemap_xml_without_robots_directive() -> None:

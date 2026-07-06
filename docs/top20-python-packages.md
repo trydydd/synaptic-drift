@@ -70,17 +70,53 @@ All 20 sites were checked directly by fetching `<docs-root>/llms.txt` and `<docs
 | 19 | python-dotenv | saurabh-kumar.com/python-dotenv | No | No | |
 | 20 | rich | rich.readthedocs.io/en/stable | No | No | |
 
-**Summary: 1 of 20 confirmed** (pydantic). Matplotlib is unresolved due to 403 responses.
+**Summary: 1 of 20 confirmed** (pydantic). Matplotlib is unresolved due to 403 responses — the crawler's `--user-agent` flag exists for exactly this case.
 
 ---
 
-## Building a .ctx Pack Without llms.txt: requests
+## Building a .ctx Pack Without llms.txt: the crawler
 
-For packages without `llms.txt` or `llms-full.txt`, `synd build` cannot use a URL source directly — `build_pack_from_url` hard-requires a URL ending in one of those two filenames. The workaround is to obtain the documentation as local files and use the directory build path instead.
+As of v0.3.0, `synd build --source <docs-root-url>` crawls any docs site directly — no mirror step needed (see `decisions.md` D28). Pages are discovered by following links from the root, seeded with the site's sitemap.xml when one exists (sitemaps add pages links can't reach, but are never trusted as complete — ReadTheDocs sitemaps list only version roots); the crawl stays inside the root's host and path, respects robots.txt (override with `--no-robots`), and filters generated Sphinx noise (`genindex`, `search`, `_modules`, `_sources`, …) plus changelogs by default.
 
-The script [`scripts/build-pack-html.sh`](../scripts/build-pack-html.sh) automates this process: it mirrors the docs site with wget, removes readthedocs boilerplate directories, builds the pack, and cleans up the mirror.
+```bash
+synd build requests@2.32.4 \
+    --source https://requests.readthedocs.io/en/latest/ \
+    --output ./packs
+```
 
-### Process used for requests@2.34.2
+Useful flags for crawled builds:
+
+| Flag | Default | When to use |
+|------|---------|-------------|
+| `--max-pages` | 500 | Larger sites (django); the build warns and records `crawl_truncated: true` in the manifest when the cap is hit |
+| `--user-agent` | `synd/0.1 (...)` | Hosts that 403 the default UA (matplotlib) |
+| `--no-robots` | off | Public docs whose robots.txt blocks generic crawlers |
+| `--rate-limit` | 0.5s | Slower for fragile hosts; robots `Crawl-delay` is honored automatically when larger |
+| `--exclude-url-pattern` | — | Site-specific noise the defaults miss |
+
+Crawled packs record provenance in the manifest (`crawl_pages_fetched`, `crawl_truncated`, `crawl_max_pages`) — visible via `synd inspect` — so a truncated pack is detectable by consumers.
+
+### Acceptance harness
+
+`scripts/build_top20_packs.py` builds 19 of the 20 packages above (pydantic from its `llms.txt`, the rest crawled) and prints a coverage report: pages fetched, truncation, chunk counts, and `synd verify` results. Run it after crawler changes and paste the report here.
+
+### boto3 (excluded from the default acceptance run)
+
+`docs.aws.amazon.com` hosts the API reference for every AWS service — 10k+ pages. Building the full reference is neither polite nor useful as a default. The recipe scopes the crawl to the boto3 developer guide subtree:
+
+```bash
+synd build boto3@<version> \
+    --source https://boto3.amazonaws.com/v1/documentation/api/latest/guide/ \
+    --max-pages 1000 --output ./packs
+```
+
+---
+
+## Legacy: wget mirror workaround (pre-crawler)
+
+Before the crawler landed, the workaround was to mirror the docs locally and use the directory build path. The script [`scripts/build-pack-html.sh`](../scripts/build-pack-html.sh) automates this process: it mirrors the docs site with wget, removes readthedocs boilerplate directories, builds the pack, and cleans up the mirror. It remains useful as a comparison baseline and for sites the crawler cannot reach.
+
+### Reference process used for requests@2.34.2
 
 ```bash
 scripts/build-pack-html.sh \
