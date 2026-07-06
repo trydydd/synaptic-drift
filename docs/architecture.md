@@ -234,7 +234,7 @@ Each line is a JSON object:
 }
 ```
 
-The `source_url` field is always populated. For local builds, it is the relative path from the `--source` argument (e.g. `--source ./docs` produces `docs/auth/oauth.md`). Phase 2 web builds will use full `https://` URLs. The `source_commit` field is optional for local builds (populated if `--source-commit` is provided).
+The `source_url` field is always populated. For local builds, it is the relative path from the `--source` argument (e.g. `--source ./docs` produces `docs/auth/oauth.md`). URL and crawled builds use full `https://` URLs (see D21/D28). The `source_commit` field is optional for local builds (populated if `--source-commit` is provided).
 
 ### pages.json schema
 
@@ -601,32 +601,46 @@ The `synd` CLI covers everything an AI agent should not be doing. The CLI and MC
 ### Install paths
 
 ```bash
-# MCP server + query functionality only (minimal install)
+# CLI + build toolchain (build, verify, add, sync, remove, query, inspect)
 pip install synaptic-drift
 
-# Full toolchain: adds synd build (requires chunkana)
-pip install synaptic-drift[build]
+# + MCP server for AI agents
+pip install synaptic-drift[serve]
 
-# Everything including optional embedding support (Phase 3)
+# + dev tooling (ruff, mypy, pytest) on top of [serve]
 pip install synaptic-drift[all]
 ```
 
-`synaptic-drift[build]` adds `chunkana` for structural Markdown chunking. It does not add crawler, embeddings, or network-access dependencies — building from a local directory has no network requirements.
+The base install already includes everything `synd build` needs — the structural chunker (`markdown-it-py`), manifest schema validation (`jsonschema`), and the URL/HTML fetch pipeline (`markdownify`, `beautifulsoup4`). There is no separate `[build]` extra; only the MCP server (`mcp`) is optional, via `[serve]`.
 
 ### Command surface
 
 ```
-synd build <package@version> --source <path> [--output ./] [--lifecycle draft]
+synd build <package@version> --source <path|url> [--output ./] [--lifecycle draft]
               [--owner <name>] [--policy-profile <name>]
-    Build a .ctx pack from a local directory of Markdown or HTML files.
-    --source          Local directory path (required; URL crawling is Phase 2)
+    Build a .ctx pack from a local directory, an llms(-full).txt URL, or a
+    docs-site root URL (crawled).
+    --source          Local directory, a URL ending in llms.txt/llms-full.txt,
+                      or any other http(s) URL — crawled from that root
+                      (sitemap-seeded BFS link-following, scoped to the root's
+                      host + path prefix; see docs/decisions.md D28)
     --output          Directory to write the .ctx file (default: current dir)
     --lifecycle       lifecycle_state to set in manifest (default: draft)
     --owner           Owner field in manifest
     --policy-profile  Policy profile name to embed in manifest
+    --max-pages       Page cap for crawled builds (default: 500); truncation
+                      is recorded in the manifest, not treated as an error
+    --user-agent      Override the User-Agent sent on every request (some
+                      hosts 403 the default)
+    --no-robots       Skip robots.txt checks for crawled builds (default: honored)
+    --rate-limit      Seconds between page requests for URL builds (default: 0.5)
+    --exclude-url-pattern / --no-url-filter
+                      Tune or disable noise-page filtering for URL builds
+    --max-chunk-tokens / --min-chunk-tokens / --warn-chunk-tokens
+                      Chunk size tuning (defaults: 800 / 20 / 2× max)
     Writes: <output>/<package>@<version>.ctx
 
-    Source tree handling:
+    Local source tree handling:
     - Recurses subdirectories by default
     - File discovery whitelist: .md, .html, .htm (all others skipped with debug log)
     - Walk order is lexicographic (sorted by full relative path) for deterministic
@@ -635,7 +649,15 @@ synd build <package@version> --source <path> [--output ./] [--lifecycle draft]
       path (e.g. docs/auth/oauth.md heading "# Overview" → "auth/oauth / Overview")
     - source_url is set to the relative path from --source root (e.g. "docs/auth/oauth.md")
 
-    See document-processing.md for the full pipeline description.
+    URL source handling (llms.txt/llms-full.txt fetch or general crawl):
+    - Crawled/fetched pages are sorted by canonical URL before chunk ID
+      assignment, for the same deterministic-hash guarantee
+    - source_url on chunks and pages is the full https:// page URL
+    - Crawl provenance (crawl_pages_fetched, crawl_truncated, crawl_max_pages)
+      is recorded in the manifest and visible via `synd inspect`
+
+    See document-processing.md for the local-build pipeline and decisions.md
+    D21/D28 for the URL fetch and crawler pipelines.
 
 synd verify <file.ctx> [--policy ./policy.toml]
     Run the full 8-step archive safety validation sequence.
@@ -673,25 +695,29 @@ synd inspect <file.ctx | .synd/index.db>
     Useful for debugging pack contents without adding them to the index.
 ```
 
-Phase 2 will add `synd publish`, `synd registry`, and `synd promote`. Phase 3 will add `synd index-url` for URL crawling.
+`synd build --source <url>` (llms.txt/llms-full.txt fetch and the general crawler) already ships — see the Command Surface entry above and `decisions.md` D21/D28. Phase 2 will still add `synd publish`, `synd registry`, and `synd promote` for the registry side. Phase 3 will add embeddings.
 
 ### Dependency split
 
 ```
 synd (base):
-  mcp               # Anthropic MCP Python SDK
   sqlite3           # stdlib
-  tomllib           # stdlib (Python 3.11+)
+  tomllib           # stdlib (Python 3.12+)
   click, rich       # CLI framework and terminal output
+  markdown-it-py    # structural Markdown chunking (replaced chunkana, see D14)
+  jsonschema        # manifest schema validation
+  markdownify, beautifulsoup4  # HTML → Markdown for URL/crawled builds
 
-synaptic-drift[build] adds:
-  chunkana          # structural Markdown chunking, MIT license
+synaptic-drift[serve] adds:
+  mcp               # Anthropic MCP Python SDK — only optional runtime dependency
 
-synaptic-drift[embeddings] adds (Phase 3):
+synaptic-drift[all] adds (dev tooling, on top of [serve]):
+  pytest, mypy, ruff, bump-my-version, types-jsonschema
+
+synaptic-drift[embeddings] adds (Phase 3, not yet implemented):
   FlagEmbedding     # BGE-M3 dense + sparse + ColBERT
 
-# Phase 2 additions (deferred):
-# crawl4ai          # async crawler + markdown extraction
+# Phase 2 additions (deferred — registry side only; crawling already shipped):
 # pydepsdev         # deps.dev API client
 ```
 
@@ -725,17 +751,18 @@ Streamable HTTP transport bound to localhost only. The implementation exists (`r
 
 | Component | Choice | Rationale |
 |---|---|---|
-| Runtime | Python 3.11+ | `tomllib` in stdlib; active support through 2027; `str \| None` syntax |
+| Runtime | Python 3.12+ | `tomllib` in stdlib; `str \| None` syntax |
 | MCP server | Python | All dependencies are Python-native; avoids cross-process IPC |
 | CLI framework | click + rich | click for composable subcommands; rich for tables and progress bars |
-| Chunking | **chunkana** | Preserves code blocks/tables, heading path metadata, structural chunking for RAG, MIT |
+| Chunking | `markdown-it-py` (custom chunker) | Splits at all heading levels with fence atomicity; replaced chunkana, see D14 |
+| HTML → Markdown | `markdownify` + `beautifulsoup4` | Clean fenced code and tables for URL/crawled builds, see D20 |
 | Archive validator | stdlib `zipfile` + `hashlib` | No third-party dependencies for security-critical path |
 | Policy engine | stdlib `tomllib` | No third-party dependencies; TOML is human-readable and git-friendly |
 | Storage | SQLite + FTS5 | Single file, no infrastructure, portable, fast |
 | Pack format | `.ctx` (zip archive) | Self-contained, hashable, portable, inspectable with standard tools |
 | Lockfile format | TOML | Human-readable, git-friendly |
 | MCP SDK | `mcp` (Python) | Official Anthropic MCP SDK for Python |
-| Packaging | single PyPI package with extras | `synd` base + `[build]` extra keeps the MCP server lean |
+| Packaging | single PyPI package with extras | `synd` base + `[serve]` extra keeps the MCP server optional |
 
 The project writes custom code only where no good solution exists (archive safety validator, policy engine, SQLite storage layer, FTS5 attribution query). Everything else delegates to well-maintained libraries.
 
@@ -767,12 +794,16 @@ synaptic-drift/
 │   │   ├── __init__.py
 │   │   └── engine.py           # policy.toml loader, lifecycle_state enforcer
 │   │
-│   │── # ── BUILD EXTRA (pip install synaptic-drift[build]) ────────────────
-│   │
 │   ├── builder/
 │   │   ├── __init__.py
 │   │   ├── build.py            # Orchestrate: ingest → chunk → manifest → archive
-│   │   ├── chunking.py         # chunkana integration
+│   │   │                       # (build_pack for local dirs, build_pack_from_url for URLs)
+│   │   ├── chunking.py         # Custom markdown-it-py chunker (heading splits, fence atomicity)
+│   │   ├── fetch.py            # urllib fetch, HTML→Markdown, extract_links(), fetch_html()
+│   │   ├── crawler.py          # General web crawler: sitemap-seeded BFS, robots.txt, scoping
+│   │   ├── llms_full.py        # llms.txt / llms-full.txt index parsing and per-page fetch
+│   │   ├── mdx.py              # MDX/JSX stripping for Mintlify-style .md sources
+│   │   ├── url_filter.py       # Noise-URL filtering (changelogs, Sphinx generated pages, assets)
 │   │   ├── manifest.py         # Manifest construction and pack_digest computation
 │   │   └── normalizer.py       # Shared normalization (used by builder AND verifier)
 │   │
@@ -792,8 +823,7 @@ synaptic-drift/
 │   │   ├── query.py            # synd query
 │   │   └── inspect.py          # synd inspect
 │   │
-│   │── # ── DEFERRED (Phase 2) ───────────────────────────────────
-│   │   # crawler/              # Crawl4AI orchestration
+│   │── # ── DEFERRED (Phase 2 — registry side; crawling already shipped) ──
 │   │   # resolver/             # deps.dev URL resolution
 │   │   # registry/             # Remote registry client and signing
 │   │
@@ -819,13 +849,14 @@ synd = "synd.cli.main:cli"
 # MCP server launched via: synd serve
 
 [project.optional-dependencies]
-build = [
-    "chunkana>=0.1",
+serve = [
+    "mcp",
 ]
-embeddings = [
-    "FlagEmbedding>=1.2",
+all = [
+    "pytest", "mypy", "types-jsonschema", "ruff", "bump-my-version",
+    "synaptic-drift[serve]",
 ]
-all = ["synaptic-drift[build]", "synaptic-drift[embeddings]", "pytest", "pytest-asyncio"]
+# embeddings = ["FlagEmbedding>=1.2"]  # Phase 3, not yet added
 ```
 
 ## Implementation Phases
@@ -847,16 +878,22 @@ all = ["synaptic-drift[build]", "synaptic-drift[embeddings]", "pytest", "pytest-
 
 ### Phase 2 — Crawling and Registry
 
-- URL crawling via Crawl4AI with ethical crawling policy, rate limiting, and robots.txt compliance:
-  - Per-domain rate limiting (default: 1 request / 2 seconds; respects `Crawl-delay`)
-  - Adaptive backoff on 429/403
-  - Transparent `User-Agent` identification
-  - Sitemap preference over link discovery
-  - Scope limiting to doc path prefixes
-  - Concurrency model: packages crawled in parallel but per-domain queues remain serial
+**Crawling — shipped (v0.3.0, see `decisions.md` D28):**
+
+- `synd build --source <URL>` — three URL paths, all producing the same `.ctx` pack format as local builds:
+  - `llms-full.txt` URL — Mintlify-aware page-boundary splitting (D21)
+  - `llms.txt` URL — fetch the index, then each linked page individually (D21)
+  - Any other docs-site root URL — general crawler: sitemap-seeded BFS link-following, host + path-prefix scoping, canonical-URL dedup
+- robots.txt honored by default via `urllib.robotparser` (`--no-robots` escape hatch), `Crawl-delay` respected when larger than `--rate-limit`
+- Rate limiting is a per-request sleep (default 0.5s) — the fetch loop is sequential, not concurrent; a token bucket is deferred until concurrent fetching is needed
+- `--user-agent` override threads through every request including robots.txt
+- `--max-pages` cap (default 500) with truncation recorded in the manifest (`crawl_pages_fetched`, `crawl_truncated`, `crawl_max_pages`), not treated as a build error
+- No JS rendering — static HTML only
+
+**Registry — not yet implemented:**
+
 - deps.dev integration for doc URL resolution (`HOMEPAGE` → `SOURCE_REPO` → well-known patterns → manual overrides)
-- `synd build --source <URL>` (URL crawling path, in addition to existing local path)
-- Incremental re-crawl using HTTP ETags (`If-None-Match` / `If-Modified-Since`)
+- Incremental re-crawl using HTTP ETags (`If-None-Match` / `If-Modified-Since`) — a re-crawl today is always a full rebuild
 - Remote registry: `synd publish`, `synd add <package@version>` from registry URL
 - Lifecycle promotion workflow: `synd promote`, `synd revoke`
 - Staleness detection against project lockfiles (`index-deps` MCP tool scans `requirements.txt`, `package.json`, `Cargo.toml`, etc.)
@@ -878,9 +915,8 @@ all = ["synaptic-drift[build]", "synaptic-drift[embeddings]", "pytest", "pytest-
 
 The following are explicitly out of scope for Synaptic Drift v1. No MVP schema or format decision will need to be broken to add them.
 
-### Deferred to Phase 2 (Crawling and Registry)
+### Deferred to Phase 2 (Registry — URL crawling already shipped, see above)
 
-- URL crawling (`synd build` currently requires `--source <local-path>`)
 - deps.dev integration for doc URL resolution
 - ReadTheDocs and GitHub version resolution
 - Incremental re-crawl with HTTP ETags
@@ -910,11 +946,11 @@ The following are explicitly out of scope for Synaptic Drift v1. No MVP schema o
 
 - **Summary generation approach**: heuristic generation at build time. Extract the first sentence for prose chunks, or the leading function/class signature for code-heavy chunks. No LLM dependency, no network requirement, deterministic output. The `summary` field schema supports upgrading the strategy later without a format change.
 
-- **Chunk-level source_url**: `source_url` is always populated, never null. Local builds store the relative path from the `--source` argument (e.g. `--source ./docs` + file at `docs/auth/oauth.md` = `source_url: "docs/auth/oauth.md"`). Only `./` is stripped from the front. Phase 2 web builds use full `https://` URLs. No fallback logic is needed at query time because the field is never absent.
+- **Chunk-level source_url**: `source_url` is always populated, never null. Local builds store the relative path from the `--source` argument (e.g. `--source ./docs` + file at `docs/auth/oauth.md` = `source_url: "docs/auth/oauth.md"`). Only `./` is stripped from the front. URL and crawled builds use full `https://` URLs (shipped, see D28). No fallback logic is needed at query time because the field is never absent.
 
-- **Source tree handling**: `synd build --source <path>` recurses subdirectories by default. Files are discovered by extension whitelist (`.md`, `.html`, `.htm`). Walk order is lexicographic (sorted by full relative path) to guarantee deterministic chunk ID assignment and reproducible `normalized_content_hash`. Phase 2 crawled builds must establish their own deterministic sort (e.g. canonical URL) before assigning IDs.
+- **Source tree handling**: `synd build --source <path>` recurses subdirectories by default. Files are discovered by extension whitelist (`.md`, `.html`, `.htm`). Walk order is lexicographic (sorted by full relative path) to guarantee deterministic chunk ID assignment and reproducible `normalized_content_hash`. Crawled builds sort by canonical URL before assigning chunk IDs for the same guarantee (shipped, see D28).
 
-- **Python version**: 3.11+ required. Uses `tomllib` from stdlib. No backport dependencies.
+- **Python version**: 3.12+ required. Uses `tomllib` from stdlib. No backport dependencies.
 
 ## Open Questions (Deferred to Phase 2)
 
