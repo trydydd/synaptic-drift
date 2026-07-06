@@ -23,7 +23,7 @@ from urllib.parse import urldefrag, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
 from synd.builder.fetch import (
-    _USER_AGENT,
+    DEFAULT_USER_AGENT,
     extract_links,
     fetch_html,
     fetch_text,
@@ -282,7 +282,7 @@ def crawl(
     *,
     max_pages: int = DEFAULT_MAX_PAGES,
     rate_limit_sleep: float = 0.5,
-    user_agent: str = _USER_AGENT,
+    user_agent: str = DEFAULT_USER_AGENT,
     respect_robots: bool = True,
     excluded_url_patterns: tuple[str, ...] = DEFAULT_CRAWL_NOISE_URL_PATTERNS,
 ) -> CrawlResult:

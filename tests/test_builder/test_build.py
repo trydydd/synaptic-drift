@@ -3,9 +3,12 @@ import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from synd.builder.build import build_pack, build_pack_from_url
+from synd.builder.crawler import CrawledPage, CrawlResult
 from synd.builder.llms_full import LlmsFullPage
-from synd.errors import BuildError
+from synd.errors import BuildError, CrawlError
 
 
 def _fixture_path(name: str = "sample_docs") -> Path:
@@ -388,18 +391,191 @@ def test_build_pack_from_url_heading_path_uses_url_stem(tmp_path: Path) -> None:
     assert "api" in prefixes
 
 
-def test_build_pack_from_url_unsupported_url_raises(tmp_path: Path) -> None:
-    try:
+# --- build_pack_from_url: crawl branch (non-llms URLs) ---
+
+_CRAWL_ROOT = "https://docs.example.com/en/stable/"
+
+_FAKE_CRAWL_PAGES = [
+    CrawledPage(
+        url=f"{_CRAWL_ROOT}guide.html",
+        content="# Guide\n\nGuide body content for chunking.\n",
+    ),
+    CrawledPage(
+        url=f"{_CRAWL_ROOT}api.html",
+        content="# API\n\nAPI body content for chunking.\n",
+    ),
+]
+
+
+def _fake_crawl_result(
+    pages: list[CrawledPage], truncated: bool = False
+) -> CrawlResult:
+    return CrawlResult(
+        pages=pages,
+        root_url=_CRAWL_ROOT,
+        discovered_via="links",
+        truncated=truncated,
+        skipped_robots=0,
+        skipped_noise=0,
+        skipped_out_of_scope=0,
+        skipped_non_html=0,
+    )
+
+
+def test_build_pack_from_url_non_llms_url_crawls(tmp_path: Path) -> None:
+    with patch(
+        "synd.builder.build.crawl",
+        return_value=_fake_crawl_result(_FAKE_CRAWL_PAGES),
+    ):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url=_CRAWL_ROOT,
+            output=tmp_path / "packs",
+        )
+
+    assert ctx_path.exists()
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+        chunks = [
+            json.loads(ln)
+            for ln in zf.read("chunks.jsonl").decode().strip().split("\n")
+        ]
+    assert manifest["source_url"] == _CRAWL_ROOT
+    urls = {c["source_url"] for c in chunks}
+    assert f"{_CRAWL_ROOT}guide.html" in urls
+    assert f"{_CRAWL_ROOT}api.html" in urls
+
+
+def test_build_pack_from_url_forwards_crawl_params(tmp_path: Path) -> None:
+    with patch(
+        "synd.builder.build.crawl",
+        return_value=_fake_crawl_result(_FAKE_CRAWL_PAGES),
+    ) as mock_crawl:
         build_pack_from_url(
             package="test-lib",
             version="1.0.0",
-            source_url="https://docs.example.com/README.md",
+            source_url=_CRAWL_ROOT,
+            output=tmp_path / "packs",
+            max_pages=7,
+            user_agent="my-crawler/1.0",
+            respect_robots=False,
+        )
+    kwargs = mock_crawl.call_args.kwargs
+    assert mock_crawl.call_args.args == (_CRAWL_ROOT,)
+    assert kwargs["max_pages"] == 7
+    assert kwargs["user_agent"] == "my-crawler/1.0"
+    assert kwargs["respect_robots"] is False
+
+
+def test_crawled_build_manifest_records_provenance(tmp_path: Path) -> None:
+    with patch(
+        "synd.builder.build.crawl",
+        return_value=_fake_crawl_result(_FAKE_CRAWL_PAGES),
+    ):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url=_CRAWL_ROOT,
             output=tmp_path / "packs",
         )
-    except BuildError as exc:
-        assert "Unsupported URL source" in str(exc)
-    else:
-        assert False, "Expected BuildError"
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+    assert manifest["crawl_pages_fetched"] == 2
+    assert manifest["crawl_truncated"] is False
+    assert manifest["crawl_max_pages"] == 500
+
+
+def test_crawled_build_truncated_recorded_in_manifest(tmp_path: Path) -> None:
+    with patch(
+        "synd.builder.build.crawl",
+        return_value=_fake_crawl_result(_FAKE_CRAWL_PAGES, truncated=True),
+    ):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url=_CRAWL_ROOT,
+            output=tmp_path / "packs",
+            max_pages=2,
+        )
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+    assert manifest["crawl_truncated"] is True
+    assert manifest["crawl_max_pages"] == 2
+
+
+def test_llms_build_manifest_has_no_crawl_fields(tmp_path: Path) -> None:
+    with patch("synd.builder.build.fetch_pages", return_value=_FAKE_LLMS_TXT_PAGES):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url="https://docs.example.com/llms.txt",
+            output=tmp_path / "packs",
+        )
+    with zipfile.ZipFile(ctx_path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+    assert "crawl_pages_fetched" not in manifest
+    assert "crawl_truncated" not in manifest
+    assert "crawl_max_pages" not in manifest
+
+
+def test_crawled_pages_sorted_by_canonical_url_before_ids(tmp_path: Path) -> None:
+    # Crawler returns guide.html before api.html; page IDs must follow the
+    # canonical URL sort (api < guide), not discovery order.
+    with patch(
+        "synd.builder.build.crawl",
+        return_value=_fake_crawl_result(_FAKE_CRAWL_PAGES),
+    ):
+        ctx_path, _ = build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url=_CRAWL_ROOT,
+            output=tmp_path / "packs",
+        )
+    with zipfile.ZipFile(ctx_path) as zf:
+        pages = json.loads(zf.read("pages.json"))
+    by_id = {p["id"]: p["url"] for p in pages}
+    assert by_id[1] == f"{_CRAWL_ROOT}api.html"
+    assert by_id[2] == f"{_CRAWL_ROOT}guide.html"
+
+
+def test_crawled_build_deterministic_under_discovery_order(tmp_path: Path) -> None:
+    """Two crawls of the same site that discover pages in different orders
+    must produce byte-identical packs (chunk IDs pinned by URL sort)."""
+    reversed_pages = list(reversed(_FAKE_CRAWL_PAGES))
+    digests = []
+    for i, page_order in enumerate((_FAKE_CRAWL_PAGES, reversed_pages)):
+        with (
+            patch(
+                "synd.builder.build.crawl",
+                return_value=_fake_crawl_result(list(page_order)),
+            ),
+            patch("synd.builder.manifest.time") as mock_time,
+        ):
+            mock_time.time.return_value = 1700000000.0
+            ctx_path, _ = build_pack_from_url(
+                package="test-lib",
+                version="1.0.0",
+                source_url=_CRAWL_ROOT,
+                output=tmp_path / f"packs{i}",
+            )
+        with zipfile.ZipFile(ctx_path) as zf:
+            digests.append(json.loads(zf.read("manifest.json"))["pack_digest"])
+    assert digests[0] == digests[1]
+
+
+def test_build_pack_from_url_crawl_error_propagates(tmp_path: Path) -> None:
+    with patch(
+        "synd.builder.build.crawl",
+        side_effect=CrawlError("No documentation pages found crawling ..."),
+    ):
+        with pytest.raises(CrawlError, match="No documentation pages"):
+            build_pack_from_url(
+                package="test-lib",
+                version="1.0.0",
+                source_url=_CRAWL_ROOT,
+                output=tmp_path / "packs",
+            )
 
 
 def test_build_html_source_chunks_contain_no_raw_tags(tmp_path: Path) -> None:

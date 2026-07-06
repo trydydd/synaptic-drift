@@ -16,7 +16,7 @@ from bs4.element import Tag
 from synd.builder.mdx import process_mdx
 from synd.errors import FetchError
 
-_USER_AGENT = "synd/0.1 (https://github.com/trydydd/synaptic-drift)"
+DEFAULT_USER_AGENT = "synd/0.1 (https://github.com/trydydd/synaptic-drift)"
 
 _BOILERPLATE_TAGS = ["nav", "header", "footer", "aside", "script", "style", "noscript"]
 
@@ -82,7 +82,7 @@ def extract_links(html: str, base_url: str) -> list[str]:
     return links
 
 
-def fetch_text(url: str, *, user_agent: str = _USER_AGENT) -> str:
+def fetch_text(url: str, *, user_agent: str = DEFAULT_USER_AGENT) -> str:
     """Fetch a URL and return its raw decoded text content.
 
     Use for plaintext index files (llms-full.txt, llms.txt) where no
@@ -100,7 +100,7 @@ def fetch_text(url: str, *, user_agent: str = _USER_AGENT) -> str:
         raise FetchError(f"Network error fetching {url}: {exc.reason}") from exc
 
 
-def fetch_html(url: str, *, user_agent: str = _USER_AGENT) -> FetchedHtml:
+def fetch_html(url: str, *, user_agent: str = DEFAULT_USER_AGENT) -> FetchedHtml:
     """Fetch a URL and return the raw body plus response metadata.
 
     Unlike fetch_text, surfaces the response Content-Type (for gating what
@@ -127,7 +127,7 @@ def fetch_page(
     url: str,
     *,
     rate_limit_sleep: float = 0.0,
-    user_agent: str = _USER_AGENT,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> str:
     """Fetch a documentation page and return normalised markdown.
 
