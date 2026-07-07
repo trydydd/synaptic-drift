@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "timestamp": "2026-07-07T01:16:18.852240+00:00",
+    "runs": 10,
+    "max_turns": 12,
+    "base_url": "http://192.168.0.214:8000/v1",
+    "model": "red",
+    "model_root": "Qwen/Qwen3.6-27B-FP8",
+    "max_model_len": 131072,
+    "owned_by": "vllm",
+    "requested_sampling_params": {
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "top_k": 20,
+      "min_p": 0.0,
+      "presence_penalty": 1.5,
+      "repetition_penalty": 1.0,
+      "max_tokens": 8192,
+      "disable_thinking": false
+    },
+    "request_timeout_s": 1800.0
+  },
+  "aggregate": {
+    "no_docs": {
+      "pass_rate_mean": 0.48,
+      "pass_rate_stdev": 0.1476,
+      "avg_latency_s_mean": 480.9388,
+      "avg_latency_s_stdev": 57.7499,
+      "per_run_pass_rate": [
+        0.7,
+        0.6,
+        0.3,
+        0.4,
+        0.3,
+        0.7,
+        0.4,
+        0.4,
+        0.5,
+        0.5
+      ],
+      "per_run_avg_latency_s": [
+        561.166,
+        493.589,
+        464.165,
+        571.721,
+        435.935,
+        497.713,
+        396.397,
+        422.091,
+        514.674,
+        451.937
+      ],
+      "convergence": {
+        "n": 100,
+        "answered_rate": 1.0,
+        "correct_given_answered": 0.48,
+        "correct_at_turns": {
+          "1": 0.48,
+          "2": 0.48,
+          "3": 0.48,
+          "4": 0.48,
+          "5": 0.48,
+          "6": 0.48,
+          "7": 0.48,
+          "8": 0.48,
+          "9": 0.48,
+          "10": 0.48,
+          "11": 0.48,
+          "12": 0.48
+        }
+      }
+    },
+    "with_docs": {
+      "pass_rate_mean": 0.83,
+      "pass_rate_stdev": 0.0675,
+      "avg_latency_s_mean": 142.194,
+      "avg_latency_s_stdev": 14.8738,
+      "per_run_pass_rate": [
+        0.8,
+        0.9,
+        0.8,
+        0.9,
+        0.8,
+        0.8,
+        0.9,
+        0.7,
+        0.9,
+        0.8
+      ],
+      "per_run_avg_latency_s": [
+        156.483,
+        118.46,
+        159.077,
+        120.243,
+        130.813,
+        147.192,
+        152.721,
+        139.268,
+        155.713,
+        141.97
+      ],
+      "convergence": {
+        "n": 100,
+        "answered_rate": 0.84,
+        "correct_given_answered": 0.9881,
+        "correct_at_turns": {
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.37,
+          "4": 0.52,
+          "5": 0.71,
+          "6": 0.75,
+          "7": 0.76,
+          "8": 0.77,
+          "9": 0.77,
+          "10": 0.79,
+          "11": 0.81,
+          "12": 0.83
+        }
+      }
+    }
+  }
+}

@@ -716,3 +716,57 @@ needed.
 **Next**: (1) add transcript capture to the end-task harness for
 `max_turns` failures and root-cause the t09 loop; (2) the model-size sweep
 (Qwen3 0.6B/4B/8B/14B + this 27B as the anchor), unchanged.
+
+### Thinking mode revisited — a treatment that reorders the arms (2026-07-06)
+
+The earlier single-run observation ("thinking-on genuinely *hurts* the
+no-docs arm while leaving with_docs untouched") was incomplete. A 10-repeat
+batch of the same setup (12 turns, sampled) with thinking enabled (Alibaba
+preset: temperature 0.6, top_p 0.95, max_tokens 8192) reveals the full
+picture. Raw payloads:
+`tests/evals/results/endtask_repeats/red/{run_XX,summary}_20260706T075742Z_thinking-on.json`.
+
+| condition | no_docs | with_docs | lift |
+|---|---:|---:|---:|
+| thinking OFF, sampled, max_turns=12 | 0.400 ± 0.156 | 0.890 ± 0.032 | +0.490 |
+| thinking ON, sampled, max_turns=12 | 0.480 ± 0.148 | **0.830 ± 0.068** | +0.350 |
+
+**Thinking mode is not a "better" knob — it reorders the arms.** Turning on
+reasoning bumps the no_docs arm (+0.08 to 0.48) but *hurts* the with_docs
+arm (-0.06 to 0.83, with visible variance inflation: ±0.032 → ±0.068). The
+mechanism: reasoning helps the model synthesize from its own weights, so
+without external anchors it does better; but when docs are present, longer
+reasoning traces increase the chance of divergence from the text, and the
+model sometimes reasons *away* from the right answer instead of toward it.
+The thinking-off 0.89 ceiling is reproducible, tight, and robust; the
+thinking-on 0.83 is lower and noisier.
+
+**correct|answered: 0.99 (1 wrong in 100 task-runs).** Still nearly perfect
+— the occasional wrong answer is new (thinking-off was 1.00), but the
+residual with_docs failure mode is still the same: t09 looping without
+converging. `answered = 0.84` thinking-on vs 0.89 thinking-off.
+
+**The latency profile inverts with thinking.** Thinking-off: no_docs 33 s,
+with_docs 56 s (docs slightly more expensive because of the search/fetch
+rounds). Thinking-on: no_docs 481 s, with_docs 142 s. The model reasons at
+length over absent knowledge (14.5x slower) but reasoning converges faster
+when docs are present — docs provide semantic anchors that cut the reasoning
+tree. The 142 s thinking-on with_docs is comparable to the 56 s
+thinking-off with_docs in wall-clock, despite the 8192-token reasoning budget
+being fully exercised (reasoning traces for sampled Qwen3 in thinking mode run
+into the max_tokens cap on harder tasks).
+
+**Implications**: thinking mode is a confound of a different kind — not a
+simple "correct"/"incorrect" choice, but a treatment that changes the
+relative payoff structure. For this dataset on this model: thinking-off is
+the cleaner choice (higher pass rate, tight variance, lower cost). If the
+priority were squeezing every point out of the no_docs baseline (e.g., to
+measure the gap more precisely when models are weaker), thinking-on would be
+the choice — but it trades the with_docs win for a noisier, lower-
+confidence reading. The project thesis ("docs lift more on smaller models")
+is tested first on thinking-off because it's cleaner; thinking-on is a
+secondary experiment if needed.
+
+**Next**: the model-size sweep (Qwen3 0.6B/4B/8B/14B + this 27B as anchor),
+thinking-off (matched to the 0.89 baseline), then transcript capture for
+t09 root-cause.
