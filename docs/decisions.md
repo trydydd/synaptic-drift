@@ -560,3 +560,33 @@ The URL noise filter (`DEFAULT_NOISE_URL_PATTERNS`) already handles the canonica
 - **Failing the build on truncation**: rejected — partial pack with visible provenance beats an error after minutes of polite crawling.
 
 **Revisit when**: a docs site needs JS rendering (out of scope for MVP-era synd), concurrent fetching becomes necessary (token bucket, per D21), or incremental recrawl lands (pages-table `etag`/`last_modified`/`fetched_at` stay deferred — a re-crawl is a full rebuild).
+
+---
+
+## D29: Targeted Intra-Block Splitting — Supersedes D24's Warn-Only Clause for code_block, Lists, and Paragraphs
+
+**Decision**: `chunk_content()` splits a single top-level block that alone exceeds `max_chunk_tokens`, at structural boundaries only:
+
+- **Indented `code_block`**: split at blank lines. These blocks are almost never real code — markdownify renders Sphinx `<dl>` API listings as 4-space-indented text, and blank lines separate the individual definitions. (Real code samples arrive as fences via `<pre>` conversion.)
+- **Lists** (`bullet_list`/`ordered_list`): split between top-level list items.
+- **Paragraphs**: split at line boundaries as a last resort. In practice this only fires on soft-wrapped catalog pages (one entry per line); true prose paragraphs come out of markdownify as single long lines, which have no internal line boundaries and stay whole.
+- **Fences and tables remain atomic** — D24's rationale for those stands unchanged.
+
+The between-block overflow split was also generalized from paragraph boundaries to all top-level block boundaries (fences, lists, tables, blockquotes), which is the D14 design intent extended to block types the original implementation missed.
+
+**Why D24's warn-only stance was superseded**: D24's revisit clause required "enough data about which structural bypasses are most common to design a targeted mitigation." The v0.3.0 top-20 acceptance run (`scripts/build_top20_packs.py`, 19 real documentation sites) produced that data:
+
+- 334 chunks exceeded 2,000 tokens across the corpus; worst cases: pytest's plugin list as one 76,088-token chunk, matplotlib's `figure_api` page as one 24,812-token chunk (a single `code_block` token spanning 1,299 lines).
+- Dominant bypass classes: giant lists (release notes, API indexes — 168 of 334), catalog paragraphs (~48), `<dl>`-artifact code_blocks (~26). D24 evaluated none of these; its evidence base was two curated llms.txt packs, and the "incoherent fragments" objection targeted *arbitrary line cuts*, which this design does not make.
+
+**Retrieval evidence (L1 eval, pilot_v1 gold set, 114 questions)**: the three pilot packs were built twice from identical live sources with old and new chunker (the only variable) and both indexes scored against the gold set:
+
+- On the 96 questions scored on both sides, recall@1/5/10/20 were **identical to four decimals** at every cutoff; MRR/nDCG within ±0.003 (two questions moved one rank). The ~2.6% additional fragments caused no ranking dilution.
+- For all 3 questions whose gold chunks the new chunker split, the gold section ranked the same or better via `search_docs` (r0069 keyword form improved rank 6 → 4).
+- Chunk-size effect on the same corpus: chunks over the 1,600-token warn threshold dropped 31 → 5; worst chunk 13,400 → 6,556 tokens (remaining are atomic fences, kept per D24).
+
+**Alternatives considered**:
+- **Keeping warn-only (D24 status quo)**: rejected — the top-20 run showed the warn threshold being exceeded by 12x–47x on real crawled sites, and a 76k-token chunk is not a retrievable unit at any budget.
+- **Hard cap with fence splitting**: still rejected, same rationale as D24 — a code example cut mid-function is worse than one large chunk.
+
+**Revisit when**: an L1-style eval over a crawled-HTML gold corpus (not just curated llms.txt packs) exists to re-verify; or giant atomic fences (fastapi mkdocstrings reference pages, matplotlib's sample matplotlibrc) prove to materially degrade retrieval, which would reopen the fence-atomicity tradeoff.
