@@ -1,18 +1,33 @@
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
 
 import pytest
 
-from synd.builder.fetch import fetch_page, fetch_text
+from synd.builder.fetch import (
+    extract_links,
+    fetch_html,
+    fetch_page,
+    fetch_text,
+    html_to_markdown,
+)
 from synd.errors import FetchError
 
+_CRAWL_FIXTURES = Path(__file__).parent.parent / "fixtures" / "crawl_site"
 
-def _mock_urlopen(body: str) -> MagicMock:
+
+def _mock_urlopen(
+    body: str,
+    content_type: str = "text/html",
+    final_url: str | None = None,
+) -> MagicMock:
     """Build a context-manager mock that returns body bytes from .read()."""
     response = MagicMock()
     response.read.return_value = body.encode("utf-8")
+    response.headers.get_content_type.return_value = content_type
+    response.geturl.return_value = final_url
     ctx = MagicMock()
     ctx.__enter__ = MagicMock(return_value=response)
     ctx.__exit__ = MagicMock(return_value=False)
@@ -118,3 +133,152 @@ def test_fetch_text_raises_fetch_error_on_network_failure() -> None:
     ):
         with pytest.raises(FetchError, match="Network error"):
             fetch_text("https://example.com/llms-full.txt")
+
+
+# --- User-Agent threading ---
+
+
+def test_fetch_text_sends_default_user_agent() -> None:
+    with patch(
+        "synd.builder.fetch.urlopen", return_value=_mock_urlopen("body")
+    ) as mock_open:
+        fetch_text("https://example.com/llms.txt")
+    request = mock_open.call_args[0][0]
+    assert request.get_header("User-agent", "").startswith("synd/")
+
+
+def test_fetch_text_sends_custom_user_agent() -> None:
+    with patch(
+        "synd.builder.fetch.urlopen", return_value=_mock_urlopen("body")
+    ) as mock_open:
+        fetch_text("https://example.com/llms.txt", user_agent="custom-agent/9.9")
+    request = mock_open.call_args[0][0]
+    assert request.get_header("User-agent") == "custom-agent/9.9"
+
+
+def test_fetch_page_threads_custom_user_agent() -> None:
+    body = "<html><body><main><p>Hi.</p></main></body></html>"
+    with patch(
+        "synd.builder.fetch.urlopen", return_value=_mock_urlopen(body)
+    ) as mock_open:
+        fetch_page("https://example.com/page.html", user_agent="custom-agent/9.9")
+    request = mock_open.call_args[0][0]
+    assert request.get_header("User-agent") == "custom-agent/9.9"
+
+
+# --- fetch_html ---
+
+
+def test_fetch_html_returns_text_content_type_and_final_url() -> None:
+    body = "<html><body><main><p>Hello.</p></main></body></html>"
+    mock = _mock_urlopen(
+        body,
+        content_type="text/html",
+        final_url="https://docs.example.com/moved/page.html",
+    )
+    with patch("synd.builder.fetch.urlopen", return_value=mock):
+        fetched = fetch_html("https://docs.example.com/page.html")
+    assert fetched.url == "https://docs.example.com/page.html"
+    assert fetched.final_url == "https://docs.example.com/moved/page.html"
+    assert fetched.text == body
+    assert fetched.content_type == "text/html"
+
+
+def test_fetch_html_sends_custom_user_agent() -> None:
+    with patch(
+        "synd.builder.fetch.urlopen", return_value=_mock_urlopen("<html></html>")
+    ) as mock_open:
+        fetch_html("https://docs.example.com/", user_agent="custom-agent/9.9")
+    request = mock_open.call_args[0][0]
+    assert request.get_header("User-agent") == "custom-agent/9.9"
+
+
+def test_fetch_html_raises_fetch_error_on_4xx() -> None:
+    import http.client
+
+    headers = http.client.HTTPMessage()
+    with patch(
+        "synd.builder.fetch.urlopen",
+        side_effect=HTTPError("https://example.com/", 403, "Forbidden", headers, None),
+    ):
+        with pytest.raises(FetchError, match="HTTP 403"):
+            fetch_html("https://example.com/")
+
+
+def test_fetch_html_raises_fetch_error_on_network_failure() -> None:
+    with patch(
+        "synd.builder.fetch.urlopen",
+        side_effect=URLError("connection refused"),
+    ):
+        with pytest.raises(FetchError, match="Network error"):
+            fetch_html("https://example.com/")
+
+
+# --- extract_links ---
+
+
+def test_extract_links_resolves_relative_urls() -> None:
+    html = '<a href="../api/index.html">API</a> <a href="guide.html">Guide</a>'
+    links = extract_links(html, "https://docs.example.com/en/latest/user/")
+    assert links == [
+        "https://docs.example.com/en/latest/api/index.html",
+        "https://docs.example.com/en/latest/user/guide.html",
+    ]
+
+
+def test_extract_links_keeps_absolute_urls() -> None:
+    # Scope filtering is the crawler's job; extract_links reports all http(s) links.
+    html = '<a href="https://other.example.org/page.html">x</a>'
+    links = extract_links(html, "https://docs.example.com/")
+    assert links == ["https://other.example.org/page.html"]
+
+
+def test_extract_links_strips_fragments_and_dedups() -> None:
+    html = '<a href="page.html#a">A</a> <a href="page.html#b">B</a>'
+    links = extract_links(html, "https://docs.example.com/")
+    assert links == ["https://docs.example.com/page.html"]
+
+
+def test_extract_links_skips_non_http_schemes() -> None:
+    html = (
+        '<a href="mailto:x@example.com">m</a>'
+        '<a href="javascript:void(0)">j</a>'
+        '<a href="data:text/plain,hi">d</a>'
+        '<a href="tel:+1234">t</a>'
+        '<a href="https://docs.example.com/ok.html">ok</a>'
+    )
+    links = extract_links(html, "https://docs.example.com/")
+    assert links == ["https://docs.example.com/ok.html"]
+
+
+def test_extract_links_preserves_document_order() -> None:
+    html = '<a href="b.html">B</a> <a href="a.html">A</a> <a href="b.html">B2</a>'
+    links = extract_links(html, "https://docs.example.com/")
+    assert links == [
+        "https://docs.example.com/b.html",
+        "https://docs.example.com/a.html",
+    ]
+
+
+def test_extract_links_empty_html_returns_empty() -> None:
+    assert extract_links("", "https://docs.example.com/") == []
+
+
+# --- html_to_markdown main-content targeting across real doc themes ---
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "sphinx_rtd.html",
+        "pydata.html",
+        "mkdocs_material.html",
+        "pallets.html",
+        "plain.html",
+    ],
+)
+def test_html_to_markdown_extracts_main_content_per_theme(fixture_name: str) -> None:
+    html = (_CRAWL_FIXTURES / fixture_name).read_text(encoding="utf-8")
+    md = html_to_markdown(html)
+    assert "Unique main content" in md
+    assert "NAV-BOILERPLATE" not in md

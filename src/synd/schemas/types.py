@@ -60,6 +60,9 @@ class ManifestDict(TypedDict):
     reviewers: NotRequired[list[str]]
     approval_ref: NotRequired[str]
     source_tag: NotRequired[str]
+    crawl_pages_fetched: NotRequired[int]
+    crawl_truncated: NotRequired[bool]
+    crawl_max_pages: NotRequired[int]
 
 
 class ChunkRecord(TypedDict):

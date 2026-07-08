@@ -13,7 +13,7 @@ from click.testing import CliRunner
 from synd.builder.llms_full import LlmsFullPage
 from synd.cli.build import _parse_package_spec
 from synd.cli.main import cli
-from synd.errors import BuildError
+from synd.errors import BuildError, CrawlError
 
 
 def _fixture_path(name: str = "sample_docs") -> Path:
@@ -403,18 +403,23 @@ class TestBuildCommandUrlSource:
             )
         assert result.exit_code == 0, f"build failed: {result.output}"
 
-    def test_url_source_unsupported_url_exits_one(self, tmp_path: Path) -> None:
-        result = CliRunner().invoke(
-            cli,
-            [
-                "build",
-                "my-lib@1.0.0",
-                "--source",
-                "https://docs.example.com/README.md",
-            ],
-        )
-        assert result.exit_code == 6  # unsupported URL → build failure
+    def test_url_source_crawl_failure_exits_six(self, tmp_path: Path) -> None:
+        with patch(
+            "synd.cli.build.build_pack_from_url",
+            side_effect=CrawlError("No documentation pages found crawling ..."),
+        ):
+            result = CliRunner().invoke(
+                cli,
+                [
+                    "build",
+                    "my-lib@1.0.0",
+                    "--source",
+                    "https://docs.example.com/en/stable/",
+                ],
+            )
+        assert result.exit_code == 6
         assert "error" in result.output.lower()
+        assert "No documentation pages" in result.output
 
     def test_local_path_still_works_after_refactor(self, tmp_path: Path) -> None:
         """Regression: local directory --source must still produce a .ctx pack."""
@@ -426,3 +431,159 @@ class TestBuildCommandUrlSource:
         )
         assert result.exit_code == 0, f"build failed: {result.output}"
         assert list(output.glob("*.ctx"))
+
+
+class TestBuildCrawlCommand:
+    """CLI surface for crawled builds (non-llms URL sources)."""
+
+    _ROOT = "https://docs.example.com/en/stable/"
+
+    def _invoke(
+        self,
+        tmp_path: Path,
+        extra_args: tuple[str, ...] = (),
+        manifest: dict[str, object] | None = None,
+    ) -> tuple[object, dict[str, object]]:
+        """Invoke a crawl build with the builder mocked; return (result, kwargs)."""
+        ctx_path = tmp_path / "packs" / "my-lib@1.0.0.ctx"
+        if manifest is None:
+            manifest = {
+                "crawl_pages_fetched": 3,
+                "crawl_truncated": False,
+                "crawl_max_pages": 500,
+            }
+        with (
+            patch(
+                "synd.cli.build.build_pack_from_url",
+                return_value=(ctx_path, []),
+            ) as mock_build,
+            patch("synd.cli.build.load_manifest", return_value=manifest),
+        ):
+            result = CliRunner().invoke(
+                cli,
+                [
+                    "build",
+                    "my-lib@1.0.0",
+                    "--source",
+                    self._ROOT,
+                    "--output",
+                    str(tmp_path / "packs"),
+                    *extra_args,
+                ],
+            )
+        return result, (mock_build.call_args.kwargs if mock_build.call_args else {})
+
+    def test_crawl_flags_passed_through(self, tmp_path: Path) -> None:
+        result, kwargs = self._invoke(
+            tmp_path,
+            extra_args=(
+                "--max-pages",
+                "9",
+                "--user-agent",
+                "my-crawler/1.0",
+                "--no-robots",
+                "--rate-limit",
+                "0.1",
+            ),
+        )
+        assert result.exit_code == 0, f"build failed: {result.output}"  # type: ignore[attr-defined]
+        assert kwargs["max_pages"] == 9
+        assert kwargs["user_agent"] == "my-crawler/1.0"
+        assert kwargs["respect_robots"] is False
+        assert kwargs["rate_limit_sleep"] == 0.1
+
+    def test_crawl_defaults(self, tmp_path: Path) -> None:
+        result, kwargs = self._invoke(tmp_path)
+        assert result.exit_code == 0  # type: ignore[attr-defined]
+        assert kwargs["max_pages"] == 500
+        assert kwargs["user_agent"] is None
+        assert kwargs["respect_robots"] is True
+        assert kwargs["excluded_url_patterns"] is None
+        assert kwargs["extra_url_patterns"] == ()
+
+    def test_no_url_filter_passes_empty_patterns(self, tmp_path: Path) -> None:
+        _, kwargs = self._invoke(tmp_path, extra_args=("--no-url-filter",))
+        assert kwargs["excluded_url_patterns"] == ()
+
+    def test_exclude_url_pattern_passed_as_extra(self, tmp_path: Path) -> None:
+        _, kwargs = self._invoke(tmp_path, extra_args=("--exclude-url-pattern", "blog"))
+        assert kwargs["excluded_url_patterns"] is None
+        assert kwargs["extra_url_patterns"] == ("blog",)
+
+    def test_crawl_summary_printed(self, tmp_path: Path) -> None:
+        result, _ = self._invoke(tmp_path)
+        assert "crawled 3 page(s)" in result.output  # type: ignore[attr-defined]
+
+    def test_crawl_truncation_warning_printed(self, tmp_path: Path) -> None:
+        result, _ = self._invoke(
+            tmp_path,
+            manifest={
+                "crawl_pages_fetched": 500,
+                "crawl_truncated": True,
+                "crawl_max_pages": 500,
+            },
+        )
+        assert "truncated" in result.output  # type: ignore[attr-defined]
+        assert "--max-pages" in result.output  # type: ignore[attr-defined]
+
+    def test_no_crawl_summary_for_llms_manifest(self, tmp_path: Path) -> None:
+        result, _ = self._invoke(tmp_path, manifest={"package": "my-lib"})
+        assert "crawled" not in result.output  # type: ignore[attr-defined]
+
+    def test_crawl_end_to_end_builds_pack(self, tmp_path: Path) -> None:
+        """Full stack through the real crawler with mocked HTTP: CLI → crawl
+        → chunk → pack with crawl provenance in the manifest."""
+        root = self._ROOT
+        pages = {
+            root: (
+                "<html><body><main><h1>Index</h1><p>Index body text here.</p>"
+                '<a href="guide.html">guide</a></main></body></html>'
+            ),
+            f"{root}guide.html": (
+                "<html><body><main><h1>Guide</h1>"
+                "<p>Guide body text here.</p></main></body></html>"
+            ),
+        }
+
+        def fake_urlopen(request: object, timeout: int = 30) -> object:
+            from unittest.mock import MagicMock
+            from urllib.error import HTTPError
+
+            url: str = request.full_url  # type: ignore[attr-defined]
+            if url not in pages:
+                import http.client
+
+                raise HTTPError(url, 404, "Not Found", http.client.HTTPMessage(), None)
+            response = MagicMock()
+            response.read.return_value = pages[url].encode("utf-8")
+            response.headers.get_content_type.return_value = "text/html"
+            response.geturl.return_value = url
+            ctx = MagicMock()
+            ctx.__enter__ = MagicMock(return_value=response)
+            ctx.__exit__ = MagicMock(return_value=False)
+            return ctx
+
+        output = tmp_path / "packs"
+        with patch("synd.builder.fetch.urlopen", fake_urlopen):
+            result = CliRunner().invoke(
+                cli,
+                [
+                    "build",
+                    "my-lib@1.0.0",
+                    "--source",
+                    root,
+                    "--output",
+                    str(output),
+                    "--rate-limit",
+                    "0",
+                ],
+            )
+        assert result.exit_code == 0, f"build failed: {result.output}"
+        ctx_path = output / "my-lib@1.0.0.ctx"
+        assert ctx_path.exists()
+        with zipfile.ZipFile(ctx_path) as zf:
+            manifest = json.loads(zf.read("manifest.json"))
+        assert manifest["source_url"] == root
+        assert manifest["crawl_pages_fetched"] == 2
+        assert manifest["crawl_truncated"] is False
+        assert "crawled 2 page(s)" in result.output

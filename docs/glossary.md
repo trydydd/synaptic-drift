@@ -70,7 +70,7 @@ Definitions of Synaptic Drift-specific terminology. Sorted alphabetically.
 
 **source_commit** — optional provenance field on chunks and packs recording the git commit hash of the source repository at build time. `None` if not provided at `synd build`. Stored in `manifest.json` and the `chunks` table.
 
-**source_url** — provenance field on chunks and pages indicating where the content came from. For local builds: relative path from `--source` root (e.g. `docs/auth/oauth.md`). For Phase 2 web builds: full `https://` URL. Always populated, never null.
+**source_url** — provenance field on chunks and pages indicating where the content came from. For local builds: relative path from `--source` root (e.g. `docs/auth/oauth.md`). For URL and crawled builds: full `https://` URL. Always populated, never null.
 
 **SyndError** — base exception class for all Synaptic Drift-specific errors. CLI commands catch subclasses and map them to exit codes and user-facing messages. Specific subclasses are discovered and added during TDD.
 

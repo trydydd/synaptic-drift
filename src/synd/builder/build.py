@@ -18,9 +18,14 @@ from synd.builder.chunking import (
     discover_files,
     generate_summary,
 )
-from synd.builder.fetch import html_to_markdown
+from synd.builder.crawler import DEFAULT_MAX_PAGES, CrawlResult, crawl
+from synd.builder.fetch import DEFAULT_USER_AGENT, html_to_markdown
 from synd.builder.llms_full import LlmsFullPage, fetch_llms_full_pages, fetch_pages
-from synd.builder.url_filter import DEFAULT_NOISE_URL_PATTERNS, filter_page_urls
+from synd.builder.url_filter import (
+    DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+    DEFAULT_NOISE_URL_PATTERNS,
+    filter_page_urls,
+)
 from synd.builder.manifest import (
     build_manifest,
     compute_normalized_content_hash,
@@ -142,18 +147,47 @@ def build_pack_from_url(
     policy_profile: str | None = None,
     source_commit: str | None = None,
     rate_limit_sleep: float = 0.5,
-    excluded_url_patterns: tuple[str, ...] = DEFAULT_NOISE_URL_PATTERNS,
+    excluded_url_patterns: tuple[str, ...] | None = None,
+    extra_url_patterns: tuple[str, ...] = (),
     max_chunk_tokens: int = _DEFAULT_MAX_CHUNK_TOKENS,
     min_chunk_tokens: int = _DEFAULT_MIN_CHUNK_TOKENS,
     warn_chunk_tokens: int | None = None,
+    max_pages: int = DEFAULT_MAX_PAGES,
+    user_agent: str | None = None,
+    respect_robots: bool = True,
 ) -> tuple[Path, list[RawChunk]]:
-    """Build a .ctx pack from a URL source (llms-full.txt or llms.txt).
+    """Build a .ctx pack from a URL source.
 
-    source_url must be an HTTP/HTTPS URL ending in 'llms-full.txt' or 'llms.txt'.
-    Returns the path to the created .ctx file.
-    Raises BuildError if the URL type is unrecognised, the fetch fails, or
-    no pages are returned.
+    A source_url ending in 'llms-full.txt' or 'llms.txt' is fetched as a
+    curated page index; any other HTTP/HTTPS URL is treated as a docs-site
+    root and crawled (see synd.builder.crawler). Crawled pages are sorted by
+    canonical URL before page/chunk ID assignment so builds are deterministic
+    regardless of discovery order; llms index order is preserved as the
+    site's intentional priority.
+
+    excluded_url_patterns=None selects the default noise list for the source
+    type (DEFAULT_NOISE_URL_PATTERNS for llms builds,
+    DEFAULT_CRAWL_NOISE_URL_PATTERNS for crawls); pass () to disable
+    filtering. extra_url_patterns are appended either way.
+    max_pages, user_agent, and respect_robots apply to crawled builds only;
+    the llms fetch paths keep the default User-Agent.
+
+    Returns (pack_path, oversized_chunks).
+    Raises BuildError/CrawlError if the fetch or crawl fails or produces no
+    usable pages.
     """
+    is_llms_source = source_url.endswith(("llms-full.txt", "llms.txt"))
+    if excluded_url_patterns is None:
+        base_patterns = (
+            DEFAULT_NOISE_URL_PATTERNS
+            if is_llms_source
+            else DEFAULT_CRAWL_NOISE_URL_PATTERNS
+        )
+    else:
+        base_patterns = excluded_url_patterns
+    url_patterns = base_patterns + extra_url_patterns
+
+    crawl_result: CrawlResult | None = None
     if source_url.endswith("llms-full.txt"):
         try:
             llms_pages: list[LlmsFullPage] = fetch_llms_full_pages(source_url)
@@ -166,15 +200,26 @@ def build_pack_from_url(
         except FetchError as exc:
             raise BuildError(f"Failed to fetch {source_url}: {exc}") from exc
     else:
-        raise BuildError(
-            f"Unsupported URL source: {source_url!r}. "
-            "Expected a URL ending in 'llms-full.txt' or 'llms.txt'."
+        crawl_result = crawl(
+            source_url,
+            max_pages=max_pages,
+            rate_limit_sleep=rate_limit_sleep,
+            user_agent=user_agent if user_agent is not None else DEFAULT_USER_AGENT,
+            respect_robots=respect_robots,
+            excluded_url_patterns=url_patterns,
+        )
+        # Deterministic chunk-ID assignment: discovery order varies across
+        # runs (sitemap regeneration, link-order changes), so crawled pages
+        # are pinned to canonical URL order before IDs are handed out.
+        page_pairs = sorted(
+            ((p.url, p.content) for p in crawl_result.pages),
+            key=lambda pair: pair[0],
         )
 
     if not page_pairs:
         raise BuildError(f"No pages found at {source_url}")
 
-    page_pairs, excluded_urls = filter_page_urls(page_pairs, excluded_url_patterns)
+    page_pairs, excluded_urls = filter_page_urls(page_pairs, url_patterns)
     _logger = logging.getLogger(__name__)
     for url in excluded_urls:
         _logger.info("build: excluded noise URL %s", url)
@@ -234,6 +279,11 @@ def build_pack_from_url(
         source_commit=source_commit,
         max_chunk_tokens=max_chunk_tokens,
         warn_chunk_tokens=warn_chunk_tokens,
+        crawl_pages_fetched=(
+            len(crawl_result.pages) if crawl_result is not None else None
+        ),
+        crawl_truncated=crawl_result.truncated if crawl_result is not None else None,
+        crawl_max_pages=max_pages if crawl_result is not None else None,
     )
 
 
@@ -251,6 +301,9 @@ def _finalize_pack(
     source_commit: str | None = None,
     max_chunk_tokens: int = _DEFAULT_MAX_CHUNK_TOKENS,
     warn_chunk_tokens: int | None = None,
+    crawl_pages_fetched: int | None = None,
+    crawl_truncated: bool | None = None,
+    crawl_max_pages: int | None = None,
 ) -> tuple[Path, list[RawChunk]]:
     """Assign IDs, compute hashes, generate summaries, write .ctx archive.
 
@@ -282,6 +335,9 @@ def _finalize_pack(
         policy_profile=policy_profile,
         source_url=source_url,
         source_commit=source_commit,
+        crawl_pages_fetched=crawl_pages_fetched,
+        crawl_truncated=crawl_truncated,
+        crawl_max_pages=crawl_max_pages,
     )
 
     # Build the on-disk records once and validate them against their schemas
