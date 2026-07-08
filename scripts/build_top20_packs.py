@@ -37,7 +37,7 @@ _MATPLOTLIB_UA = (
 # two-letter (plus em/zh-hant) path prefixes. Without excluding them the
 # 500-page budget fills up with duplicate pages in other languages.
 _FASTAPI_LANGS = (
-    "az bn de em es fa fr he hu id it ja ko nl pl pt ru tr uk ur vi yo zh zh-hant"
+    "az bn de em es fa fr he hi hu id it ja ko nl pl pt ru tr uk ur vi yo zh zh-hant"
 ).split()
 _FASTAPI_EXCLUDES = [
     flag for lang in _FASTAPI_LANGS for flag in ("--exclude-url-pattern", lang)

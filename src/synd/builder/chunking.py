@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -92,6 +93,17 @@ def chunk_content(
             )
         chunk_start_line = end_line
 
+    def _split_within(boundaries: Iterable[int]) -> None:
+        """Emit at each boundary line where the accumulation exceeds budget."""
+        for line_no in boundaries:
+            accumulated = "\n".join(source_lines[chunk_start_line:line_no])
+            if len(accumulated) // 4 > max_chunk_tokens:
+                _emit(line_no)
+
+    def _block_over_budget(block_map: list[int]) -> bool:
+        block = "\n".join(source_lines[block_map[0] : block_map[1]])
+        return len(block) // 4 > max_chunk_tokens
+
     i = 0
     while i < len(tokens):
         token = tokens[i]
@@ -124,21 +136,38 @@ def chunk_content(
             i += 3  # skip heading_open, inline, heading_close
             continue
 
-        # An indented code_block that alone exceeds the budget has no inner
-        # block boundaries to split at; use its blank lines instead.
-        if (
-            token.type == "code_block"
-            and token.level == 0
-            and token.map is not None
-            and len("\n".join(source_lines[token.map[0] : token.map[1]])) // 4
-            > max_chunk_tokens
-        ):
-            for line_no in range(token.map[0], token.map[1]):
-                if source_lines[line_no].strip():
-                    continue
-                accumulated = "\n".join(source_lines[chunk_start_line:line_no])
-                if len(accumulated) // 4 > max_chunk_tokens:
-                    _emit(line_no)
+        # Last-resort splitting inside a single block that alone exceeds the
+        # budget and has no block boundaries for the generic split below.
+        # Fences stay atomic.
+        if token.level == 0 and token.map is not None and _block_over_budget(token.map):
+            if token.type == "code_block":
+                # markdownify renders Sphinx <dl> API listings as indented
+                # text that parses as one giant code_block; its blank lines
+                # separate the individual definitions.
+                _split_within(
+                    n
+                    for n in range(token.map[0], token.map[1])
+                    if not source_lines[n].strip()
+                )
+            elif token.type == "paragraph_open":
+                # A soft-wrapped catalog "paragraph" (one entry per line,
+                # no blank lines) offers only line boundaries.
+                _split_within(range(token.map[0] + 1, token.map[1]))
+            elif token.type in ("bullet_list_open", "ordered_list_open"):
+                # Split between top-level list items. Tokens inside this
+                # list all have level > 0; the matching close is back at 0.
+                item_starts: list[int] = []
+                j = i + 1
+                while j < len(tokens) and tokens[j].level > 0:
+                    inner = tokens[j]
+                    if (
+                        inner.type == "list_item_open"
+                        and inner.level == 1
+                        and inner.map is not None
+                    ):
+                        item_starts.append(inner.map[0])
+                    j += 1
+                _split_within(item_starts)
 
         # Track the end of the current top-level block for overflow detection.
         # Open tokens and self-closing blocks carry a source map; close tokens

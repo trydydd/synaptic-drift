@@ -309,6 +309,58 @@ class TestChunkContent:
                 f"Chunk exceeds 2x budget: {len(chunk.content) // 4} tokens"
             )
 
+    def test_oversized_bullet_list_splits_between_items(self) -> None:
+        # A markdown list is one atomic top-level block; release-notes and
+        # API-index pages are single lists of thousands of tokens (pandas
+        # whatsnew, sqlalchemy internals). Split between top-level items.
+        items = [f"* item_{i} " + ("word " * 30) for i in range(8)]
+        content = "## Notes\n\n" + "\n".join(items) + "\n"
+        chunks = chunk_content(
+            content,
+            heading_prefix="x",
+            source_url="x.md",
+            page_id=1,
+            max_chunk_tokens=50,
+        )
+        assert len(chunks) >= 2, "Oversized bullet list was not split"
+        # No list item may be split across chunks
+        for i in range(8):
+            containing = [c for c in chunks if f"item_{i} " in c.content]
+            assert len(containing) == 1, f"List item {i} split across chunks"
+
+    def test_oversized_paragraph_splits_at_line_boundaries(self) -> None:
+        # A single paragraph of soft-wrapped catalog lines has no internal
+        # block or blank-line boundaries at all — pytest's plugin_list page
+        # became one 76k-token chunk this way. Line boundaries are the only
+        # split points left.
+        catalog = [f"plugin-{i} does something " + ("word " * 20) for i in range(10)]
+        content = "## Plugins\n\n" + "\n".join(catalog) + "\n"
+        chunks = chunk_content(
+            content,
+            heading_prefix="x",
+            source_url="x.md",
+            page_id=1,
+            max_chunk_tokens=50,
+        )
+        assert len(chunks) >= 2, "Oversized paragraph was not split"
+        for chunk in chunks:
+            assert len(chunk.content) // 4 <= 100, (
+                f"Chunk exceeds 2x budget: {len(chunk.content) // 4} tokens"
+            )
+
+    def test_normal_paragraph_not_split_at_lines(self) -> None:
+        # Paragraph line-splitting is a last resort for oversized paragraphs
+        # only — an under-budget multi-line paragraph stays whole.
+        content = "## A\n\nline one of prose\nline two of prose\nline three.\n"
+        chunks = chunk_content(
+            content,
+            heading_prefix="x",
+            source_url="x.md",
+            page_id=1,
+            max_chunk_tokens=800,
+        )
+        assert len(chunks) == 1
+
     def test_no_headings_is_single_chunk(self) -> None:
         content = "Just a paragraph.\n\nAnother paragraph.\n"
         chunks = chunk_content(
