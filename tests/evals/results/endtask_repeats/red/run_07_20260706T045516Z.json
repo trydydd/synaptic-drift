@@ -1,0 +1,283 @@
+{
+  "meta": {
+    "timestamp": "2026-07-06T06:37:07.878653+00:00",
+    "git_commit": "12a5223",
+    "model": "red",
+    "reps": 1,
+    "max_turns": 12,
+    "task_count": 10
+  },
+  "arms": {
+    "no_docs": {
+      "pass_rate": 0.2,
+      "n": 10,
+      "avg_latency_s": 31.479,
+      "total_latency_s": 314.79
+    },
+    "with_docs": {
+      "pass_rate": 0.9,
+      "n": 10,
+      "avg_latency_s": 50.093,
+      "total_latency_s": 500.925
+    }
+  },
+  "per_task": [
+    {
+      "task_id": "t01",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: @mcp\\.tool\\(\\s*name=[\"']search[\"']"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 477,
+      "error": null,
+      "latency_s": 18.84
+    },
+    {
+      "task_id": "t02",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: @mcp\\.resource\\(\\s*[\"']users://\\{user_id\\}/profile[\"']"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 564,
+      "error": null,
+      "latency_s": 22.722
+    },
+    {
+      "task_id": "t03",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: Context"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 726,
+      "error": null,
+      "latency_s": 26.839
+    },
+    {
+      "task_id": "t04",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: ctx\\.(info|debug)\\("
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 902,
+      "error": null,
+      "latency_s": 31.026
+    },
+    {
+      "task_id": "t05",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: Client\\(",
+        "must_not_match: subprocess"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 2349,
+      "error": null,
+      "latency_s": 79.987
+    },
+    {
+      "task_id": "t06",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 447,
+      "error": null,
+      "latency_s": 17.146
+    },
+    {
+      "task_id": "t07",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: @mcp\\.prompt"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 636,
+      "error": null,
+      "latency_s": 22.38
+    },
+    {
+      "task_id": "t08",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: mcp\\.run\\("
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 446,
+      "error": null,
+      "latency_s": 17.91
+    },
+    {
+      "task_id": "t09",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: ctx\\.sample\\("
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 1475,
+      "error": null,
+      "latency_s": 48.538
+    },
+    {
+      "task_id": "t10",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 896,
+      "error": null,
+      "latency_s": 29.402
+    },
+    {
+      "task_id": "t01",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 2,
+      "reply_chars": 605,
+      "error": null,
+      "latency_s": 34.589
+    },
+    {
+      "task_id": "t02",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 2,
+      "reply_chars": 834,
+      "error": null,
+      "latency_s": 39.264
+    },
+    {
+      "task_id": "t03",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 5,
+      "tool_calls_made": 4,
+      "reply_chars": 772,
+      "error": null,
+      "latency_s": 52.555
+    },
+    {
+      "task_id": "t04",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 5,
+      "tool_calls_made": 4,
+      "reply_chars": 1069,
+      "error": null,
+      "latency_s": 58.248
+    },
+    {
+      "task_id": "t05",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 2,
+      "reply_chars": 758,
+      "error": null,
+      "latency_s": 38.495
+    },
+    {
+      "task_id": "t06",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 5,
+      "tool_calls_made": 4,
+      "reply_chars": 1133,
+      "error": null,
+      "latency_s": 66.538
+    },
+    {
+      "task_id": "t07",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 8,
+      "tool_calls_made": 7,
+      "reply_chars": 709,
+      "error": null,
+      "latency_s": 63.403
+    },
+    {
+      "task_id": "t08",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 2,
+      "reply_chars": 664,
+      "error": null,
+      "latency_s": 33.426
+    },
+    {
+      "task_id": "t09",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [],
+      "turns_used": 12,
+      "tool_calls_made": 12,
+      "reply_chars": 0,
+      "error": "max_turns",
+      "latency_s": 65.789
+    },
+    {
+      "task_id": "t10",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 5,
+      "tool_calls_made": 4,
+      "reply_chars": 830,
+      "error": null,
+      "latency_s": 48.618
+    }
+  ]
+}

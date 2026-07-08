@@ -1,0 +1,160 @@
+{"pack_name": "resend", "chunk_id": 14, "persona": "expert", "nl_query": "how do i create an api key and verify my domain before letting an agent send email", "keyword_query": "api key domain verification"}
+{"pack_name": "resend", "chunk_id": 14, "persona": "paraphrase", "nl_query": "what should i have ready before an automated assistant can send messages on my behalf", "keyword_query": "automation setup prerequisites"}
+{"pack_name": "resend", "chunk_id": 54, "persona": "expert", "nl_query": "delete a custom contact field via the api", "keyword_query": "delete contact field api"}
+{"pack_name": "resend", "chunk_id": 54, "persona": "paraphrase", "nl_query": "how do i get rid of an extra subscriber attribute for good", "keyword_query": "remove subscriber attribute permanently"}
+{"pack_name": "resend", "chunk_id": 59, "persona": "expert", "nl_query": "can i rename a contact field's type after creating it", "keyword_query": "contact field type immutable"}
+{"pack_name": "resend", "chunk_id": 59, "persona": "paraphrase", "nl_query": "why can't i edit the data type of a custom user attribute later", "keyword_query": "cannot change attribute type"}
+{"pack_name": "resend", "chunk_id": 69, "persona": "expert", "nl_query": "look up a contact's subscribed topics by email or id", "keyword_query": "contact topics lookup"}
+{"pack_name": "resend", "chunk_id": 69, "persona": "paraphrase", "nl_query": "how do i check which mailing lists someone signed up for", "keyword_query": "check user mailing lists"}
+{"pack_name": "resend", "chunk_id": 74, "persona": "expert", "nl_query": "update contact properties by email or contact id", "keyword_query": "update contact properties"}
+{"pack_name": "resend", "chunk_id": 74, "persona": "paraphrase", "nl_query": "how do i change a subscriber's name or opt-out flag", "keyword_query": "edit subscriber info"}
+{"pack_name": "resend", "chunk_id": 101, "persona": "expert", "nl_query": "download an attachment from a sent email", "keyword_query": "download email attachment"}
+{"pack_name": "resend", "chunk_id": 101, "persona": "paraphrase", "nl_query": "can i grab a file that was included in a message i already sent", "keyword_query": "retrieve sent file"}
+{"pack_name": "resend", "chunk_id": 106, "persona": "expert", "nl_query": "batch send up to 100 emails in one api call", "keyword_query": "batch send emails"}
+{"pack_name": "resend", "chunk_id": 106, "persona": "paraphrase", "nl_query": "is there a way to send lots of messages at once instead of one by one", "keyword_query": "bulk send multiple messages"}
+{"pack_name": "resend", "chunk_id": 157, "persona": "expert", "nl_query": "what are the rate limits for requests per second and monthly sending", "keyword_query": "rate limits sending quota"}
+{"pack_name": "resend", "chunk_id": 157, "persona": "paraphrase", "nl_query": "how many messages and contacts am i allowed before hitting a cap", "keyword_query": "usage caps limits"}
+{"pack_name": "resend", "chunk_id": 176, "persona": "expert", "nl_query": "get a broadcast topic by id", "keyword_query": "get topic id"}
+{"pack_name": "resend", "chunk_id": 176, "persona": "paraphrase", "nl_query": "how do i look up one specific mailing preference group", "keyword_query": "lookup preference group"}
+{"pack_name": "resend", "chunk_id": 179, "persona": "expert", "nl_query": "update a topic's name and visibility on the preference center", "keyword_query": "update topic preference center"}
+{"pack_name": "resend", "chunk_id": 179, "persona": "paraphrase", "nl_query": "how do i rename a signup category and hide it from the public page", "keyword_query": "rename hide signup category"}
+{"pack_name": "resend", "chunk_id": 195, "persona": "expert", "nl_query": "prerequisites for inbound email to chatbot integration", "keyword_query": "inbound email chatbot setup"}
+{"pack_name": "resend", "chunk_id": 195, "persona": "paraphrase", "nl_query": "what do i need before connecting incoming mail to a messaging bot", "keyword_query": "connect incoming mail bot"}
+{"pack_name": "resend", "chunk_id": 206, "persona": "expert", "nl_query": "limitations of building a two-way email chat integration", "keyword_query": "email chat integration limitations"}
+{"pack_name": "resend", "chunk_id": 206, "persona": "paraphrase", "nl_query": "what can't you do when turning mail into a back-and-forth conversation", "keyword_query": "conversation constraints back forth"}
+{"pack_name": "resend", "chunk_id": 208, "persona": "expert", "nl_query": "install the chat adapter package and its dependencies", "keyword_query": "install chat adapter"}
+{"pack_name": "resend", "chunk_id": 208, "persona": "paraphrase", "nl_query": "what npm packages do i need for a conversational bot layer", "keyword_query": "npm packages conversational layer"}
+{"pack_name": "resend", "chunk_id": 215, "persona": "expert", "nl_query": "example integrations like auto-reply bot and outreach templates", "keyword_query": "example bot integrations"}
+{"pack_name": "resend", "chunk_id": 215, "persona": "paraphrase", "nl_query": "what sample projects show different chatbot use cases", "keyword_query": "sample chatbot use cases"}
+{"pack_name": "resend", "chunk_id": 225, "persona": "expert", "nl_query": "how to proactively start a new conversation instead of replying", "keyword_query": "proactive conversation start"}
+{"pack_name": "resend", "chunk_id": 225, "persona": "paraphrase", "nl_query": "can i message someone first without waiting for them to write", "keyword_query": "initiate first message"}
+{"pack_name": "resend", "chunk_id": 228, "persona": "expert", "nl_query": "when should i send proactive messages like welcome emails or alerts", "keyword_query": "proactive message use cases"}
+{"pack_name": "resend", "chunk_id": 228, "persona": "paraphrase", "nl_query": "what are good reasons to reach a user before they contact you", "keyword_query": "reasons contact user first"}
+{"pack_name": "resend", "chunk_id": 250, "persona": "expert", "nl_query": "cli command to check api key and domain status", "keyword_query": "cli doctor status check"}
+{"pack_name": "resend", "chunk_id": 250, "persona": "paraphrase", "nl_query": "how do i troubleshoot my local setup to see what's misconfigured", "keyword_query": "troubleshoot local configuration"}
+{"pack_name": "resend", "chunk_id": 280, "persona": "expert", "nl_query": "view total api requests and detailed logs for a key", "keyword_query": "api key request logs"}
+{"pack_name": "resend", "chunk_id": 280, "persona": "paraphrase", "nl_query": "how can i see how much traffic my token has generated", "keyword_query": "token traffic history"}
+{"pack_name": "resend", "chunk_id": 310, "persona": "expert", "nl_query": "insert custom contact fields into a broadcast for personalization", "keyword_query": "broadcast merge fields"}
+{"pack_name": "resend", "chunk_id": 310, "persona": "paraphrase", "nl_query": "how do i put someone's name into a mass email automatically", "keyword_query": "insert name mass email"}
+{"pack_name": "resend", "chunk_id": 343, "persona": "expert", "nl_query": "workflow step types like branch delay wait send", "keyword_query": "workflow step types"}
+{"pack_name": "resend", "chunk_id": 343, "persona": "paraphrase", "nl_query": "what building blocks can i use to design an automation sequence", "keyword_query": "automation sequence building blocks"}
+{"pack_name": "resend", "chunk_id": 351, "persona": "expert", "nl_query": "what states can a workflow run be in", "keyword_query": "workflow run states"}
+{"pack_name": "resend", "chunk_id": 351, "persona": "paraphrase", "nl_query": "how do i know if an automated sequence finished or got skipped", "keyword_query": "automation sequence status"}
+{"pack_name": "resend", "chunk_id": 358, "persona": "expert", "nl_query": "get a single workflow run by id via api", "keyword_query": "get workflow run"}
+{"pack_name": "resend", "chunk_id": 358, "persona": "paraphrase", "nl_query": "how do i check the details of one automation that ran", "keyword_query": "check automation run details"}
+{"pack_name": "resend", "chunk_id": 418, "persona": "expert", "nl_query": "why do i need to verify my domain before sending", "keyword_query": "domain verification required"}
+{"pack_name": "resend", "chunk_id": 418, "persona": "paraphrase", "nl_query": "why can't i send mail until i prove i own the website", "keyword_query": "prove website ownership mail"}
+{"pack_name": "resend", "chunk_id": 432, "persona": "expert", "nl_query": "benefits of choosing a sending region closer to users", "keyword_query": "regional sending benefits"}
+{"pack_name": "resend", "chunk_id": 432, "persona": "paraphrase", "nl_query": "does picking a server location near my customers make things faster", "keyword_query": "server location near customers"}
+{"pack_name": "resend", "chunk_id": 465, "persona": "expert", "nl_query": "reference docs for the batch send endpoint", "keyword_query": "batch endpoint reference docs"}
+{"pack_name": "resend", "chunk_id": 465, "persona": "paraphrase", "nl_query": "where's the full documentation for sending a group of messages together", "keyword_query": "documentation group send"}
+{"pack_name": "resend", "chunk_id": 473, "persona": "expert", "nl_query": "why does gmail clip my email behind a view entire message link", "keyword_query": "email clipping truncation"}
+{"pack_name": "resend", "chunk_id": 473, "persona": "paraphrase", "nl_query": "why is part of my note getting cut off with a show more link", "keyword_query": "cut off show more"}
+{"pack_name": "resend", "chunk_id": 477, "persona": "expert", "nl_query": "set up a custom click-tracking domain to avoid spam flags", "keyword_query": "custom tracking domain"}
+{"pack_name": "resend", "chunk_id": 477, "persona": "paraphrase", "nl_query": "how do i stop my rewritten links from getting marked as spam", "keyword_query": "links flagged spam fix"}
+{"pack_name": "resend", "chunk_id": 483, "persona": "expert", "nl_query": "why does an email address get suppressed after a hard bounce", "keyword_query": "hard bounce suppression"}
+{"pack_name": "resend", "chunk_id": 483, "persona": "paraphrase", "nl_query": "why did an address stop receiving my messages", "keyword_query": "address stopped receiving"}
+{"pack_name": "resend", "chunk_id": 492, "persona": "expert", "nl_query": "using an idempotency key to safely retry a send", "keyword_query": "idempotency key retry"}
+{"pack_name": "resend", "chunk_id": 492, "persona": "paraphrase", "nl_query": "how do i resend a request without risking a duplicate", "keyword_query": "avoid duplicate resend"}
+{"pack_name": "resend", "chunk_id": 502, "persona": "expert", "nl_query": "schedule an email to send at a future time", "keyword_query": "scheduled send future"}
+{"pack_name": "resend", "chunk_id": 502, "persona": "paraphrase", "nl_query": "can i queue a message to go out later instead of right now", "keyword_query": "queue message later"}
+{"pack_name": "resend", "chunk_id": 528, "persona": "expert", "nl_query": "get troubleshooting steps for a specific api error code", "keyword_query": "error code troubleshooting"}
+{"pack_name": "resend", "chunk_id": 528, "persona": "paraphrase", "nl_query": "where can i find help figuring out why a call failed", "keyword_query": "help diagnose failed call"}
+{"pack_name": "resend", "chunk_id": 568, "persona": "expert", "nl_query": "difference between topic unsubscribe and global unsubscribe", "keyword_query": "topic vs global unsubscribe"}
+{"pack_name": "resend", "chunk_id": 568, "persona": "paraphrase", "nl_query": "can you silence just one category of message without leaving the list entirely", "keyword_query": "silence one category message"}
+{"pack_name": "resend", "chunk_id": 590, "persona": "expert", "nl_query": "delete an email template via dashboard or api", "keyword_query": "delete template api"}
+{"pack_name": "resend", "chunk_id": 590, "persona": "paraphrase", "nl_query": "how do i get rid of a reusable design i no longer need", "keyword_query": "remove old message design"}
+{"pack_name": "resend", "chunk_id": 596, "persona": "expert", "nl_query": "send a test template preview with sample variables to myself", "keyword_query": "test template preview send"}
+{"pack_name": "resend", "chunk_id": 596, "persona": "paraphrase", "nl_query": "how can i see what a design looks like with placeholder data before using it", "keyword_query": "preview design placeholder data"}
+{"pack_name": "resend", "chunk_id": 619, "persona": "expert", "nl_query": "retention policy for webhook event data", "keyword_query": "webhook event retention"}
+{"pack_name": "resend", "chunk_id": 619, "persona": "paraphrase", "nl_query": "how long should i store notification logs before deleting them", "keyword_query": "how long store logs"}
+{"pack_name": "resend", "chunk_id": 627, "persona": "expert", "nl_query": "tool to parse dmarc reports and flag unauthorized senders", "keyword_query": "dmarc report parser"}
+{"pack_name": "resend", "chunk_id": 627, "persona": "paraphrase", "nl_query": "is there something that reads those spoofing alerts and emails me a summary", "keyword_query": "spoofing alerts summary digest"}
+{"pack_name": "resend", "chunk_id": 722, "persona": "expert", "nl_query": "why can the sandbox domain only send to my own address", "keyword_query": "sandbox domain restriction"}
+{"pack_name": "resend", "chunk_id": 722, "persona": "paraphrase", "nl_query": "test sends seem to land in just one inbox no matter who i target", "keyword_query": "test sends single inbox"}
+{"pack_name": "resend", "chunk_id": 729, "persona": "expert", "nl_query": "what happens when i exceed the per-second rate limit", "keyword_query": "rate limit 429 response"}
+{"pack_name": "resend", "chunk_id": 729, "persona": "paraphrase", "nl_query": "what error do i get if i send api calls too fast", "keyword_query": "error calls too fast"}
+{"pack_name": "resend", "chunk_id": 737, "persona": "expert", "nl_query": "benefits of double opt-in confirmation for new subscribers", "keyword_query": "double opt-in benefits"}
+{"pack_name": "resend", "chunk_id": 737, "persona": "paraphrase", "nl_query": "why should i make new sign-ups click a confirmation link", "keyword_query": "confirm signup click link"}
+{"pack_name": "resend", "chunk_id": 760, "persona": "expert", "nl_query": "do i need account approval before sending in production", "keyword_query": "account approval production"}
+{"pack_name": "resend", "chunk_id": 760, "persona": "paraphrase", "nl_query": "why do people think you need permission to go live when you don't", "keyword_query": "misconception going live"}
+{"pack_name": "resend", "chunk_id": 768, "persona": "expert", "nl_query": "where to download tax and compliance documents from account settings", "keyword_query": "tax compliance documents download"}
+{"pack_name": "resend", "chunk_id": 768, "persona": "paraphrase", "nl_query": "where do i find billing paperwork for my accountant", "keyword_query": "billing paperwork accountant"}
+{"pack_name": "resend", "chunk_id": 773, "persona": "expert", "nl_query": "add a dkim txt record through my dns host's control panel", "keyword_query": "add dkim txt record"}
+{"pack_name": "resend", "chunk_id": 773, "persona": "paraphrase", "nl_query": "how do i add a verification code to my domain's dns settings", "keyword_query": "domain dns verification code"}
+{"pack_name": "resend", "chunk_id": 780, "persona": "expert", "nl_query": "minimum framework version and bundler config for the email editor component", "keyword_query": "editor component requirements"}
+{"pack_name": "resend", "chunk_id": 780, "persona": "paraphrase", "nl_query": "what do i need installed before adding a rich text box to compose messages", "keyword_query": "rich text box prerequisites"}
+{"pack_name": "resend", "chunk_id": 791, "persona": "expert", "nl_query": "verify an inbound webhook payload and forward it elsewhere", "keyword_query": "verify inbound webhook forward"}
+{"pack_name": "resend", "chunk_id": 791, "persona": "paraphrase", "nl_query": "how do i check a received message is legit and pass it along", "keyword_query": "check message legit forward"}
+{"pack_name": "resend", "chunk_id": 808, "persona": "expert", "nl_query": "write a lambda handler that sends an email", "keyword_query": "lambda handler send email"}
+{"pack_name": "resend", "chunk_id": 808, "persona": "paraphrase", "nl_query": "how do i make a cloud function trigger a message send", "keyword_query": "cloud function trigger message"}
+{"pack_name": "resend", "chunk_id": 811, "persona": "expert", "nl_query": "verify sending domain with cloudflare dns and use a subdomain", "keyword_query": "verify domain cloudflare subdomain"}
+{"pack_name": "resend", "chunk_id": 811, "persona": "paraphrase", "nl_query": "should i use my main domain or a subdomain when proving ownership", "keyword_query": "main domain vs subdomain"}
+{"pack_name": "resend", "chunk_id": 894, "persona": "expert", "nl_query": "set up bimi so my logo shows in gmail", "keyword_query": "bimi logo setup"}
+{"pack_name": "resend", "chunk_id": 894, "persona": "paraphrase", "nl_query": "how do i get my company logo to show next to my messages", "keyword_query": "logo next to messages"}
+{"pack_name": "resend", "chunk_id": 899, "persona": "expert", "nl_query": "register bimi logo for root domain vs subdomain", "keyword_query": "bimi logo domain registration"}
+{"pack_name": "resend", "chunk_id": 899, "persona": "paraphrase", "nl_query": "should my brand mark point at the top-level web address or a specific prefix used for sending", "keyword_query": "brand mark top-level prefix"}
+{"pack_name": "resend", "chunk_id": 900, "persona": "expert", "nl_query": "what identity verification is needed for bimi logo approval", "keyword_query": "bimi identity verification"}
+{"pack_name": "resend", "chunk_id": 900, "persona": "paraphrase", "nl_query": "what documents prove my business owns the brand before showing a logo", "keyword_query": "prove business ownership documents"}
+{"pack_name": "resend", "chunk_id": 955, "persona": "expert", "nl_query": "set mx records on route53 for inbound email subdomain", "keyword_query": "mx records inbound subdomain"}
+{"pack_name": "resend", "chunk_id": 955, "persona": "paraphrase", "nl_query": "what dns entries let a subdomain receive incoming mail", "keyword_query": "dns entries receive mail"}
+{"pack_name": "resend", "chunk_id": 964, "persona": "expert", "nl_query": "single account vs per-customer accounts for multi-tenant isolation", "keyword_query": "multi-tenant account isolation"}
+{"pack_name": "resend", "chunk_id": 964, "persona": "paraphrase", "nl_query": "each client gets its own login instead of everyone sharing one", "keyword_query": "each client own login"}
+{"pack_name": "resend", "chunk_id": 976, "persona": "expert", "nl_query": "do separate accounts isolate webhook events without tagging", "keyword_query": "per-account webhook isolation"}
+{"pack_name": "resend", "chunk_id": 976, "persona": "paraphrase", "nl_query": "if every customer has their own account, do their notifications stay separate automatically", "keyword_query": "notifications separate automatically"}
+{"pack_name": "resend", "chunk_id": 1071, "persona": "expert", "nl_query": "how does open tracking pixel detect email opens", "keyword_query": "open tracking pixel"}
+{"pack_name": "resend", "chunk_id": 1071, "persona": "paraphrase", "nl_query": "how do you know if someone actually read the message you sent", "keyword_query": "know if someone read"}
+{"pack_name": "resend", "chunk_id": 1136, "persona": "expert", "nl_query": "install the mcp server package plus the inbound add-on", "keyword_query": "install mcp inbound addon"}
+{"pack_name": "resend", "chunk_id": 1136, "persona": "paraphrase", "nl_query": "how do i add ai assistant instructions and mail receiving support together", "keyword_query": "ai instructions mail receiving"}
+{"pack_name": "resend", "chunk_id": 1155, "persona": "expert", "nl_query": "idempotency key to avoid duplicate sends on retry", "keyword_query": "idempotency avoid duplicate"}
+{"pack_name": "resend", "chunk_id": 1155, "persona": "paraphrase", "nl_query": "how do i retry a failed request without it going out twice", "keyword_query": "retry without duplicate"}
+{"pack_name": "resend", "chunk_id": 1169, "persona": "expert", "nl_query": "npm install the node sdk for sending emails", "keyword_query": "npm install node sdk"}
+{"pack_name": "resend", "chunk_id": 1169, "persona": "paraphrase", "nl_query": "what package do i add to a node backend to send mail", "keyword_query": "node backend mail package"}
+{"pack_name": "resend", "chunk_id": 1190, "persona": "expert", "nl_query": "example projects for attachments templates scheduling and inbound", "keyword_query": "example projects sdk"}
+{"pack_name": "resend", "chunk_id": 1190, "persona": "paraphrase", "nl_query": "are there sample apps showing different messaging features", "keyword_query": "sample apps messaging features"}
+{"pack_name": "resend", "chunk_id": 1223, "persona": "expert", "nl_query": "optional send parameters like cc bcc headers and scheduled at", "keyword_query": "optional send parameters"}
+{"pack_name": "resend", "chunk_id": 1223, "persona": "paraphrase", "nl_query": "what extra options can i include when composing a message", "keyword_query": "extra message compose options"}
+{"pack_name": "resend", "chunk_id": 1250, "persona": "expert", "nl_query": "send html email using rails action mailer integration", "keyword_query": "action mailer html email"}
+{"pack_name": "resend", "chunk_id": 1250, "persona": "paraphrase", "nl_query": "how do i send a nicely formatted note using my framework's mailer class", "keyword_query": "framework mailer formatted note"}
+{"pack_name": "resend", "chunk_id": 1253, "persona": "expert", "nl_query": "what's needed to configure smtp credentials and domain before sending", "keyword_query": "smtp setup prerequisites"}
+{"pack_name": "resend", "chunk_id": 1253, "persona": "paraphrase", "nl_query": "what do i need ready before hooking up outgoing mail in my app", "keyword_query": "outgoing mail app requirements"}
+{"pack_name": "resend", "chunk_id": 1278, "persona": "expert", "nl_query": "anti-patterns to avoid when adding email sending to django", "keyword_query": "avoid anti-patterns email"}
+{"pack_name": "resend", "chunk_id": 1278, "persona": "paraphrase", "nl_query": "what mistakes do people commonly make wiring up mail in a web app", "keyword_query": "common mistakes wiring mail"}
+{"pack_name": "resend", "chunk_id": 1282, "persona": "expert", "nl_query": "assistant checklist before finalizing a framework email integration", "keyword_query": "ai checklist finalize integration"}
+{"pack_name": "resend", "chunk_id": 1282, "persona": "paraphrase", "nl_query": "what final checks happen right as the code is about to ship", "keyword_query": "pre-ship code review"}
+{"pack_name": "resend", "chunk_id": 1312, "persona": "expert", "nl_query": "prerequisites before starting a backend email integration", "keyword_query": "backend integration prerequisites"}
+{"pack_name": "resend", "chunk_id": 1312, "persona": "paraphrase", "nl_query": "what's the setup checklist before wiring mail into my server", "keyword_query": "setup checklist before wiring"}
+{"pack_name": "resend", "chunk_id": 1334, "persona": "expert", "nl_query": "best practice conventions for ai-generated email sending code", "keyword_query": "ai coding conventions email"}
+{"pack_name": "resend", "chunk_id": 1334, "persona": "paraphrase", "nl_query": "what rules should generated code follow when it sends mail", "keyword_query": "rules generated code mail"}
+{"pack_name": "resend", "chunk_id": 1348, "persona": "expert", "nl_query": "send html email from a flask route", "keyword_query": "flask send html email"}
+{"pack_name": "resend", "chunk_id": 1348, "persona": "paraphrase", "nl_query": "how do i send a formatted note from a small backend app", "keyword_query": "small backend formatted note"}
+{"pack_name": "resend", "chunk_id": 1357, "persona": "expert", "nl_query": "initialize the sdk client with my api key", "keyword_query": "initialize sdk client"}
+{"pack_name": "resend", "chunk_id": 1357, "persona": "paraphrase", "nl_query": "how do i set up the connection object before making any calls", "keyword_query": "set up connection object"}
+{"pack_name": "resend", "chunk_id": 1378, "persona": "expert", "nl_query": "what credentials and domain setup do i need before my first send in python", "keyword_query": "first send python prerequisites"}
+{"pack_name": "resend", "chunk_id": 1378, "persona": "paraphrase", "nl_query": "what does my app require so it can successfully deliver an initial message", "keyword_query": "app deliver initial message"}
+{"pack_name": "resend", "chunk_id": 1402, "persona": "expert", "nl_query": "smtp host port and login credentials for outgoing mail", "keyword_query": "smtp host port credentials"}
+{"pack_name": "resend", "chunk_id": 1402, "persona": "paraphrase", "nl_query": "where do i find the settings to hook up my email server", "keyword_query": "find email server settings"}
+{"pack_name": "resend", "chunk_id": 1433, "persona": "expert", "nl_query": "how to generate and securely store an api key and verify domain", "keyword_query": "generate store api key"}
+{"pack_name": "resend", "chunk_id": 1433, "persona": "paraphrase", "nl_query": "what's the safe way to keep my access token and confirm i own the site", "keyword_query": "safe way keep token"}
+{"pack_name": "resend", "chunk_id": 1478, "persona": "expert", "nl_query": "assistant code review checklist for imports async calls and error handling", "keyword_query": "code checklist async errors"}
+{"pack_name": "resend", "chunk_id": 1478, "persona": "paraphrase", "nl_query": "what should i double-check in generated code before trusting it", "keyword_query": "double check generated code"}
+{"pack_name": "resend", "chunk_id": 1485, "persona": "expert", "nl_query": "add the sdk dependency to mix.exs", "keyword_query": "add dependency mix exs"}
+{"pack_name": "resend", "chunk_id": 1485, "persona": "paraphrase", "nl_query": "how do i list the mail library in my package config file", "keyword_query": "list library package config"}
+{"pack_name": "resend", "chunk_id": 1492, "persona": "expert", "nl_query": "what do i need before sending through nodemailer with smtp", "keyword_query": "nodemailer smtp prerequisites"}
+{"pack_name": "resend", "chunk_id": 1492, "persona": "paraphrase", "nl_query": "what setup comes before using an smtp library to send mail", "keyword_query": "setup before smtp library"}
+{"pack_name": "resend", "chunk_id": 1519, "persona": "expert", "nl_query": "ensure at-most-once delivery when retrying a failed api call", "keyword_query": "at-most-once retry delivery"}
+{"pack_name": "resend", "chunk_id": 1519, "persona": "paraphrase", "nl_query": "how do i safely resend a request after a timeout without duplicating it", "keyword_query": "resend after timeout safely"}
+{"pack_name": "resend", "chunk_id": 1548, "persona": "expert", "nl_query": "build an email template using react components", "keyword_query": "react email components"}
+{"pack_name": "resend", "chunk_id": 1548, "persona": "paraphrase", "nl_query": "how do i design a message using reusable ui pieces instead of raw html", "keyword_query": "reusable ui pieces design"}
+{"pack_name": "resend", "chunk_id": 1562, "persona": "expert", "nl_query": "what api key and domain steps come before my first send in php", "keyword_query": "php first send setup"}
+{"pack_name": "resend", "chunk_id": 1562, "persona": "paraphrase", "nl_query": "what must a script have ready so it can successfully deliver an initial message", "keyword_query": "script deliver initial message"}
+{"pack_name": "resend", "chunk_id": 1570, "persona": "expert", "nl_query": "load api key from a config file instead of hardcoding", "keyword_query": "load api key config"}
+{"pack_name": "resend", "chunk_id": 1570, "persona": "paraphrase", "nl_query": "how do i keep my secret out of the source code", "keyword_query": "keep secret out source"}
+{"pack_name": "resend", "chunk_id": 1572, "persona": "expert", "nl_query": "what's needed before sending mail from a flask app", "keyword_query": "flask mail setup prerequisites"}
+{"pack_name": "resend", "chunk_id": 1572, "persona": "paraphrase", "nl_query": "what has to be ready before a small web app can email users", "keyword_query": "small app email ready"}
+{"pack_name": "resend", "chunk_id": 1609, "persona": "expert", "nl_query": "install the sdk in a next.js project", "keyword_query": "install sdk nextjs"}
+{"pack_name": "resend", "chunk_id": 1609, "persona": "paraphrase", "nl_query": "what package do i add to my full-stack js app to send mail", "keyword_query": "fullstack js mail package"}
+{"pack_name": "resend", "chunk_id": 1618, "persona": "expert", "nl_query": "guidance for ai-generated code sending mail in a serverless environment", "keyword_query": "ai serverless email guidance"}
+{"pack_name": "resend", "chunk_id": 1618, "persona": "paraphrase", "nl_query": "are there conventions for how machine-written programs should message users when running as cloud functions", "keyword_query": "cloud functions messaging conventions"}
+{"pack_name": "resend", "chunk_id": 1639, "persona": "expert", "nl_query": "store the api key as an environment variable", "keyword_query": "api key env variable"}
+{"pack_name": "resend", "chunk_id": 1639, "persona": "paraphrase", "nl_query": "what's the best way to keep a secret out of my codebase using env vars", "keyword_query": "secret out codebase envvar"}

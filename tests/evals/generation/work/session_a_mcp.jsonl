@@ -1,0 +1,80 @@
+{"pack_name": "mcp", "chunk_id": 14, "capability": "how to build a command-line chat loop that accepts user input, shows responses, handles errors, and exits gracefully"}
+{"pack_name": "mcp", "chunk_id": 52, "capability": "how to write a query-processing loop that sends user input to a language model, executes any requested tool calls, and feeds results back for a final response"}
+{"pack_name": "mcp", "chunk_id": 55, "capability": "how to launch a client application from the command line so it connects to a server, lists available tools, and starts an interactive chat session"}
+{"pack_name": "mcp", "chunk_id": 62, "capability": "how to locate the full sample project for building a client so you can follow along without retyping code"}
+{"pack_name": "mcp", "chunk_id": 66, "capability": "how to scaffold a console application that reads a secret API key from local configuration and initializes a client that lists available tools over a local process transport"}
+{"pack_name": "mcp", "chunk_id": 89, "capability": "how to troubleshoot a client failing to find its server script by checking for correct file paths, extensions, and operating-system-specific path separators"}
+{"pack_name": "mcp", "chunk_id": 94, "capability": "how to scaffold a new project and add the dependencies needed to build a command-line client that talks to a local process over standard input and output"}
+{"pack_name": "mcp", "chunk_id": 145, "capability": "how to wrap an external web API behind a small service class so its methods are automatically exposed as callable tools"}
+{"pack_name": "mcp", "chunk_id": 164, "capability": "understand why writing plain log output to the standard output stream will break a process that communicates over standard input and output, and why that risk disappears for network-based servers"}
+{"pack_name": "mcp", "chunk_id": 181, "capability": "how to find a complete reference implementation of a weather-lookup server so you can see the full working code before writing your own"}
+{"pack_name": "mcp", "chunk_id": 193, "capability": "how to wire up a server's entry point to communicate over standard input and output, then build and test the compiled binary against a real client"}
+{"pack_name": "mcp", "chunk_id": 195, "capability": "how to locate the reference source code for a weather-lookup server implemented in a particular programming language"}
+{"pack_name": "mcp", "chunk_id": 202, "capability": "how to define the data structures that represent an external API's request and response shapes before wiring them into your own tool functions"}
+{"pack_name": "mcp", "chunk_id": 213, "capability": "understand the questions an automated build assistant will ask before generating a new integration, covering what it connects to, who will use it, and how users will interact with it"}
+{"pack_name": "mcp", "chunk_id": 232, "capability": "understand what tools and accounts you need to install before following a step-by-step setup tutorial"}
+{"pack_name": "mcp", "chunk_id": 260, "capability": "understand how a shared data format and message-based communication style let two connected programs exchange information and know when a response is expected"}
+{"pack_name": "mcp", "chunk_id": 290, "capability": "choose between different ways an application might let a user browse, search, or automatically surface pieces of shared context for inclusion in a conversation"}
+{"pack_name": "mcp", "chunk_id": 323, "capability": "understand where to find further guidance on debugging tools, building a server from scratch, and configuring a desktop application that uses it"}
+{"pack_name": "mcp", "chunk_id": 331, "capability": "how to launch a visual debugging tool against a locally running server implemented in a particular scripting language"}
+{"pack_name": "mcp", "chunk_id": 400, "capability": "understand the range of example integrations available, covering web content retrieval, file access, version control, persistent memory, structured reasoning, and time conversion"}
+{"pack_name": "mcp", "chunk_id": 414, "capability": "configure a front-end build tool to bundle an entire application into a single output file before continuing to implement the accompanying backend and interface"}
+{"pack_name": "mcp", "chunk_id": 447, "capability": "understand how official client libraries can automatically obtain and renew access tokens for service-to-service authentication without extra code"}
+{"pack_name": "mcp", "chunk_id": 454, "capability": "understand where to find the underlying technical specification and standards documents referenced by a particular authentication extension"}
+{"pack_name": "mcp", "chunk_id": 458, "capability": "choose between authentication approaches depending on whether a background service, automated pipeline, or individual employee needs to access a protected system"}
+{"pack_name": "mcp", "chunk_id": 464, "capability": "understand where to check the current implementation status of an optional authentication feature across different client and server implementations"}
+{"pack_name": "mcp", "chunk_id": 483, "capability": "understand why a durable, poll-based handle for tracking long-running work is more resilient to timeouts, disconnects, and mid-task input needs than holding a connection open"}
+{"pack_name": "mcp", "chunk_id": 509, "capability": "choose between different ways a client can register itself with an authorization server when there is no prior trust relationship established"}
+{"pack_name": "mcp", "chunk_id": 550, "capability": "understand which schema validation standard and version is assumed by default when a data shape definition does not explicitly declare one"}
+{"pack_name": "mcp", "chunk_id": 573, "capability": "understand the rules for sending messages when a client keeps several open streaming connections at once, so no single message gets duplicated across streams"}
+{"pack_name": "mcp", "chunk_id": 579, "capability": "understand what requirements a custom communication channel must satisfy in order to carry a standardized message format between connected programs"}
+{"pack_name": "mcp", "chunk_id": 610, "capability": "how to explicitly cancel a long-running background operation that was previously started and is still being tracked by an identifier"}
+{"pack_name": "mcp", "chunk_id": 700, "capability": "understand the roles that different pieces of software play when sharing contextual information and callable capabilities between an application and connected services"}
+{"pack_name": "mcp", "chunk_id": 708, "capability": "understand the different message shapes used to represent requests, notifications, successful results, and errors in a request/response protocol"}
+{"pack_name": "mcp", "chunk_id": 716, "capability": "understand which one-way message a connecting program sends to signal that its startup handshake has finished"}
+{"pack_name": "mcp", "chunk_id": 748, "capability": "how to fetch a predefined, reusable instruction template by name and supply the arguments it needs to fill in"}
+{"pack_name": "mcp", "chunk_id": 753, "capability": "understand the simplest content shape used to represent a plain natural-language message exchanged between programs"}
+{"pack_name": "mcp", "chunk_id": 788, "capability": "understand the difference between free-form and machine-readable results a callable action can return, and the optional metadata describing audience and priority attached to them"}
+{"pack_name": "mcp", "chunk_id": 792, "capability": "understand how a callable action can point to a larger piece of content by reference instead of returning the full content directly"}
+{"pack_name": "mcp", "chunk_id": 874, "capability": "understand the different levels of involvement a community member can reach, from casual contributor up to positions with final decision-making authority"}
+{"pack_name": "mcp", "chunk_id": 879, "capability": "understand the responsibilities and lifetime authority held by the most senior leadership role in an open-source community's governance structure"}
+{"pack_name": "mcp", "chunk_id": 880, "capability": "understand how a community selects a new top leader when the previous one leaves the role without being able to name a successor"}
+{"pack_name": "mcp", "chunk_id": 934, "capability": "understand how bug reports are ranked by severity, from critical failures affecting core functionality to minor edge-case requests"}
+{"pack_name": "mcp", "chunk_id": 956, "capability": "understand what counts as sufficient proof-of-concept evidence when proposing a new feature for a shared specification, and what forms of evidence are not enough"}
+{"pack_name": "mcp", "chunk_id": 1052, "capability": "choose between two different network transport styles when describing how a remotely hosted service can be reached"}
+{"pack_name": "mcp", "chunk_id": 1117, "capability": "understand why adding a new authentication flow does not break any of the existing ones already supported"}
+{"pack_name": "mcp", "chunk_id": 1137, "capability": "understand what migration steps existing community groups need to follow when new governance rules formalize how they already operate"}
+{"pack_name": "mcp", "chunk_id": 1151, "capability": "understand why treating invalid input as a recoverable execution error instead of a hard failure helps automated callers self-correct without breaking existing behavior"}
+{"pack_name": "mcp", "chunk_id": 1170, "capability": "understand an older pattern for presenting a fixed list of choices to a user alongside a human-readable label for each option"}
+{"pack_name": "mcp", "chunk_id": 1203, "capability": "understand the valid ways to declare that a callable action accepts no input parameters, and the requirement that its input definition never be left unset"}
+{"pack_name": "mcp", "chunk_id": 1227, "capability": "understand how a one-way notice tells a caller that a long-running background operation has been created and is now ready to be checked on"}
+{"pack_name": "mcp", "chunk_id": 1230, "capability": "understand which participants in a conversation must follow a shared set of rules when supporting long-running background operations"}
+{"pack_name": "mcp", "chunk_id": 1253, "capability": "choose between reporting a low-level communication failure and reporting a failure that happened while a background operation itself was running"}
+{"pack_name": "mcp", "chunk_id": 1257, "capability": "understand why a service handling many long-running background operations needs limits on how many run at once and how long results are kept before cleanup"}
+{"pack_name": "mcp", "chunk_id": 1287, "capability": "understand how different implementations of the same specification are scored for compliance by running example servers against a shared test suite"}
+{"pack_name": "mcp", "chunk_id": 1308, "capability": "understand how design proposals for a shared specification are tracked as version-controlled files instead of through a separate issue-tracking process"}
+{"pack_name": "mcp", "chunk_id": 1330, "capability": "choose between predeclaring a piece of interface content ahead of time versus embedding it directly inside a tool's response, weighing performance, caching, and review tradeoffs"}
+{"pack_name": "mcp", "chunk_id": 1352, "capability": "how to let a callable action accept one of several alternative input shapes, such as looking something up by either an identifier or a name"}
+{"pack_name": "mcp", "chunk_id": 1409, "capability": "understand the minimal, informal bar for being recognized as a contributor to an open community project, and where to find beginner-friendly ways to start"}
+{"pack_name": "mcp", "chunk_id": 1453, "capability": "understand who must propose and approve a change to the governing rules of a community working group"}
+{"pack_name": "mcp", "chunk_id": 1461, "capability": "how to document a community group's recurring meeting cadence, covering regular working sessions as well as open question-and-answer time for newcomers"}
+{"pack_name": "mcp", "chunk_id": 1467, "capability": "choose between different levels of engagement a community member can take on, from passive observation to a role with ongoing operational responsibility"}
+{"pack_name": "mcp", "chunk_id": 1491, "capability": "understand why following new guidance about requesting long-lived credentials is optional and will not break clients or servers that skip it"}
+{"pack_name": "mcp", "chunk_id": 1519, "capability": "choose between different ways to safely represent header values containing characters that cannot be sent as plain, unescaped text"}
+{"pack_name": "mcp", "chunk_id": 1533, "capability": "understand which input parameter types are not allowed to be marked for transmission as custom request headers, and why a server must reject them"}
+{"pack_name": "mcp", "chunk_id": 1541, "capability": "understand why a server-initiated request should normally happen only as a nested part of handling an existing request from the other side"}
+{"pack_name": "mcp", "chunk_id": 1543, "capability": "understand the new documentation warnings clarifying that certain server-initiated requests must always be tied to an originating client request"}
+{"pack_name": "mcp", "chunk_id": 1579, "capability": "understand the back-and-forth a client and server follow when a long-running operation pauses partway through to ask for additional input"}
+{"pack_name": "mcp", "chunk_id": 1588, "capability": "understand how requiring an explicit sender identity in authorization responses helps prevent a client from being tricked by a response from the wrong identity provider"}
+{"pack_name": "mcp", "chunk_id": 1676, "capability": "how to ask a server which protocol versions and features it supports before choosing one to use for the rest of the session"}
+{"pack_name": "mcp", "chunk_id": 1678, "capability": "understand which identifying and capability information must travel with every individual request instead of being fixed once during an initial handshake"}
+{"pack_name": "mcp", "chunk_id": 1683, "capability": "how to open a long-lived channel for receiving one-way updates that are not tied to any specific request that was just sent"}
+{"pack_name": "mcp", "chunk_id": 1724, "capability": "understand how long a feature marked as deprecated will continue to be supported before it can be removed from later specification versions"}
+{"pack_name": "mcp", "chunk_id": 1762, "capability": "understand the different states a long-running background operation can be in, from actively running to waiting for input, finishing, failing, or being cancelled"}
+{"pack_name": "mcp", "chunk_id": 1791, "capability": "understand how distributed tracing identifiers are carried alongside a request so that operations can be followed across multiple connected services"}
+{"pack_name": "mcp", "chunk_id": 1808, "capability": "understand the responsibilities and decision-making power held by senior technical leaders who steer a shared specification's ongoing evolution"}
+{"pack_name": "mcp", "chunk_id": 1843, "capability": "understand how a server can decide to trust a client it has never seen before, based on the client's hosted identity information rather than prior registration"}
+{"pack_name": "mcp", "chunk_id": 1857, "capability": "understand why several alternative approaches to client registration were rejected in favor of a simpler, self-hosted identity document"}
+{"pack_name": "mcp", "chunk_id": 1925, "capability": "understand who currently participates in and facilitates a particular community interest group, and what level of involvement each person holds"}
+{"pack_name": "mcp", "chunk_id": 2007, "capability": "understand how one community working group coordinates with related groups on rollout timing, test coverage, and consuming approved specification changes"}
+{"pack_name": "mcp", "chunk_id": 2045, "capability": "understand which topics a working group focused on proactive server-initiated delivery explicitly does not cover, such as transport format changes or general messaging infrastructure"}

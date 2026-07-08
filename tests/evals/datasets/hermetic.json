@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "description": "Gold retrieval questions against the committed hermetic eval corpus. Each gold ref is (source_path, heading_path); source_path matches by suffix against chunk source_url, heading_path matches exactly. difficulty: 'direct' = query terms appear in the gold chunk; 'paraphrase' = natural phrasing, key terms present; 'vocabulary_mismatch' = deliberately avoids the chunk's vocabulary to expose BM25 limits.",
+  "corpus": {
+    "type": "hermetic",
+    "package": "evalcorpus",
+    "version": "1.0.0",
+    "source": "tests/evals/fixtures/corpus"
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "difficulty": "direct",
+      "query": "tool annotations readOnlyHint destructiveHint",
+      "keyword_query": "tool annotations readOnlyHint destructiveHint",
+      "gold": [{"source_path": "mcp/tools.md", "heading_path": "mcp/tools / Tools / Tool Annotations"}]
+    },
+    {
+      "id": "q002",
+      "difficulty": "paraphrase",
+      "query": "How do I mark a tool as safe to retry?",
+      "keyword_query": "idempotent tool annotation retry",
+      "gold": [{"source_path": "mcp/tools.md", "heading_path": "mcp/tools / Tools / Tool Annotations"}]
+    },
+    {
+      "id": "q003",
+      "difficulty": "direct",
+      "query": "tools/call arguments content blocks structuredContent",
+      "keyword_query": "tools call arguments structuredContent",
+      "gold": [{"source_path": "mcp/tools.md", "heading_path": "mcp/tools / Tools / Calling Tools"}]
+    },
+    {
+      "id": "q004",
+      "difficulty": "paraphrase",
+      "query": "Why does my tool error come back inside the result instead of as a protocol error?",
+      "keyword_query": "tool execution error isError result",
+      "gold": [{"source_path": "mcp/tools.md", "heading_path": "mcp/tools / Tools / Error Handling"}]
+    },
+    {
+      "id": "q005",
+      "difficulty": "direct",
+      "query": "resource templates RFC 6570 URI placeholders",
+      "keyword_query": "resource templates URI RFC 6570",
+      "gold": [{"source_path": "mcp/resources.md", "heading_path": "mcp/resources / Resources / Resource Templates"}]
+    },
+    {
+      "id": "q006",
+      "difficulty": "paraphrase",
+      "query": "get notified when a resource I care about changes",
+      "keyword_query": "resource subscribe updated notification",
+      "gold": [{"source_path": "mcp/resources.md", "heading_path": "mcp/resources / Resources / Subscriptions"}]
+    },
+    {
+      "id": "q007",
+      "difficulty": "vocabulary_mismatch",
+      "query": "should I expose my data as something the user picks or something the model fetches",
+      "keyword_query": "choosing between resources and tools",
+      "gold": [{"source_path": "mcp/resources.md", "heading_path": "mcp/resources / Resources / Choosing Between Resources and Tools"}]
+    },
+    {
+      "id": "q008",
+      "difficulty": "direct",
+      "query": "prompts/get rendered messages role content",
+      "keyword_query": "prompts get rendered messages",
+      "gold": [{"source_path": "mcp/prompts.md", "heading_path": "mcp/prompts / Prompts / Getting a Prompt"}]
+    },
+    {
+      "id": "q009",
+      "difficulty": "paraphrase",
+      "query": "offer reusable slash command templates from my server",
+      "keyword_query": "prompts user-controlled templates slash commands",
+      "gold": [{"source_path": "mcp/prompts.md", "heading_path": "mcp/prompts / Prompts"}]
+    },
+    {
+      "id": "q010",
+      "difficulty": "direct",
+      "query": "stdio transport stdout stderr protocol stream",
+      "keyword_query": "stdio transport stdout stderr",
+      "gold": [
+        {"source_path": "mcp/transports.md", "heading_path": "mcp/transports / Transports / stdio Transport"},
+        {"source_path": "mcp/logging.md", "heading_path": "mcp/logging / Logging / stdio Servers and stderr"}
+      ]
+    },
+    {
+      "id": "q011",
+      "difficulty": "direct",
+      "query": "Streamable HTTP Mcp-Session-Id header sessions",
+      "keyword_query": "Streamable HTTP Mcp-Session-Id",
+      "gold": [{"source_path": "mcp/transports.md", "heading_path": "mcp/transports / Transports / Streamable HTTP Transport"}]
+    },
+    {
+      "id": "q012",
+      "difficulty": "paraphrase",
+      "query": "is the old SSE transport still supported",
+      "keyword_query": "HTTP SSE transport deprecated",
+      "gold": [
+        {"source_path": "mcp/transports.md", "heading_path": "mcp/transports / Transports / Deprecated: HTTP+SSE Transport"},
+        {"source_path": "fastmcp/running-server.md", "heading_path": "fastmcp/running-server / Running Your Server / Transport Protocols / SSE Transport (Legacy)"}
+      ]
+    },
+    {
+      "id": "q013",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how do I make users log in before using my server",
+      "keyword_query": "authorization OAuth access token HTTP",
+      "gold": [
+        {"source_path": "mcp/authorization.md", "heading_path": "mcp/authorization / Authorization"},
+        {"source_path": "mcp/authorization.md", "heading_path": "mcp/authorization / Authorization / When Authorization Applies"}
+      ]
+    },
+    {
+      "id": "q014",
+      "difficulty": "direct",
+      "query": "authorization code flow PKCE code verifier challenge",
+      "keyword_query": "authorization code PKCE verifier",
+      "gold": [{"source_path": "mcp/authorization.md", "heading_path": "mcp/authorization / Authorization / Authorization Code Flow with PKCE"}]
+    },
+    {
+      "id": "q015",
+      "difficulty": "paraphrase",
+      "query": "client registers itself with the auth server automatically, no manual credentials",
+      "keyword_query": "dynamic client registration RFC 7591",
+      "gold": [{"source_path": "mcp/authorization.md", "heading_path": "mcp/authorization / Authorization / Dynamic Client Registration"}]
+    },
+    {
+      "id": "q016",
+      "difficulty": "direct",
+      "query": "Bearer header resource indicator token audience validation",
+      "keyword_query": "Bearer token audience resource indicator",
+      "gold": [{"source_path": "mcp/authorization.md", "heading_path": "mcp/authorization / Authorization / Using Access Tokens"}]
+    },
+    {
+      "id": "q017",
+      "difficulty": "vocabulary_mismatch",
+      "query": "let my server use the model to summarize text without having its own API key",
+      "keyword_query": "sampling createMessage server completion",
+      "gold": [
+        {"source_path": "mcp/sampling.md", "heading_path": "mcp/sampling / Sampling"},
+        {"source_path": "mcp/sampling.md", "heading_path": "mcp/sampling / Sampling / Requesting a Completion"}
+      ]
+    },
+    {
+      "id": "q018",
+      "difficulty": "direct",
+      "query": "costPriority speedPriority intelligencePriority model hints",
+      "keyword_query": "model preferences costPriority speedPriority",
+      "gold": [{"source_path": "mcp/sampling.md", "heading_path": "mcp/sampling / Sampling / Model Preferences"}]
+    },
+    {
+      "id": "q019",
+      "difficulty": "vocabulary_mismatch",
+      "query": "ask the user a question in the middle of a tool call",
+      "keyword_query": "elicitation request user input schema",
+      "gold": [
+        {"source_path": "mcp/elicitation.md", "heading_path": "mcp/elicitation / Elicitation"},
+        {"source_path": "mcp/elicitation.md", "heading_path": "mcp/elicitation / Elicitation / Requesting Input"}
+      ]
+    },
+    {
+      "id": "q020",
+      "difficulty": "direct",
+      "query": "elicitation accept decline cancel actions",
+      "keyword_query": "elicitation accept decline cancel",
+      "gold": [{"source_path": "mcp/elicitation.md", "heading_path": "mcp/elicitation / Elicitation / Response Actions"}]
+    },
+    {
+      "id": "q021",
+      "difficulty": "direct",
+      "query": "logging setLevel syslog severities minimum level",
+      "keyword_query": "logging setLevel severity levels",
+      "gold": [{"source_path": "mcp/logging.md", "heading_path": "mcp/logging / Logging / Log Levels"}]
+    },
+    {
+      "id": "q022",
+      "difficulty": "vocabulary_mismatch",
+      "query": "my stdio server breaks and disconnects whenever I print debug output",
+      "keyword_query": "stdout protocol corrupt stderr logging stdio",
+      "gold": [
+        {"source_path": "mcp/logging.md", "heading_path": "mcp/logging / Logging / stdio Servers and stderr"},
+        {"source_path": "fastmcp/context.md", "heading_path": "fastmcp/context / The Context Object / Logging Through the Context"}
+      ]
+    },
+    {
+      "id": "q023",
+      "difficulty": "direct",
+      "query": "roots/list file:// workspace folders capability",
+      "keyword_query": "roots list file URI workspace",
+      "gold": [
+        {"source_path": "mcp/roots.md", "heading_path": "mcp/roots / Roots"},
+        {"source_path": "mcp/roots.md", "heading_path": "mcp/roots / Roots / Listing Roots"}
+      ]
+    },
+    {
+      "id": "q024",
+      "difficulty": "direct",
+      "query": "initialize request initialized notification capabilities lifecycle",
+      "keyword_query": "initialize initialized capability negotiation",
+      "gold": [
+        {"source_path": "mcp/overview.md", "heading_path": "mcp/overview / Model Context Protocol Overview / Connection Lifecycle"},
+        {"source_path": "mcp/overview.md", "heading_path": "mcp/overview / Model Context Protocol Overview / Capability Negotiation"}
+      ]
+    },
+    {
+      "id": "q025",
+      "difficulty": "paraphrase",
+      "query": "what does the MCP protocol version string look like and how is it negotiated",
+      "keyword_query": "protocol version date negotiation",
+      "gold": [{"source_path": "mcp/overview.md", "heading_path": "mcp/overview / Model Context Protocol Overview / Protocol Versioning"}]
+    },
+    {
+      "id": "q026",
+      "difficulty": "direct",
+      "query": "JSON-RPC requests responses notifications framing",
+      "keyword_query": "JSON-RPC request response notification",
+      "gold": [{"source_path": "mcp/overview.md", "heading_path": "mcp/overview / Model Context Protocol Overview / Protocol Layers"}]
+    },
+    {
+      "id": "q027",
+      "difficulty": "direct",
+      "query": "@mcp.tool decorator register python function type hints",
+      "keyword_query": "mcp tool decorator register function",
+      "gold": [{"source_path": "fastmcp/quickstart.md", "heading_path": "fastmcp/quickstart / FastMCP Quickstart / Registering Tools"}]
+    },
+    {
+      "id": "q028",
+      "difficulty": "paraphrase",
+      "query": "publish a tool under a different name than the python function name",
+      "keyword_query": "tool name parameter decorator explicit",
+      "gold": [{"source_path": "fastmcp/quickstart.md", "heading_path": "fastmcp/quickstart / FastMCP Quickstart / Registering Tools"}]
+    },
+    {
+      "id": "q029",
+      "difficulty": "direct",
+      "query": "FastMCP resource decorator URI placeholders template",
+      "keyword_query": "resource decorator URI template placeholder",
+      "gold": [{"source_path": "fastmcp/quickstart.md", "heading_path": "fastmcp/quickstart / FastMCP Quickstart / Registering Resources"}]
+    },
+    {
+      "id": "q030",
+      "difficulty": "paraphrase",
+      "query": "start my FastMCP server so Claude Desktop can launch it",
+      "keyword_query": "mcp run stdio default transport",
+      "gold": [
+        {"source_path": "fastmcp/quickstart.md", "heading_path": "fastmcp/quickstart / FastMCP Quickstart / Creating a Server"},
+        {"source_path": "fastmcp/running-server.md", "heading_path": "fastmcp/running-server / Running Your Server / Transport Protocols / STDIO Transport (Default)"}
+      ]
+    },
+    {
+      "id": "q031",
+      "difficulty": "vocabulary_mismatch",
+      "query": "show a progress bar while my slow tool is working",
+      "keyword_query": "report_progress notifications progress total",
+      "gold": [{"source_path": "fastmcp/context.md", "heading_path": "fastmcp/context / The Context Object / Progress Reporting"}]
+    },
+    {
+      "id": "q032",
+      "difficulty": "direct",
+      "query": "Context parameter type annotation injected session capabilities",
+      "keyword_query": "Context parameter annotation injected",
+      "gold": [
+        {"source_path": "fastmcp/context.md", "heading_path": "fastmcp/context / The Context Object"},
+        {"source_path": "fastmcp/context.md", "heading_path": "fastmcp/context / The Context Object / Getting a Context"}
+      ]
+    },
+    {
+      "id": "q033",
+      "difficulty": "paraphrase",
+      "query": "read one of my own server's resources from inside a tool",
+      "keyword_query": "read_resource tool context share data",
+      "gold": [{"source_path": "fastmcp/context.md", "heading_path": "fastmcp/context / The Context Object / Reading Resources from a Tool"}]
+    },
+    {
+      "id": "q034",
+      "difficulty": "direct",
+      "query": "in-memory testing Client server instance pytest",
+      "keyword_query": "in-memory Client testing pytest",
+      "gold": [{"source_path": "fastmcp/testing.md", "heading_path": "fastmcp/testing / Testing FastMCP Servers / In-Memory Testing with the Client"}]
+    },
+    {
+      "id": "q035",
+      "difficulty": "paraphrase",
+      "query": "write a test that catches when my tool's generated schema changes",
+      "keyword_query": "list_tools assert input schema test",
+      "gold": [{"source_path": "fastmcp/testing.md", "heading_path": "fastmcp/testing / Testing FastMCP Servers / Inspecting Registered Capabilities"}]
+    },
+    {
+      "id": "q036",
+      "difficulty": "vocabulary_mismatch",
+      "query": "a web page my tool fetched contained instructions and the model followed them",
+      "keyword_query": "confused deputy prompt injection untrusted content",
+      "gold": [{"source_path": "mcp/security.md", "heading_path": "mcp/security / Security Considerations / Confused Deputy Problems"}]
+    },
+    {
+      "id": "q037",
+      "difficulty": "direct",
+      "query": "token passthrough audience reject upstream API",
+      "keyword_query": "token passthrough audience reject",
+      "gold": [{"source_path": "mcp/security.md", "heading_path": "mcp/security / Security Considerations / Token Passthrough"}]
+    },
+    {
+      "id": "q038",
+      "difficulty": "direct",
+      "query": "fastmcp CLI auto-reload during development",
+      "keyword_query": "fastmcp dev auto-reload",
+      "gold": [{"source_path": "fastmcp/running-server.md", "heading_path": "fastmcp/running-server / Running Your Server / The FastMCP CLI / Auto-Reload for Development"}]
+    },
+    {
+      "id": "q039",
+      "difficulty": "paraphrase",
+      "query": "mount my FastMCP server inside an existing web application",
+      "keyword_query": "ASGI application mount FastMCP",
+      "gold": [{"source_path": "fastmcp/running-server.md", "heading_path": "fastmcp/running-server / Running Your Server / Alternative Initialization Patterns / ASGI Applications"}]
+    },
+    {
+      "id": "q040",
+      "difficulty": "direct",
+      "query": "OAuth2 client credentials flow configure",
+      "keyword_query": "OAuth2 client credentials",
+      "gold": [{"source_path": "synd/oauth.md", "heading_path": "synd/oauth / OAuth2 / Client Credentials"}]
+    },
+    {
+      "id": "q041",
+      "difficulty": "paraphrase",
+      "query": "which environment variables does the service read",
+      "keyword_query": "environment variables configuration",
+      "gold": [{"source_path": "synd/config.md", "heading_path": "synd/config / Configuration / Environment Variables"}]
+    },
+    {
+      "id": "q042",
+      "difficulty": "paraphrase",
+      "query": "should my tool functions be async when they do network calls",
+      "keyword_query": "async def tools IO event loop",
+      "gold": [{"source_path": "fastmcp/quickstart.md", "heading_path": "fastmcp/quickstart / FastMCP Quickstart / Async Functions"}]
+    }
+  ]
+}

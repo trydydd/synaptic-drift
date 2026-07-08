@@ -113,6 +113,7 @@ class ToolResultsResponse(TypedDict):
     """Results envelope returned by search/fetch."""
 
     results: list[ToolResultItem]
+    query_used: NotRequired[str]
 
 
 class ToolNotIndexedResponse(TypedDict):
