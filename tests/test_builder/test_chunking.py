@@ -264,6 +264,51 @@ class TestChunkContent:
                 f"Chunk too large: {len(chunk.content)}"
             )
 
+    def test_oversized_section_of_fences_splits_between_blocks(self) -> None:
+        # A section over budget made of top-level fences (no paragraphs) must
+        # split between blocks — the old splitter only fired on paragraphs.
+        fences = [
+            f"```python\nblock_{i} = {i}\n" + ("filler = 1\n" * 20) + "```"
+            for i in range(6)
+        ]
+        content = "## Section\n\n" + "\n\n".join(fences) + "\n"
+        chunks = chunk_content(
+            content,
+            heading_prefix="x",
+            source_url="x.md",
+            page_id=1,
+            max_chunk_tokens=50,
+        )
+        assert len(chunks) >= 2
+        # Each fence must remain whole inside exactly one chunk
+        for i in range(6):
+            containing = [c for c in chunks if f"block_{i} = {i}" in c.content]
+            assert len(containing) == 1, f"Fence {i} split across chunks"
+
+    def test_oversized_indented_code_block_splits_at_blank_lines(self) -> None:
+        # markdownify renders Sphinx <dl> API listings as 4-space-indented
+        # text, which markdown-it parses as ONE atomic code_block token — the
+        # matplotlib figure_api page became a single 24k-token chunk this way.
+        # Blank lines inside the block are the only safe split points.
+        entries = [
+            f"    method_{i}(arg)\n    :   description " + ("word " * 30)
+            for i in range(8)
+        ]
+        content = "## API\n\nAn intro paragraph for the class.\n\n"
+        content += "\n\n".join(entries) + "\n"
+        chunks = chunk_content(
+            content,
+            heading_prefix="x",
+            source_url="x.md",
+            page_id=1,
+            max_chunk_tokens=50,
+        )
+        assert len(chunks) >= 2, "Oversized indented code_block was not split"
+        for chunk in chunks:
+            assert len(chunk.content) // 4 <= 100, (
+                f"Chunk exceeds 2x budget: {len(chunk.content) // 4} tokens"
+            )
+
     def test_no_headings_is_single_chunk(self) -> None:
         content = "Just a paragraph.\n\nAnother paragraph.\n"
         chunks = chunk_content(

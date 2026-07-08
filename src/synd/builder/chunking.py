@@ -15,6 +15,10 @@ _DEFAULT_MAX_CHUNK_TOKENS: int = 800
 _DEFAULT_MIN_CHUNK_TOKENS: int = 20
 _WHITELISTED = {".md", ".html", ".htm"}
 
+# Top-level block tokens that carry their own source map and have no
+# matching *_close token.
+_SELF_CLOSING_BLOCKS = {"fence", "code_block", "html_block", "hr"}
+
 
 @dataclass
 class RawChunk:
@@ -54,9 +58,13 @@ def chunk_content(
 ) -> list[RawChunk]:
     """Chunk markdown content using a markdown-it-py token walker.
 
-    Splits at all heading levels (#-######). Treats code fences as atomic.
-    Splits oversized sections at paragraph boundaries when content exceeds
-    max_chunk_tokens (measured as len(text) // 4).
+    Splits at all heading levels (#-######). Splits oversized sections at
+    top-level block boundaries (paragraphs, fences, lists, tables, …) when
+    content exceeds max_chunk_tokens (measured as len(text) // 4). Blocks are
+    atomic — a code fence is never split internally — with one exception:
+    an indented code_block that alone exceeds the budget is split at blank
+    lines, because markdownify renders Sphinx <dl> API listings as indented
+    text that markdown-it parses as a single giant code_block.
     """
     tokens = _MD.parse(content)
     source_lines = content.split("\n")
@@ -67,7 +75,7 @@ def chunk_content(
     level_stack: list[int] = [0]  # parallel to ancestor_stack; 0 = prefix sentinel
 
     chunk_start_line: int = 0
-    current_para_end_line: int = 0
+    current_block_end_line: int = 0
     chunks: list[RawChunk] = []
 
     def _emit(end_line: int) -> None:
@@ -116,17 +124,38 @@ def chunk_content(
             i += 3  # skip heading_open, inline, heading_close
             continue
 
-        # Track end of paragraphs for overflow detection
-        if token.type == "paragraph_open" and token.map:
-            current_para_end_line = token.map[1]
+        # An indented code_block that alone exceeds the budget has no inner
+        # block boundaries to split at; use its blank lines instead.
+        if (
+            token.type == "code_block"
+            and token.level == 0
+            and token.map is not None
+            and len("\n".join(source_lines[token.map[0] : token.map[1]])) // 4
+            > max_chunk_tokens
+        ):
+            for line_no in range(token.map[0], token.map[1]):
+                if source_lines[line_no].strip():
+                    continue
+                accumulated = "\n".join(source_lines[chunk_start_line:line_no])
+                if len(accumulated) // 4 > max_chunk_tokens:
+                    _emit(line_no)
 
-        # At paragraph close: split if accumulated content exceeds the token budget
-        if token.type == "paragraph_close":
+        # Track the end of the current top-level block for overflow detection.
+        # Open tokens and self-closing blocks carry a source map; close tokens
+        # do not, so the map recorded at the open is still current at the close.
+        if token.level == 0 and token.map is not None:
+            current_block_end_line = token.map[1]
+
+        # At each top-level block boundary: split if accumulated content
+        # exceeds the token budget.
+        if token.level == 0 and (
+            token.type.endswith("_close") or token.type in _SELF_CLOSING_BLOCKS
+        ):
             accumulated = "\n".join(
-                source_lines[chunk_start_line:current_para_end_line]
+                source_lines[chunk_start_line:current_block_end_line]
             )
             if len(accumulated) // 4 > max_chunk_tokens:
-                _emit(current_para_end_line)
+                _emit(current_block_end_line)
 
         i += 1
 
