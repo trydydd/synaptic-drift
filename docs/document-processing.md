@@ -217,13 +217,14 @@ The pipeline produces:
 
 **Output**: `./packs/my-lib@1.0.0.ctx`
 
-## Compatibility with Phase 2 Crawled Builds
+## URL and Crawled Builds
 
-Phase 2 will add `synd build --source <URL>` for web-crawled documentation. The processing pipeline is the same from step 3 onward (chunking through archive assembly). The differences are:
+`synd build --source <url>` (llms.txt/llms-full.txt fetch, or the general crawler for any other docs-site root URL) reuses the same pipeline from step 3 onward (chunking through archive assembly). See `docs/decisions.md` D21 (URL fetch) and D28 (general crawler) for the fetch/crawl design. The differences from the local-directory pipeline described above:
 
-- **Source discovery** (step 1): replaced by the crawler, which produces downloaded HTML/Markdown files
-- **Page construction** (step 2): `url` is the canonical web URL instead of a file path; `title` is extracted from HTML `<title>` or `<h1>`
-- **Ordering**: crawled pages are sorted by canonical URL (lexicographic) before chunk ID assignment, preserving the deterministic hash guarantee
-- **source_url on chunks**: full `https://` URLs instead of relative file paths
+- **Source discovery** (step 1): replaced by `fetch_page()` for `llms.txt`/`llms-full.txt` URLs, or `src/synd/builder/crawler.py`'s sitemap-seeded BFS link-following for a general docs-site root. HTML pages are converted to Markdown via `html_to_markdown()` (`markdownify` + BeautifulSoup4); Mintlify-style `.md` endpoints are cleaned via `process_mdx()` in `src/synd/builder/mdx.py`.
+- **Page construction** (step 2): `url` is the canonical web URL instead of a file path; `title` is extracted from the first `#` heading (or HTML `<title>`/`<h1>` for the HTML path).
+- **Ordering**: crawled/fetched pages are sorted by canonical URL (lexicographic) before chunk ID assignment, preserving the deterministic hash guarantee. `llms.txt`/`llms-full.txt` builds keep the source's own index order instead — that order is the site's curated priority.
+- **source_url on chunks and pages**: full `https://` URLs instead of relative file paths.
+- **Manifest provenance**: crawled builds additionally record `crawl_pages_fetched`, `crawl_truncated`, and `crawl_max_pages` — optional manifest properties (no schema version bump) visible via `synd inspect`.
 
-No MVP schema or format decisions need to change to support this.
+No MVP schema or format decisions needed to change to support this.

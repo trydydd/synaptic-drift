@@ -11,6 +11,10 @@
         "results": {
           "type": "array",
           "items": {"$ref": "#/$defs/result_item"}
+        },
+        "query_used": {
+          "type": "string",
+          "description": "The preprocessed query string that was actually matched against the index. Present when the server applied term-dropping relaxation; equals the preprocessed form of the caller's query when no relaxation was needed."
         }
       }
     },

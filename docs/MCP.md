@@ -111,7 +111,7 @@ FTS5 full-text search across indexed documentation. Returns chunk summaries and 
 
 | parameter | type | default | description |
 |---|---|---|---|
-| `query` | string | — | Search terms (required). FTS5 is lexical — use keywords, not natural language sentences. Common function words (articles, auxiliary verbs, prepositions) are filtered automatically; you do not need to avoid them. |
+| `query` | string | — | Search terms or a natural-language question (required). Terms are matched independently and ranked by relevance — a chunk matching more of your terms ranks higher, but doesn't need to match all of them. Common function words (articles, auxiliary verbs, prepositions) are filtered automatically. |
 | `packages` | string[] | all | Scope results to specific package names. Returns `{"status": "not_indexed"}` if a requested package has no indexed pack. |
 | `limit` | integer | `10` | Maximum chunks returned from FTS5 (candidate pool size). |
 | `max_tokens` | integer | none | Accumulate chunks in BM25 rank order; stop before estimated token cost exceeds this budget. |
@@ -134,7 +134,7 @@ FTS5 full-text search across indexed documentation. Returns chunk summaries and 
 | `score` | BM25 relevance score (higher = better match) |
 | `lifecycle_warning` | Non-null if the pack is deprecated (omitted otherwise) |
 
-**Note on queries:** FTS5 matches on keywords, not meaning. Translate natural-language questions to key terms before calling (`"OAuth2 client credentials"` rather than `"how do I authenticate"`).
+**Note on queries:** FTS5 is still lexical (it matches words, not meaning), but terms are OR-matched and ranked by BM25, not required to all co-occur — natural-language questions (`"how do I authenticate"`) and short keyword phrases (`"OAuth2 client credentials"`) both work; you don't need to translate one into the other. A query still fails to find genuinely different vocabulary than the docs use (e.g. an abbreviation or synonym the docs never use) — that is a real limit of lexical search, not something rephrasing fixes.
 
 ---
 

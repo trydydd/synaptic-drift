@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "timestamp": "2026-07-06T07:22:35.468780+00:00",
+    "runs": 10,
+    "max_turns": 12,
+    "base_url": "http://192.168.0.214:8000/v1",
+    "model": "red",
+    "model_root": "Qwen/Qwen3.6-27B-FP8",
+    "max_model_len": 131072,
+    "owned_by": "vllm",
+    "requested_sampling_params": {
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "presence_penalty": 1.5,
+      "repetition_penalty": 1.0,
+      "max_tokens": 2048,
+      "disable_thinking": true
+    },
+    "request_timeout_s": 1800.0
+  },
+  "aggregate": {
+    "no_docs": {
+      "pass_rate_mean": 0.4,
+      "pass_rate_stdev": 0.1563,
+      "avg_latency_s_mean": 32.8385,
+      "avg_latency_s_stdev": 6.8225,
+      "per_run_pass_rate": [
+        0.5,
+        0.2,
+        0.5,
+        0.6,
+        0.6,
+        0.3,
+        0.2,
+        0.3,
+        0.5,
+        0.3
+      ],
+      "per_run_avg_latency_s": [
+        30.311,
+        26.46,
+        30.382,
+        23.774,
+        42.537,
+        36.854,
+        31.479,
+        26.44,
+        43.677,
+        36.471
+      ],
+      "convergence": {
+        "n": 100,
+        "answered_rate": 1.0,
+        "correct_given_answered": 0.4,
+        "correct_at_turns": {
+          "1": 0.4,
+          "2": 0.4,
+          "3": 0.4,
+          "4": 0.4,
+          "5": 0.4,
+          "6": 0.4,
+          "7": 0.4,
+          "8": 0.4,
+          "9": 0.4,
+          "10": 0.4,
+          "11": 0.4,
+          "12": 0.4
+        }
+      }
+    },
+    "with_docs": {
+      "pass_rate_mean": 0.89,
+      "pass_rate_stdev": 0.0316,
+      "avg_latency_s_mean": 55.5284,
+      "avg_latency_s_stdev": 5.4704,
+      "per_run_pass_rate": [
+        0.8,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9
+      ],
+      "per_run_avg_latency_s": [
+        64.928,
+        49.673,
+        59.675,
+        58.134,
+        48.876,
+        57.803,
+        50.093,
+        50.137,
+        56.837,
+        59.128
+      ],
+      "convergence": {
+        "n": 100,
+        "answered_rate": 0.89,
+        "correct_given_answered": 1.0,
+        "correct_at_turns": {
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.41,
+          "4": 0.41,
+          "5": 0.74,
+          "6": 0.75,
+          "7": 0.78,
+          "8": 0.82,
+          "9": 0.87,
+          "10": 0.88,
+          "11": 0.89,
+          "12": 0.89
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,2638 @@
+{
+  "schema_version": 2,
+  "description": "Gold retrieval questions for scaled eval harness. Generated via dual-model pipeline (Stage A-D). Corpus version: 2025-05-29. Tiers: {'paraphrase': 70, 'direct': 42, 'vocabulary_mismatch': 2}. Packs: ['mcp', 'resend', 'trigger'].",
+  "corpus": {
+    "type": "real",
+    "version": "2025-05-29",
+    "packs": [
+      "mcp",
+      "resend",
+      "trigger"
+    ],
+    "build_command": "python scripts/build_pilot_packs.py  # then: synd add <pack>.ctx --db <db_path>"
+  },
+  "questions": [
+    {
+      "id": "r0001",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "my mcp client can't find the server script, is it a path or extension issue",
+      "keyword_query": "client server script path",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/docs/develop/build-client",
+          "heading_path": "docs/develop/build-client / Ruby / Troubleshooting / Server Path Issues",
+          "content_hash": "sha256:1e53c3d59ba3721fbfeb8fd2c5bde77e71e76af6b07d48a6ddc01e11369d4b4d",
+          "anchor": "### Troubleshooting #### Server Path Issues * Double-check the path to your serv"
+        }
+      ],
+      "_meta": {
+        "capability": "how to troubleshoot a client failing to find its server script by checking for correct file paths, extensions, and operating-system-specific path separators",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1395,
+        "kw_rank": 4,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0002",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "why can't i just print debug logs to stdout in my stdio mcp server",
+      "keyword_query": "stdout logging stdio server",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/docs/develop/build-server",
+          "heading_path": "docs/develop/build-server / C# / Logging in MCP Servers",
+          "content_hash": "sha256:798e0ddaa232387d13fe2347375d2fc57105c47081a030d93e1b54d7a095fb79",
+          "anchor": "#### Logging in MCP Servers When implementing MCP servers, be careful about how "
+        }
+      ],
+      "_meta": {
+        "capability": "understand why writing plain log output to the standard output stream will break a process that communicates over standard input and output, and why that risk disappears for network-based servers",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1026,
+        "kw_rank": 6,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0003",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "writing regular console output corrupts a program that talks over standard input and output",
+      "keyword_query": "console output corrupts communication",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/docs/develop/build-server",
+          "heading_path": "docs/develop/build-server / C# / Logging in MCP Servers",
+          "content_hash": "sha256:798e0ddaa232387d13fe2347375d2fc57105c47081a030d93e1b54d7a095fb79",
+          "anchor": "#### Logging in MCP Servers When implementing MCP servers, be careful about how "
+        }
+      ],
+      "_meta": {
+        "capability": "understand why writing plain log output to the standard output stream will break a process that communicates over standard input and output, and why that risk disappears for network-based servers",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.1282,
+        "kw_rank": 1,
+        "nl_rank": 4
+      }
+    },
+    {
+      "id": "r0004",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "where's the docs on debugging mcp tools and building a server from scratch",
+      "keyword_query": "mcp debugging docs server",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/docs/tools/debugging",
+          "heading_path": "docs/tools/debugging / Next steps",
+          "content_hash": "sha256:85b04e669449b51f68873913013439c92d49b410f638701817b36d69bdcd9d57",
+          "anchor": "## Next steps Learn to use the MCP Inspector Walk through building a server from"
+        }
+      ],
+      "_meta": {
+        "capability": "understand where to find further guidance on debugging tools, building a server from scratch, and configuring a desktop application that uses it",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.2381,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0005",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "what reference mcp servers exist for things like fetch, filesystem, git, memory, and time",
+      "keyword_query": "reference servers fetch filesystem",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/examples",
+          "heading_path": "examples / Reference implementations / Current reference servers",
+          "content_hash": "sha256:c54486cad83a20491b9dfabd069b0131e09e3fa07b88e483fb07a3bc18d42644",
+          "anchor": "### Current reference servers * **[Everything](https://github.com/modelcontextpr"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the range of example integrations available, covering web content retrieval, file access, version control, persistent memory, structured reasoning, and time conversion",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1311,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0006",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "do the official sdks handle refreshing oauth access tokens automatically for client credentials flow",
+      "keyword_query": "sdk token refresh oauth",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/extensions/auth/oauth-client-credentials",
+          "heading_path": "extensions/auth/oauth-client-credentials / SDK examples",
+          "content_hash": "sha256:0032c894dbbeaddc393bcf3e54f8442deacdb27502e3e320b8bc4f12046f678d",
+          "anchor": "## SDK examples The official MCP SDKs provide built-in support for client creden"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how official client libraries can automatically obtain and renew access tokens for service-to-service authentication without extra code",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.2609,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0007",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how does dynamic client registration work when there's no pre-existing trust with the auth server",
+      "keyword_query": "dynamic client registration oauth",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+          "heading_path": "specification/2025-11-25/basic/authorization / Client Registration Approaches",
+          "content_hash": "sha256:5602170da9d5eec6719d1f4a22902b48d0cb6b6b5133895de47267568c4e1ac3",
+          "anchor": "## Client Registration Approaches MCP supports three client registration mechani"
+        }
+      ],
+      "_meta": {
+        "capability": "choose between different ways a client can register itself with an authorization server when there is no prior trust relationship established",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1321,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0008",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how do i avoid duplicate delivery when a client has multiple open sse streams",
+      "keyword_query": "sse streams duplicate delivery",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
+          "heading_path": "specification/2025-11-25/basic/transports / Streamable HTTP / Multiple Connections",
+          "content_hash": "sha256:7424cb754ebe907c6348fb9de8bab0995b17a37a7cf6a9e549ada677855f39af",
+          "anchor": "### Multiple Connections 1. The client **MAY** remain connected to multiple SSE "
+        }
+      ],
+      "_meta": {
+        "capability": "understand the rules for sending messages when a client keeps several open streaming connections at once, so no single message gets duplicated across streams",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1053,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0009",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "what does a custom transport need to implement to carry json-rpc messages for mcp",
+      "keyword_query": "custom transport json-rpc",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
+          "heading_path": "specification/2025-11-25/basic/transports / Custom Transports",
+          "content_hash": "sha256:1b7613b2b75c765d6aed59f3b1269906de7e54ffa11975f7c0a3691ccef377f5",
+          "anchor": "## Custom Transports Clients and servers **MAY** implement additional custom tra"
+        }
+      ],
+      "_meta": {
+        "capability": "understand what requirements a custom communication channel must satisfy in order to carry a standardized message format between connected programs",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1224,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0010",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how do i cancel a running task given its task id",
+      "keyword_query": "cancel task by id",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks",
+          "heading_path": "specification/2025-11-25/basic/utilities/tasks / Protocol Messages / Cancelling Tasks",
+          "content_hash": "sha256:94495443fc3492f01c26c0e4f1b7ad20209a810d798efabbc0b8ae604df5e423",
+          "anchor": "### Cancelling Tasks To explicitly cancel a task, requestors can send a [`tasks/"
+        }
+      ],
+      "_meta": {
+        "capability": "how to explicitly cancel a long-running background operation that was previously started and is still being tracked by an identifier",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0714,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0011",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how do i call a prompt by name and pass in its arguments",
+      "keyword_query": "get prompt with arguments",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/prompts",
+          "heading_path": "specification/2025-11-25/server/prompts / Protocol Messages / Getting a Prompt",
+          "content_hash": "sha256:fb298121727b09a2ec5bd9fa08695e397dce3f9c42c59429bac6226f4080732c",
+          "anchor": "### Getting a Prompt To retrieve a specific prompt, clients send a `prompts/get`"
+        }
+      ],
+      "_meta": {
+        "capability": "how to fetch a predefined, reusable instruction template by name and supply the arguments it needs to fill in",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0652,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0012",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "what's the difference between unstructured and structured tool results and what's the audience/priority annotation for",
+      "keyword_query": "structured tool result annotations",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+          "heading_path": "specification/2025-11-25/server/tools / Data Types / Tool Result",
+          "content_hash": "sha256:b8939e3e2010d2f648f77d15fdac330d8dc10bce44270d4deca90bd062ee21b1",
+          "anchor": "### Tool Result Tool results may contain [**structured**](#structured-content) o"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the difference between free-form and machine-readable results a callable action can return, and the optional metadata describing audience and priority attached to them",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1818,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0013",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how do i return a resource link from a tool instead of embedding the full content",
+      "keyword_query": "tool resource link reference",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+          "heading_path": "specification/2025-11-25/server/tools / Data Types / Tool Result / Resource Links",
+          "content_hash": "sha256:0d678cde91a28f54e98e098b07f625bfdce5f6add999cb4765f14c685278ca71",
+          "anchor": "#### Resource Links A tool **MAY** return links to [Resources](/specification/20"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how a callable action can point to a larger piece of content by reference instead of returning the full content directly",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0714,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0014",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "what does the mcp project's lead maintainer role have final say over",
+      "keyword_query": "lead maintainer authority role",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/community/contributor-ladder",
+          "heading_path": "community/contributor-ladder / Lead Maintainer",
+          "content_hash": "sha256:d74b230bc3397919d6bddf60c198ba20b53d4b7856f790cc538ca86bb6331827",
+          "anchor": "## Lead Maintainer Lead Maintainers hold ultimate authority over MCP's direction"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the responsibilities and lifetime authority held by the most senior leadership role in an open-source community's governance structure",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.14,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0015",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how is a new mcp lead chosen when the current one steps down without naming a successor",
+      "keyword_query": "lead succession missing successor",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/community/contributor-ladder",
+          "heading_path": "community/contributor-ladder / Lead Maintainer / Succession",
+          "content_hash": "sha256:7814521e75b61232c0fec9a070f7d944110665ced3c78ae39ecb4f26a25e7960",
+          "anchor": "### Succession If a Lead Maintainer leaves the role for any reason, succession b"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how a community selects a new top leader when the previous one leaves the role without being able to name a successor",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.08,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0016",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how are mcp github issues triaged by severity level",
+      "keyword_query": "issue severity triage levels",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/community/sdk-tiers",
+          "heading_path": "community/sdk-tiers / Issue Triage Labels / Priority (only if actionable)",
+          "content_hash": "sha256:624b27058c56d68ec87e09c3e385658f7557aae1a761ddc31afb143009b041a1",
+          "anchor": "### Priority (only if actionable) | Label | Description | | ----- | ------------"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how bug reports are ranked by severity, from critical failures affecting core functionality to minor edge-case requests",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0638,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0017",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "what proof-of-concept evidence does an mcp sep proposal need to include",
+      "keyword_query": "sep proposal poc evidence",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/community/sep-guidelines",
+          "heading_path": "community/sep-guidelines / Prototype Requirements",
+          "content_hash": "sha256:c7d18012370afc3d4904d631189e2afb168d917b6292d90f5cc332a4e3eefa1d",
+          "anchor": "## Prototype Requirements Before a SEP can be accepted, you need \"a prototype im"
+        }
+      ],
+      "_meta": {
+        "capability": "understand what counts as sufficient proof-of-concept evidence when proposing a new feature for a shared specification, and what forms of evidence are not enough",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0909,
+        "kw_rank": 10,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0018",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how much of a working prototype should exist before pitching a new feature to a shared standard",
+      "keyword_query": "prototype requirement feature pitch",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/community/sep-guidelines",
+          "heading_path": "community/sep-guidelines / Prototype Requirements",
+          "content_hash": "sha256:c7d18012370afc3d4904d631189e2afb168d917b6292d90f5cc332a4e3eefa1d",
+          "anchor": "## Prototype Requirements Before a SEP can be accepted, you need \"a prototype im"
+        }
+      ],
+      "_meta": {
+        "capability": "understand what counts as sufficient proof-of-concept evidence when proposing a new feature for a shared specification, and what forms of evidence are not enough",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.0488,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0019",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "should i use streamable http or sse transport for a remote mcp server",
+      "keyword_query": "streamable http sse transport",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/registry/remote-servers",
+          "heading_path": "registry/remote-servers / Transport Type",
+          "content_hash": "sha256:c8a96f5be4fd7c56b778d386e7016ab235ace670605ef5f6842ec087b4cb348d",
+          "anchor": "## Transport Type Remote servers can use the Streamable HTTP transport (recommen"
+        }
+      ],
+      "_meta": {
+        "capability": "choose between two different network transport styles when describing how a remotely hosted service can be reached",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1702,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0020",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "what's the old enum with enumNames pattern for showing labeled choices in a schema",
+      "keyword_query": "enum enumnames labeled choices",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/1330-elicitation-enum-schema-improvements-and-standards",
+          "heading_path": "seps/1330-elicitation-enum-schema-improvements-and-standards / Instance Schema Examples / Legacy Single Select With Titles",
+          "content_hash": "sha256:99f08d12773691eb25e0e2842170204a8dc647c6ce2a7c3d3c3de773a2d24fd9",
+          "anchor": "### Legacy Single Select With Titles ```json { \"type\": \"string\", \"title\": \"Color"
+        }
+      ],
+      "_meta": {
+        "capability": "understand an older pattern for presenting a fixed list of choices to a user alongside a human-readable label for each option",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0741,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0021",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how do i declare a tool with no input schema, and can inputSchema just be omitted",
+      "keyword_query": "tool no input schema",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/1613-establish-json-schema-2020-12-as-default-dialect-f",
+          "heading_path": "seps/1613-establish-json-schema-2020-12-as-default-dialect-f / Specification / 3. Schema Validation Requirements",
+          "content_hash": "sha256:0ca957a9249954852bc8bb20ee3568d42d15e6d3851fea87e2a1787f75a69ea8",
+          "anchor": "### 3. Schema Validation Requirements * Schemas **MUST** be valid according to t"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the valid ways to declare that a callable action accepts no input parameters, and the requirement that its input definition never be left unset",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0816,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0022",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "what notification fires when a long-running task is created and pollable",
+      "keyword_query": "task created notification pollable",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/1686-tasks",
+          "heading_path": "seps/1686-tasks / Specification / 3. Protocol Messages / 3.4. Task Creation Notification",
+          "content_hash": "sha256:e98fd1e5c76ce8aac825a000b886ebd6c1c354c63bcbcb3b37ee34da93a1bd51",
+          "anchor": "#### 3.4. Task Creation Notification When a receiver creates a task, it **MUST**"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how a one-way notice tells a caller that a long-running background operation has been created and is now ready to be checked on",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0735,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0023",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "is there a conformance test suite that scores mcp sdk implementations",
+      "keyword_query": "conformance test suite score",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/1730-sdks-tiering-system",
+          "heading_path": "seps/1730-sdks-tiering-system / Specification / Conformance Testing",
+          "content_hash": "sha256:ccfd684b16144896ac51904120ee5177de81771406960824a2e79e5d37657d6d",
+          "anchor": "### Conformance Testing All SDKs must undergo conformance testing using protocol"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how different implementations of the same specification are scored for compliance by running example servers against a shared test suite",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0882,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0024",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "why are mcp seps tracked as markdown files in the repo instead of github issues",
+      "keyword_query": "sep markdown files repo",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/1850-pr-based-sep-workflow",
+          "heading_path": "seps/1850-pr-based-sep-workflow / Abstract",
+          "content_hash": "sha256:6eeb319a9bfa2943e16d01cdba7cb3897963153caa8d2605fb6fe8f3a2357e93",
+          "anchor": "## Abstract This SEP formalizes the pull request-based SEP workflow that stores "
+        }
+      ],
+      "_meta": {
+        "capability": "understand how design proposals for a shared specification are tracked as version-controlled files instead of through a separate issue-tracking process",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1163,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0025",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "how do i define a oneOf schema so a tool can accept either an id or a name",
+      "keyword_query": "oneof schema alternative input",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/2106-json-schema-2020-12",
+          "heading_path": "seps/2106-json-schema-2020-12 / Motivation / Schema Composition Use Cases",
+          "content_hash": "sha256:5bdc5bb012303ee47873dca6468e10a8ef98fe75007ab3b38c84c7babcd8a44b",
+          "anchor": "### Schema Composition Use Cases The current `inputSchema` restriction prevents "
+        }
+      ],
+      "_meta": {
+        "capability": "how to let a callable action accept one of several alternative input shapes, such as looking something up by either an identifier or a name",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1707,
+        "kw_rank": 4,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0026",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "who has to approve changes to a working group's charter",
+      "keyword_query": "working group charter approval",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/2149-working-group-charter-template",
+          "heading_path": "seps/2149-working-group-charter-template / Specification / Part 1: Group Governance / 1.10 Charter Amendments",
+          "content_hash": "sha256:4c5a6b9404281828a206c9a19d78be30beb9e2c31f23fbad03a2eda594b9dd88",
+          "anchor": "#### 1.10 Charter Amendments Changes to a group's charter (WG or IG) require: * "
+        }
+      ],
+      "_meta": {
+        "capability": "understand who must propose and approve a change to the governing rules of a community working group",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.2,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0027",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how do i encode special symbols in an http header value safely",
+      "keyword_query": "encode http header value",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/2243-http-standardization",
+          "heading_path": "seps/2243-http-standardization / Rationale / Encoding Approach for Unsafe Values",
+          "content_hash": "sha256:2a0e6e236137cb14d0ac45376ceb7adb0fbc8050913a7397a684327d1052eb4d",
+          "anchor": "### Encoding Approach for Unsafe Values Four approaches were considered for enco"
+        }
+      ],
+      "_meta": {
+        "capability": "choose between different ways to safely represent header values containing characters that cannot be sent as plain, unescaped text",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0482,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0028",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how does the client/server exchange work when a task needs additional input mid-run",
+      "keyword_query": "task input required exchange",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/2322-MRTR",
+          "heading_path": "seps/2322-MRTR / Specification / Persistent Tool Workflow / Protocol Requirements for Persistent Workflow",
+          "content_hash": "sha256:dd8649f2eeae7d7d60fd77e65285bf1012a689b28d7ef68de9635f199bf14f5b",
+          "anchor": "#### Protocol Requirements for Persistent Workflow 1. **Server Behavior:** * Ser"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the back-and-forth a client and server follow when a long-running operation pauses partway through to ask for additional input",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1042,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0029",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "how does the working group coordinate rollout timing with other groups for spec changes",
+      "keyword_query": "working group rollout coordination",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/community/working-groups/sdk",
+          "heading_path": "community/working-groups/sdk / Scope / Related Groups",
+          "content_hash": "sha256:fee066aa4bc4eb911036fe0c748e86181bff1dc296e030bd8a9536977464d13e",
+          "anchor": "### Related Groups * **Transports WG**: Transport implementations are a substant"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how one community working group coordinates with related groups on rollout timing, test coverage, and consuming approved specification changes",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0851,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0030",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "find weather api src",
+      "keyword_query": "get weather server code",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/docs/develop/build-server",
+          "heading_path": "docs/develop/build-server / Go",
+          "content_hash": "sha256:a0c0e57f36810f6f1228089f30516be68a3d73e4ceefe73bdde3d6aeab448b41",
+          "anchor": "# Go Let's get started with building our weather server! [You can find the compl"
+        }
+      ],
+      "_meta": {
+        "capability": "how to locate the reference source code for a weather-lookup server implemented in a particular programming language",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0909,
+        "kw_rank": 5,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0031",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "what prerequisites do i need like bundler or pip before running this guide",
+      "keyword_query": "prerequisites dependencies setup requirements",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/docs/develop/connect-local-servers",
+          "heading_path": "docs/develop/connect-local-servers / Prerequisites",
+          "content_hash": "sha256:3ccc1e2fca7912f26d2dd1a4cffbcdaeb78735b103f3706d89d9d88173efaafb",
+          "anchor": "## Prerequisites Before starting this tutorial, ensure you have the following in"
+        }
+      ],
+      "_meta": {
+        "capability": "understand what tools and accounts you need to install before following a step-by-step setup tutorial",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.1333,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0032",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "auto renew token no code",
+      "keyword_query": "token refresh auto",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/extensions/auth/oauth-client-credentials",
+          "heading_path": "extensions/auth/oauth-client-credentials / SDK examples",
+          "content_hash": "sha256:0032c894dbbeaddc393bcf3e54f8442deacdb27502e3e320b8bc4f12046f678d",
+          "anchor": "## SDK examples The official MCP SDKs provide built-in support for client creden"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how official client libraries can automatically obtain and renew access tokens for service-to-service authentication without extra code",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0476,
+        "kw_rank": 15,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0033",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "why polling better than websocket",
+      "keyword_query": "polling vs websocket timeout",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/extensions/tasks/overview",
+          "heading_path": "extensions/tasks/overview / Why not just block?",
+          "content_hash": "sha256:5128105bb3eb69907c6d73b8fc5116aa332bf3fd3d4831ef0dd68ec2db2bc911",
+          "anchor": "## Why not just block? You could hold the connection open until the work finishe"
+        }
+      ],
+      "_meta": {
+        "capability": "understand why a durable, poll-based handle for tracking long-running work is more resilient to timeouts, disconnects, and mid-task input needs than holding a connection open",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0208,
+        "kw_rank": 49,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0034",
+      "pack": "mcp",
+      "difficulty": "direct",
+      "query": "how share ctx to svc",
+      "keyword_query": "share context service",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/index",
+          "heading_path": "specification/2025-11-25/index / Overview",
+          "content_hash": "sha256:5b7e22f8453dc2289ce0525b60f68abcf1aecd2597a8db2016c8631347efeb87",
+          "anchor": "## Overview MCP provides a standardized way for applications to: * Share context"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the roles that different pieces of software play when sharing contextual information and callable capabilities between an application and connected services",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0294,
+        "kw_rank": 2,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0035",
+      "pack": "mcp",
+      "difficulty": "paraphrase",
+      "query": "server call client only inside request",
+      "keyword_query": "server call client nested",
+      "gold": [
+        {
+          "source_url": "https://modelcontextprotocol.io/seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
+          "heading_path": "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests / Motivation / Design Intent",
+          "content_hash": "sha256:af13c91d36e7481efd5505eed2798ebed81ca32ebf8cb6996a512eed9fd6e409",
+          "anchor": "### Design Intent The design intent of MCP Server Requests is to operate reactiv"
+        }
+      ],
+      "_meta": {
+        "capability": "understand why a server-initiated request should normally happen only as a nested part of handling an existing request from the other side",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0575,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0036",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i set up a special handler that only fires on the first message of a new conversation",
+      "keyword_query": "first message handler config",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/fast-starts",
+          "heading_path": "docs/ai-chat/fast-starts / Head Start / The `chat.headStart` API / The transport option",
+          "content_hash": "sha256:7e5c79eedbc71045e6029d083e927b32180a1367722b133a93e9611f71088d99",
+          "anchor": "#### The transport option ```ts useTriggerChatTransport({ // ... task, accessTok"
+        }
+      ],
+      "_meta": {
+        "capability": "configure a separate handler that only the very first message of a brand new conversation routes through before later turns use the normal path",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1064,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0037",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "why does a suspended run stop billing compute while it waits",
+      "keyword_query": "paused run billing compute",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/patterns/human-in-the-loop",
+          "heading_path": "docs/ai-chat/patterns/human-in-the-loop / Duration and cost while paused",
+          "content_hash": "sha256:d9c5acb496b46c41c87d1041f2a35ff7395fdaea81acef18231f7e7a912f3d8f",
+          "anchor": "## Duration and cost while paused A pause doesn't hold compute. After the model "
+        }
+      ],
+      "_meta": {
+        "capability": "understand why a paused run stops billing compute once it suspends so a person can take as long as they need to respond",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0543,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0038",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i make a log write idempotent keyed on a stable id to avoid duplicate records on retry",
+      "keyword_query": "idempotent log write id",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/patterns/tool-result-auditing",
+          "heading_path": "docs/ai-chat/patterns/tool-result-auditing / Idempotency at the storage layer",
+          "content_hash": "sha256:d73a7f54b012d7cf965b1f1a7751250efc77aa64ce0e1addb87fe937dd994b8e",
+          "anchor": "## Idempotency at the storage layer Even with `extractNewToolResults`, transient"
+        }
+      ],
+      "_meta": {
+        "capability": "how to make a logging write idempotent on a stable identifier so retried failures do not create duplicate records",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0962,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0039",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i migrate a paused conversation from an old deploy to the latest version on resume",
+      "keyword_query": "migrate paused conversation deploy",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/patterns/version-upgrades",
+          "heading_path": "docs/ai-chat/patterns/version-upgrades",
+          "content_hash": "sha256:59aee21264595a46c09afa49a9c0b85695266bbc362c5366c5815f5f5fdc1d82",
+          "anchor": "Gracefully migrate suspended chat agents to a new deployment using chat.requestU"
+        }
+      ],
+      "_meta": {
+        "capability": "how to move a paused conversation off an old code version onto the newest deployment when it wakes back up",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1277,
+        "kw_rank": 5,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0040",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "is there a frontend hook for tracking pending messages and where they got injected in the conversation",
+      "keyword_query": "pending message hook frontend",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/pending-messages",
+          "heading_path": "docs/ai-chat/pending-messages / Frontend: usePendingMessages hook",
+          "content_hash": "sha256:63acdf590f0d622283743210715bb67582ae1da9f1fde175c208b71260fdee95",
+          "anchor": "## Frontend: usePendingMessages hook The `usePendingMessages` hook manages all t"
+        }
+      ],
+      "_meta": {
+        "capability": "how to use a frontend hook that tracks pending user messages and renders where they were injected into the ongoing conversation",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0921,
+        "kw_rank": 6,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0041",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "how does prompt prefix caching reduce cost and latency on later requests",
+      "keyword_query": "prompt prefix caching cost",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/prompt-caching",
+          "heading_path": "docs/ai-chat/prompt-caching",
+          "content_hash": "sha256:3263bc592f615d8728b05d033027f7c4225fe3530a55074dc52807640ebaee30",
+          "anchor": "Cache the stable prefix of your agent's prompt with Anthropic prompt caching to "
+        }
+      ],
+      "_meta": {
+        "capability": "understand how caching the unchanged beginning of a prompt lowers cost and latency on every subsequent request",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.092,
+        "kw_rank": 1,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0042",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "how do i permanently close a conversation session with an optional reason, safe to call twice",
+      "keyword_query": "close session reason idempotent",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/sessions",
+          "heading_path": "docs/ai-chat/sessions / `sessions` namespace / `sessions.close(idOrExternalId, body?, requestOptions?)`",
+          "content_hash": "sha256:8d2ec4c47710d7b1bcbad3353270cce4b90b7940b646b1df505dd0ede463504d",
+          "anchor": "### `sessions.close(idOrExternalId, body?, requestOptions?)` Mark a Session as c"
+        }
+      ],
+      "_meta": {
+        "capability": "how to permanently close a conversation session and optionally record a reason, safely even if called more than once",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1538,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0043",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "what flags does the cli init command accept when scaffolding a new project",
+      "keyword_query": "cli init flags options",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/cli-init-commands",
+          "heading_path": "docs/cli-init-commands",
+          "content_hash": "sha256:9e09d1b50c0fc053638273bc4cf8e33f3508bbe59fd580285ac643aaa4665d0c",
+          "anchor": "Use these options when running the CLI `init` command. Run the command like this"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the options available when running the command-line setup tool to initialize a new project",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1739,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0044",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i set custom import condition resolution so some packages resolve to a different build",
+      "keyword_query": "custom import conditions resolve",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/config/config-file",
+          "heading_path": "docs/config/config-file / Build configuration / Conditions",
+          "content_hash": "sha256:4469ea12b01f5a2d114a4689d97f9a5392a3ce9d1304cb4b2f0e7232ead2b2dd",
+          "anchor": "### Conditions You can add custom [import conditions](https://esbuild.github.io/"
+        }
+      ],
+      "_meta": {
+        "capability": "configure custom import resolution conditions for your build process so certain packages resolve to a different version",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.125,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0045",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "what permission modes control how much the ai coding assistant can do without asking approval",
+      "keyword_query": "permission modes coding assistant",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/ai-agents/claude-code-trigger",
+          "heading_path": "docs/guides/ai-agents/claude-code-trigger / How it works / Permission modes",
+          "content_hash": "sha256:bfd222c29c6877ef7aabd093ebe3bdbf6c68e6f84a29c6398fca79b6edb99e68",
+          "anchor": "### Permission modes | Mode | What it does | | --------------------- | ---------"
+        }
+      ],
+      "_meta": {
+        "capability": "choose between permission modes that control how much an AI coding assistant can do without asking for your approval first",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.129,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0046",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i test-run a job from the dashboard with a sample payload for a multi-step content workflow",
+      "keyword_query": "test run dashboard payload",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/ai-agents/generate-translate-copy",
+          "heading_path": "docs/guides/ai-agents/generate-translate-copy / Run a test",
+          "content_hash": "sha256:c18fca67c336960a60ee990a40ff41dc223694e8cf2994469145d1311f3bc7ce",
+          "anchor": "## Run a test On the Test page in the dashboard, select the `generate-and-transl"
+        }
+      ],
+      "_meta": {
+        "capability": "how to run a test job from a dashboard using a sample payload to verify a multi-step content generation workflow",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.08,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0047",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "where's the source and docs for the example browser automation project",
+      "keyword_query": "browser automation example source",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/example-projects/anchor-browser-web-scraper",
+          "heading_path": "docs/guides/example-projects/anchor-browser-web-scraper / Learn more",
+          "content_hash": "sha256:f97b9019b51475aa46f47dda35582688c9f9a061d331107d8ceb8202226370d7",
+          "anchor": "## Learn more * View the [Anchor Browser docs](https://docs.anchorbrowser.io/) t"
+        }
+      ],
+      "_meta": {
+        "capability": "understand where to find further documentation and source code for an example project that automates a web browser",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.125,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0048",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "where do i find guides about following updates in real time and launching lots of jobs together",
+      "keyword_query": "real time guides launch",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/example-projects/claude-thinking-chatbot",
+          "heading_path": "docs/guides/example-projects/claude-thinking-chatbot / Learn more about Trigger.dev Realtime",
+          "content_hash": "sha256:d3d979029d9a7ac837ec619ec5f992580d8f74d9c9dc5120fb8a31203867a3d5",
+          "anchor": "## Learn more about Trigger.dev Realtime To learn more, take a look at the follo"
+        }
+      ],
+      "_meta": {
+        "capability": "understand where to find more resources on subscribing to live updates, streaming data, and starting many runs at once",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.1538,
+        "kw_rank": 30,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0049",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "how do i run a headless coding agent inside a background job and stream output to the frontend",
+      "keyword_query": "headless agent stream frontend",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/example-projects/cursor-background-agent",
+          "heading_path": "docs/guides/example-projects/cursor-background-agent",
+          "content_hash": "sha256:7e40c6f40b216155dcdbbe69521dbbf81ae9dfcc41d0250a7c2f01b64a7a5e3a",
+          "anchor": "Run Cursor's headless CLI agent in a Trigger.dev task and stream the live output"
+        }
+      ],
+      "_meta": {
+        "capability": "how to run a headless coding agent inside a background job and stream its live output to a web frontend",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.3333,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0050",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "where's the doc covering webhook pause, realtime frontend updates, batch runs, model integration, and uploads",
+      "keyword_query": "webhook pause batch docs",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/example-projects/product-image-generator",
+          "heading_path": "docs/guides/example-projects/product-image-generator / Learn more",
+          "content_hash": "sha256:600ab96c0aa5c9e571e4df034470a5e07a4c7298b4eca1df47c75386306f6f71",
+          "anchor": "## Learn more * [**Waitpoints**](/docs/wait-for-token) – pause tasks for async w"
+        }
+      ],
+      "_meta": {
+        "capability": "understand where to find more information on pausing for webhook callbacks, real-time frontend updates, batch execution, model integration, and file uploads",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1915,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0051",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i process a huge amount of stuff reliably without it failing from taking too long",
+      "keyword_query": "process huge amount reliably",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/use-cases/data-processing-etl",
+          "heading_path": "docs/guides/use-cases/data-processing-etl / Overview",
+          "content_hash": "sha256:3e4e34787d0f117b392afaab8a6a83d9fa49209ee9b0775b312557157c277eb3",
+          "anchor": "## Overview Build complex data pipelines that process large datasets without tim"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how to build data pipelines that process large datasets with automatic retries and progress tracking without hitting timeouts",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.0571,
+        "kw_rank": 24,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0052",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i clear a dedup key so a job can be restarted with the same key",
+      "keyword_query": "clear dedup key restart",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/idempotency",
+          "heading_path": "docs/idempotency / Resetting idempotency keys",
+          "content_hash": "sha256:f9d8a4226ab547488f5e0f3a55d29520d58b3702cd203e101ecace8f31e93a36",
+          "anchor": "## Resetting idempotency keys You can reset an idempotency key to clear it from "
+        }
+      ],
+      "_meta": {
+        "capability": "how to clear a previously used deduplication key so a job can be started again using that exact same key",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.129,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0053",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i subscribe to live updates for all runs in a batch with a manually-closed iterator",
+      "keyword_query": "subscribe batch runs iterator",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/realtime/backend/subscribe",
+          "heading_path": "docs/realtime/backend/subscribe / runs.subscribeToBatch",
+          "content_hash": "sha256:983d993e31c6a30ecc06eb25a6c5b61d1c9b61aff66f87d2320256ea2b33846b",
+          "anchor": "## runs.subscribeToBatch Subscribes to all changes for runs in a batch. ```ts im"
+        }
+      ],
+      "_meta": {
+        "capability": "how to subscribe to live updates for every run inside a batch using an iterator that you must manually stop yourself",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0952,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0054",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "what's the plan limit on concurrent live subscriptions",
+      "keyword_query": "plan limit live subscriptions",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/realtime/how-it-works",
+          "heading_path": "docs/realtime/how-it-works / Limits",
+          "content_hash": "sha256:b79e0a737f764e6ea423bebb2d9d9e1978dcc4cc2c65a4e337e46425ecb81334",
+          "anchor": "## Limits The Realtime API in the Trigger.dev Cloud limits the number of concurr"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the plan-based limit on how many live subscriptions can be open at the same time",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1481,
+        "kw_rank": 9,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0055",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "when does worker start vs resume",
+      "keyword_query": "worker init vs resume",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/lifecycle-hooks",
+          "heading_path": "docs/ai-chat/lifecycle-hooks / onBoot",
+          "content_hash": "sha256:3cbecf59df51031d4f64766b070b0cc8c859e72e361c95a7e62e4226fc8e729f",
+          "anchor": "## onBoot Fires **once per worker process picking up the chat** — for the initia"
+        }
+      ],
+      "_meta": {
+        "capability": "understand when a one-time setup hook fires for a worker process handling a conversation versus when a separate resume hook is needed instead",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0339,
+        "kw_rank": 4,
+        "nl_rank": 7
+      }
+    },
+    {
+      "id": "r0056",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "convert chat history to api format",
+      "keyword_query": "manual loop msg history",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/ai-chat/tools",
+          "heading_path": "docs/ai-chat/tools / Manual turn loops (`chat.customAgent`)",
+          "content_hash": "sha256:ff5b5613dd80b3ff054c1418097fb8c5151de95ce9cbd4b0eb56cada057f6703",
+          "anchor": "## Manual turn loops (`chat.customAgent`) The `tools` config option belongs to t"
+        }
+      ],
+      "_meta": {
+        "capability": "how to convert your own message history for a model call when you are managing the conversation loop yourself instead of a managed one",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.04,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0057",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "archive preview env path",
+      "keyword_query": "archive preview dir",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/cli-preview-archive",
+          "heading_path": "docs/cli-preview-archive / Arguments",
+          "content_hash": "sha256:77fd6c5114886b68e7ed2e5b6a9caac4704c09c757a21bc4ab0ed64210a9390d",
+          "anchor": "## Arguments ``` npx trigger.dev@latest preview archive [path] ``` The path to t"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the single argument accepted by a command that archives a preview environment, defaulting to the current folder",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.2308,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0058",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "env vars not syncing locally fix",
+      "keyword_query": "local env missing",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/deploy-environment-variables",
+          "heading_path": "docs/deploy-environment-variables / In your code / Sync env vars from another service / Dev",
+          "content_hash": "sha256:5d6b6bb0850fd48ae8e71963365fae2d4e16bab08e00383bb5e8f84747eccfe2",
+          "anchor": "#### Dev `syncEnvVars` does not have any effect when running the `dev` command l"
+        }
+      ],
+      "_meta": {
+        "capability": "understand why automatically synced environment variables from another service do not apply when running your project locally and what to use instead",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0732,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0059",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "where find docs on agent loop with human in loop",
+      "keyword_query": "agent human approval docs",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/ai-agents/claude-code-trigger",
+          "heading_path": "docs/guides/ai-agents/claude-code-trigger / Learn more",
+          "content_hash": "sha256:8e05b6d951ba9938156c797caf9f43ff4f430b468442b81600b45598fb525377",
+          "anchor": "## Learn more * [Claude Agent SDK docs](https://platform.claude.com/docs/en/agen"
+        }
+      ],
+      "_meta": {
+        "capability": "understand where to find further reading on building coding agents, streaming progress updates, and adding human approval steps",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.1429,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0060",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "run test job dash",
+      "keyword_query": "run test job dash",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/ai-agents/generate-translate-copy",
+          "heading_path": "docs/guides/ai-agents/generate-translate-copy / Run a test",
+          "content_hash": "sha256:c18fca67c336960a60ee990a40ff41dc223694e8cf2994469145d1311f3bc7ce",
+          "anchor": "## Run a test On the Test page in the dashboard, select the `generate-and-transl"
+        }
+      ],
+      "_meta": {
+        "capability": "how to run a test job from a dashboard using a sample payload to verify a multi-step content generation workflow",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0444,
+        "kw_rank": 4,
+        "nl_rank": 4
+      }
+    },
+    {
+      "id": "r0061",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "how do i pause for webhook",
+      "keyword_query": "pause webhook",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/example-projects/product-image-generator",
+          "heading_path": "docs/guides/example-projects/product-image-generator / Learn more",
+          "content_hash": "sha256:600ab96c0aa5c9e571e4df034470a5e07a4c7298b4eca1df47c75386306f6f71",
+          "anchor": "## Learn more * [**Waitpoints**](/docs/wait-for-token) – pause tasks for async w"
+        }
+      ],
+      "_meta": {
+        "capability": "understand where to find more information on pausing for webhook callbacks, real-time frontend updates, batch execution, model integration, and file uploads",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0465,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0062",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "run task when webhook hits",
+      "keyword_query": "run task webhook",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/examples/hookdeck-webhook",
+          "heading_path": "docs/guides/examples/hookdeck-webhook / Task code",
+          "content_hash": "sha256:7f3142433b1897291fbec67d65e42e20685d1d63a7717a790819e16547a8f2c0",
+          "anchor": "## Task code This task will be triggered when Hookdeck forwards a webhook to the"
+        }
+      ],
+      "_meta": {
+        "capability": "how to write a background job that runs whenever an external service forwards a webhook payload to your API",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.1143,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0063",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "how to add row to db",
+      "keyword_query": "insert row db",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/guides/examples/supabase-database-operations",
+          "heading_path": "docs/guides/examples/supabase-database-operations / Add a new user to a table in a Supabase database / Key features",
+          "content_hash": "sha256:8169cd4e4bb86ce3fa6d7938deeb2900f696874351adc595cf8408a5b232829c",
+          "anchor": "### Key features * Shows how to set up a Supabase client using the `@supabase/su"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the key steps for setting up a database client and inserting a new row into a table",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.2143,
+        "kw_rank": 2,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0064",
+      "pack": "trigger",
+      "difficulty": "direct",
+      "query": "clear job id to rerun",
+      "keyword_query": "reset job id",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/idempotency",
+          "heading_path": "docs/idempotency / Resetting idempotency keys",
+          "content_hash": "sha256:f9d8a4226ab547488f5e0f3a55d29520d58b3702cd203e101ecace8f31e93a36",
+          "anchor": "## Resetting idempotency keys You can reset an idempotency key to clear it from "
+        }
+      ],
+      "_meta": {
+        "capability": "how to clear a previously used deduplication key so a job can be started again using that exact same key",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0345,
+        "kw_rank": 4,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0065",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "send data to parent run",
+      "keyword_query": "stream to root",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/tasks/streams",
+          "heading_path": "docs/tasks/streams / Targeting Different Runs / With Direct Methods",
+          "content_hash": "sha256:50ef71085c5559326354997ee35bbce116612ac7687d82b4b94682d9893c9ee4",
+          "anchor": "### With Direct Methods ```ts import { streams, task } from \"@trigger.dev/sdk\"; "
+        }
+      ],
+      "_meta": {
+        "capability": "how to send a data stream to a different run than the current one, whether its parent, the root, or a specific target",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0741,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0066",
+      "pack": "trigger",
+      "difficulty": "paraphrase",
+      "query": "webhook payload job fail",
+      "keyword_query": "webhook job fail fields",
+      "gold": [
+        {
+          "source_url": "https://trigger.dev/docs/troubleshooting-alerts",
+          "heading_path": "docs/troubleshooting-alerts / Alert webhooks / Run Failed Alert",
+          "content_hash": "sha256:37d7ea4e1b0d6d472f6123dd89bfe8049cbe1a9e6652f1a5be14bc83f32d7f6b",
+          "anchor": "### Run Failed Alert This webhook is sent when a run fails. The payload is avail"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the payload fields included in a webhook notification that fires whenever a background job run fails",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0351,
+        "kw_rank": 36,
+        "nl_rank": 16
+      }
+    },
+    {
+      "id": "r0067",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "look up a contact's subscribed topics by email or id",
+      "keyword_query": "contact topics lookup",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/api-reference/contacts/get-contact-topics",
+          "heading_path": "docs/api-reference/contacts/get-contact-topics / Path Parameters",
+          "content_hash": "sha256:c15ba8629e2c3325298af2777f0af8121b5ad5947d82e3fae61a21877ccdf5f1",
+          "anchor": "## Path Parameters Either `id` or `email` must be provided. The Contact ID. The "
+        }
+      ],
+      "_meta": {
+        "capability": "how to look up which subscription topics a specific contact is enrolled in using either their unique ID or email address",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.06,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0068",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "batch send up to 100 emails in one api call",
+      "keyword_query": "batch send emails",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/api-reference/emails/send-batch-emails",
+          "heading_path": "docs/api-reference/emails/send-batch-emails",
+          "content_hash": "sha256:6b6236b7a6b1c3af93fb51e7229a709c3bdfda427357fdfff643939e35e03462",
+          "anchor": "POST /emails/batch Trigger up to 100 batch emails at once. Instead of sending on"
+        }
+      ],
+      "_meta": {
+        "capability": "how to send up to a hundred separate messages in one request instead of making many individual calls",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.3,
+        "kw_rank": 2,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0069",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "update a topic's name and visibility on the preference center",
+      "keyword_query": "update topic preference center",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/api-reference/topics/update-topic",
+          "heading_path": "docs/api-reference/topics/update-topic / Body Parameters",
+          "content_hash": "sha256:98580183df81018a677ab837af74d9fdd2a642902a20abb742924b010b17ab28",
+          "anchor": "## Body Parameters The topic name. Max length is `50` characters. The topic desc"
+        }
+      ],
+      "_meta": {
+        "capability": "how to change a subscription category's name, description, and whether it is visible on the public preference page",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0597,
+        "kw_rank": 5,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0070",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "prerequisites for inbound email to chatbot integration",
+      "keyword_query": "inbound email chatbot setup",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/chat-sdk",
+          "heading_path": "docs/chat-sdk / Resend Chat SDK Adapter / Setup / Prerequisites",
+          "content_hash": "sha256:7239abc67d9f0608ba98dc330b5d637f6d6c85326c0d6e52482826fc80dca500",
+          "anchor": "## Setup ### Prerequisites * Resend API key stored in `RESEND_API_KEY` env var *"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the setup requirements needed before wiring an inbound email address into a chat-style conversational integration",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1071,
+        "kw_rank": 19,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0071",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "install the chat adapter package and its dependencies",
+      "keyword_query": "install chat adapter",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/chat-sdk",
+          "heading_path": "docs/chat-sdk / Resend Chat SDK Adapter / 1. Install",
+          "content_hash": "sha256:87f34ed1bc6a46141a147871fd7ef7b74027bac5ef64865bbfd284a60a07bba5",
+          "anchor": "## 1. Install ```bash npm install @resend/chat-sdk-adapter chat @chat-adapter/st"
+        }
+      ],
+      "_meta": {
+        "capability": "how to install the packages needed to add a chat-style adapter and its supporting dependencies to a project",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1875,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0072",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "how to proactively start a new conversation instead of replying",
+      "keyword_query": "proactive conversation start",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/chat-sdk-proactive-outreach",
+          "heading_path": "docs/chat-sdk-proactive-outreach",
+          "content_hash": "sha256:d6c2c253ffdb809221efc3292337ddca94bb30ba8248e6cc231e800ccfb34c54",
+          "anchor": "Start new email conversations proactively with the Chat SDK adapter. By default,"
+        }
+      ],
+      "_meta": {
+        "capability": "how to start a brand-new conversation with someone proactively instead of only replying to messages they send first",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1071,
+        "kw_rank": 4,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0073",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "cli command to check api key and domain status",
+      "keyword_query": "cli doctor status check",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/cli",
+          "heading_path": "docs/cli / Utility",
+          "content_hash": "sha256:28073efcd41a3bbeb8e06b8597fe07e89d5fceee285adf93126c681c19e43d8c",
+          "anchor": "## Utility Diagnose your setup, manage authentication, and configure shell compl"
+        }
+      ],
+      "_meta": {
+        "capability": "how to diagnose your local command-line setup and check the status of your credentials, key, and domain configuration",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1081,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0074",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "insert custom contact fields into a broadcast for personalization",
+      "keyword_query": "broadcast merge fields",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/audiences/properties",
+          "heading_path": "docs/dashboard/audiences/properties / Use Contact Properties in Broadcasts",
+          "content_hash": "sha256:7acc1c8dc4c4894f43aed32103c9f5db3c2ca3b254a9389f7c94550a6bc4ac65",
+          "anchor": "## Use Contact Properties in Broadcasts You can use Contact Properties in your B"
+        }
+      ],
+      "_meta": {
+        "capability": "how to personalize a mass message by inserting custom subscriber field values into its content",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.08,
+        "kw_rank": 14,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0075",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "workflow step types like branch delay wait send",
+      "keyword_query": "workflow step types",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/automations/introduction",
+          "heading_path": "docs/dashboard/automations/introduction / Using the dashboard / 3. Define Steps",
+          "content_hash": "sha256:0a035bef3482c7c84e9cce085bd947c36b03cce1376ba5a257973bedf45f6c0d",
+          "anchor": "### 3. Define Steps Now, we need to define the [steps](/docs/dashboard/automatio"
+        }
+      ],
+      "_meta": {
+        "capability": "choose between different workflow step types like branching, delays, waiting for events, sending messages, or updating subscriber records",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0822,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0076",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "where's the full documentation for sending a group of messages together",
+      "keyword_query": "documentation group send",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/emails/batch-sending",
+          "heading_path": "docs/dashboard/emails/batch-sending / API Reference",
+          "content_hash": "sha256:b5fd231caeea5019bbb35a03e25d7180b76a8ed272ddff15730b73b449b6bfa8",
+          "anchor": "## API Reference For complete API documentation, see the [Send Batch Emails API "
+        }
+      ],
+      "_meta": {
+        "capability": "how to find the complete reference documentation for sending multiple messages together in a single request",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.0667,
+        "kw_rank": 4,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0077",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "why does gmail clip my email behind a view entire message link",
+      "keyword_query": "email clipping truncation",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/emails/deliverability-insights",
+          "heading_path": "docs/dashboard/emails/deliverability-insights / Attention Insights / Keep email body size small",
+          "content_hash": "sha256:dd554717c6005eef72219bde24c29f63983746b73f65d8d6835480bba67c84e6",
+          "anchor": "#### Keep email body size small Gmail limits the size of each email message to 1"
+        }
+      ],
+      "_meta": {
+        "capability": "understand why keeping a message's content small avoids having it truncated and hidden behind a view-more link by some inboxes",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.25,
+        "kw_rank": 38,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0078",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "set up a custom click-tracking domain to avoid spam flags",
+      "keyword_query": "custom tracking domain",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/emails/deliverability-insights",
+          "heading_path": "docs/dashboard/emails/deliverability-insights / Improvement Insights / Use Custom Subdomain for Click Tracking",
+          "content_hash": "sha256:624628d726e84b4ffb48df3a05484ec4e7e7ee284e9c91ff8feff4808d3538c6",
+          "anchor": "#### Use Custom Subdomain for Click Tracking You're using a shared tracking doma"
+        }
+      ],
+      "_meta": {
+        "capability": "configure a dedicated address for rewritten links instead of a shared one so spam filters do not flag your messages",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1471,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0079",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "using an idempotency key to safely retry a send",
+      "keyword_query": "idempotency key retry",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/emails/idempotency-keys",
+          "heading_path": "docs/dashboard/emails/idempotency-keys / How does it work?",
+          "content_hash": "sha256:de746ff42d9e3cc82d8a3653b5fa0c3418179fd9d9e05741d56900a6b4d9bb86",
+          "anchor": "## How does it work? When you send an email with an idempotency key, we check if"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how including a unique key with a send request lets you safely retry it without accidentally sending twice",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0976,
+        "kw_rank": 4,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0080",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "schedule an email to send at a future time",
+      "keyword_query": "scheduled send future",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/emails/schedule-email",
+          "heading_path": "docs/dashboard/emails/schedule-email",
+          "content_hash": "sha256:c9ae28dab1c3fe218e84f1d4ea819f9ffcd4bf3a6403227eb68135c5cff5b858",
+          "anchor": "Send emails at a specific time without additional complexity. While some emails "
+        }
+      ],
+      "_meta": {
+        "capability": "how to delay delivery of a message until a specific future time rather than sending it right away",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0625,
+        "kw_rank": 24,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0081",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "delete an email template via dashboard or api",
+      "keyword_query": "delete template api",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/templates/introduction",
+          "heading_path": "docs/dashboard/templates/introduction / Delete a Template",
+          "content_hash": "sha256:e7d577a371e535753e3be5b5d3020aa56fd501a6c39f464cc775d086ec348c99",
+          "anchor": "## Delete a Template You can delete a Template via the dashboard by clicking on "
+        }
+      ],
+      "_meta": {
+        "capability": "how to permanently remove a reusable message layout either through a visual interface or programmatically",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.4167,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0082",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "send a test template preview with sample variables to myself",
+      "keyword_query": "test template preview send",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/templates/template-variables",
+          "heading_path": "docs/dashboard/templates/template-variables / Send Test Emails",
+          "content_hash": "sha256:9fc656bc0c9639df5da79db184fcfaa7c756e25a47b2498131fab81deeeaec81",
+          "anchor": "## Send Test Emails You can send test emails to your inbox to preview your Templ"
+        }
+      ],
+      "_meta": {
+        "capability": "how to preview a reusable message layout by sending a sample copy with test variable values to your own inbox",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.2353,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0083",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "tool to parse dmarc reports and flag unauthorized senders",
+      "keyword_query": "dmarc report parser",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dmarc-analyzer",
+          "heading_path": "docs/dmarc-analyzer / Features",
+          "content_hash": "sha256:19b1410b995e303a360f773632d873fca0f2aba54b7aedda984492167dd4ff15",
+          "anchor": "## Features * Parse and visualize DMARC XML reports instantly * View SPF and DKI"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the capabilities of a tool that parses authentication reports, flags unauthorized senders, and summarizes results by email digest",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1277,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0084",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "what happens when i exceed the per-second rate limit",
+      "keyword_query": "rate limit 429 response",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/account-quotas-and-limits",
+          "heading_path": "docs/knowledge-base/account-quotas-and-limits / Rate Limits",
+          "content_hash": "sha256:e1df7ddb7f4b10fa162d608c253ca9e3d5780301a56e763bbeb20d63fd133cff",
+          "anchor": "## Rate Limits All accounts start with a rate limit of 10 requests per second. T"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how a per-second request cap works and what response you get if you exceed it within the same window",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0784,
+        "kw_rank": 18,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0085",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "benefits of double opt-in confirmation for new subscribers",
+      "keyword_query": "double opt-in benefits",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/audience-hygiene",
+          "heading_path": "docs/knowledge-base/audience-hygiene / How to ensure emails are valid? / Ensure the recipient is consenting with Double Opt-In",
+          "content_hash": "sha256:cb4c433da6488241686c56aec8940f3298a86627f346adf873d786866bdccf57",
+          "anchor": "### Ensure the recipient is consenting with Double Opt-In Double opt-in is the p"
+        }
+      ],
+      "_meta": {
+        "capability": "understand why asking a new subscriber to confirm their signup with a follow-up link improves compliance and delivery quality",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0455,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0086",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "where to download tax and compliance documents from account settings",
+      "keyword_query": "tax compliance documents download",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/downloading-documents",
+          "heading_path": "docs/knowledge-base/downloading-documents",
+          "content_hash": "sha256:0fe0457627ef02d5b4e2a36fae3e5bd1eacbbf69733d818a01692f0594f98755",
+          "anchor": "How to download compliance and tax documents from your Resend account. Resend ke"
+        }
+      ],
+      "_meta": {
+        "capability": "how to find and download compliance and tax paperwork stored in your account's settings area",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.3684,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0087",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "verify an inbound webhook payload and forward it elsewhere",
+      "keyword_query": "verify inbound webhook forward",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/forward-emails-with-resend-inbound",
+          "heading_path": "docs/knowledge-base/forward-emails-with-resend-inbound",
+          "content_hash": "sha256:d16cc9edb489cee1dcc505ad10d04b0e8b444f80201487b54ffbe6979930e7af",
+          "anchor": "```ts import type { NextRequest } from 'next/server'; import { NextResponse } fr"
+        }
+      ],
+      "_meta": {
+        "capability": "how to verify an incoming message notification and forward its contents on to a different address",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0521,
+        "kw_rank": 2,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0088",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "set mx records on route53 for inbound email subdomain",
+      "keyword_query": "mx records inbound subdomain",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/route53",
+          "heading_path": "docs/knowledge-base/route53 / Receiving Emails",
+          "content_hash": "sha256:81e98ec5b475e0f1deeafde0fb5e973207a2a3db06142e9a8a62a9a936c15a21",
+          "anchor": "## Receiving Emails If you want to receive emails at your domain, toggle the \"Re"
+        }
+      ],
+      "_meta": {
+        "capability": "how to configure DNS records with a particular cloud provider so a subdomain can accept incoming messages",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0449,
+        "kw_rank": 10,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0089",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "single account vs per-customer accounts for multi-tenant isolation",
+      "keyword_query": "multi-tenant account isolation",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/setting-up-resend-for-multi-tenants",
+          "heading_path": "docs/knowledge-base/setting-up-resend-for-multi-tenants / At a glance",
+          "content_hash": "sha256:1c0348637ce60b71c8d6fab0f4fa89bc374f5d7abe288f0bb33154f0ba253d6a",
+          "anchor": "## At a glance | Factor | Single Account | Separate Accounts / BYOK | | --------"
+        }
+      ],
+      "_meta": {
+        "capability": "choose between one shared account or separate accounts per customer when isolating billing, limits, and reputation for a multi-tenant product",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0923,
+        "kw_rank": 2,
+        "nl_rank": 5
+      }
+    },
+    {
+      "id": "r0090",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "idempotency key to avoid duplicate sends on retry",
+      "keyword_query": "idempotency avoid duplicate",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-astro",
+          "heading_path": "docs/send-with-astro / Send Email with Resend Node.js SDK / **1. Official Resend Node.js Setup** / Idempotency",
+          "content_hash": "sha256:928294fddeffb6a697c31383d19065dfb605fe350989ad2a88e83577b5a02068",
+          "anchor": "### Idempotency Best practice: Add an idempotency key to prevent duplicated emai"
+        }
+      ],
+      "_meta": {
+        "capability": "how to prevent a message from being sent more than once when safely retrying a failed request",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.04,
+        "kw_rank": 18,
+        "nl_rank": 18
+      }
+    },
+    {
+      "id": "r0091",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "npm install the node sdk for sending emails",
+      "keyword_query": "npm install node sdk",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-astro",
+          "heading_path": "docs/send-with-astro / Send Email with Resend Node.js SDK / 1. Install",
+          "content_hash": "sha256:d30bdfac80d2fd588ddbbe1c819bf08f8b1348e4ef0b91e4f52e30e4c3fad081",
+          "anchor": "## 1. Install Install the Resend Node.js SDK. ```bash npm install resend ``` ```"
+        }
+      ],
+      "_meta": {
+        "capability": "how to install the software package needed to send messages from a server-side JavaScript project",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.3333,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0092",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "what package do i add to a node backend to send mail",
+      "keyword_query": "node backend mail package",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-astro",
+          "heading_path": "docs/send-with-astro / Send Email with Resend Node.js SDK / 1. Install",
+          "content_hash": "sha256:d30bdfac80d2fd588ddbbe1c819bf08f8b1348e4ef0b91e4f52e30e4c3fad081",
+          "anchor": "## 1. Install Install the Resend Node.js SDK. ```bash npm install resend ``` ```"
+        }
+      ],
+      "_meta": {
+        "capability": "how to install the software package needed to send messages from a server-side JavaScript project",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.1333,
+        "kw_rank": 35,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0093",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "optional send parameters like cc bcc headers and scheduled at",
+      "keyword_query": "optional send parameters",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-cloudflare-workers",
+          "heading_path": "docs/send-with-cloudflare-workers / Send Email with Resend Node.js SDK / **2. Complete `emails.send()` Parameter Reference** / **Optional Parameters**",
+          "content_hash": "sha256:b98e555bebf1045710cf018a66769ca3e22dbb3fe33636128314bb54c3df761e",
+          "anchor": "### **Optional Parameters** | Parameter | Type | Description | | ------------- |"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the optional fields available when composing a message, such as extra recipients, custom headers, and scheduling",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1042,
+        "kw_rank": 13,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0094",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "send html email from a flask route",
+      "keyword_query": "flask send html email",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-flask",
+          "heading_path": "docs/send-with-flask / 2. Send email using HTML",
+          "content_hash": "sha256:aff42d40a333b33fcbdc72cac28c10411e4d2fb64255e6be1c101bbce2306cf2",
+          "anchor": "## 1. Install Get the Resend Python SDK. ```bash pip install resend ``` ## 2. Se"
+        }
+      ],
+      "_meta": {
+        "capability": "how to send a message with styled markup content from a lightweight backend web framework",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.1389,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0095",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "initialize the sdk client with my api key",
+      "keyword_query": "initialize sdk client",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-hono",
+          "heading_path": "docs/send-with-hono / Send Email with Resend Node.js SDK / **1. Official Resend Node.js Setup** / **Initialize the Client**",
+          "content_hash": "sha256:324855c0734e41760a88e6cd6a2ec34ad0ef14f3d3627e8dfe64a260d557bf5b",
+          "anchor": "### **Initialize the Client** ```typescript import { Resend } from 'resend'; con"
+        }
+      ],
+      "_meta": {
+        "capability": "how to set up a client instance authenticated with your credential before making any calls",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.2,
+        "kw_rank": 12,
+        "nl_rank": 12
+      }
+    },
+    {
+      "id": "r0096",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "smtp host port and login credentials for outgoing mail",
+      "keyword_query": "smtp host port credentials",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-metabase-smtp",
+          "heading_path": "docs/send-with-metabase-smtp / 1. Get the Resend SMTP credentials",
+          "content_hash": "sha256:2dd955614a31f4d3d9e1491a6f92092728c4504530fcf037187da362de7cf171",
+          "anchor": "## 1. Get the Resend SMTP credentials When configuring your SMTP integration, yo"
+        }
+      ],
+      "_meta": {
+        "capability": "how to find the server address, port, username, and password needed to configure outgoing mail delivery over SMTP",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.2105,
+        "kw_rank": 4,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0097",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "how do i list the mail library in my package config file",
+      "keyword_query": "list library package config",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-phoenix",
+          "heading_path": "docs/send-with-phoenix / 1. Install",
+          "content_hash": "sha256:65e192eaeef26873942430c8b0d09f0aeac17dd762a91ef99aa8903971f2bee9",
+          "anchor": "## 1. Install Install by adding `resend` to your list of dependencies in `mix.ex"
+        }
+      ],
+      "_meta": {
+        "capability": "how to add a messaging library as a dependency in a functional backend language's package manifest",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.0588,
+        "kw_rank": 36,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0098",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "how do i safely resend a request after a timeout without duplicating it",
+      "keyword_query": "resend after timeout safely",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-redwoodjs",
+          "heading_path": "docs/send-with-redwoodjs / Send Email with Resend Node.js SDK / **1. Official Resend Node.js Setup** / Idempotency",
+          "content_hash": "sha256:928294fddeffb6a697c31383d19065dfb605fe350989ad2a88e83577b5a02068",
+          "anchor": "### Idempotency Best practice: Add an idempotency key to prevent duplicated emai"
+        }
+      ],
+      "_meta": {
+        "capability": "how to prevent a message from being sent more than once when safely retrying a failed request",
+        "model": "claude-session",
+        "persona": "paraphrase",
+        "jaccard": 0.08,
+        "kw_rank": 30,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0099",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "build an email template using react components",
+      "keyword_query": "react email components",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-remix",
+          "heading_path": "docs/send-with-remix / Send Email with Resend Node.js SDK / **3. Sending with React Email**",
+          "content_hash": "sha256:145edfc5921e78bb7424d88317f748041b888dd22e0d488553515b492da921e4",
+          "anchor": "## **3. Sending with React Email** Resend integrates with [React Email](https://"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how to build a message body from reusable UI components in a component-based frontend framework instead of raw markup",
+        "model": "claude-session",
+        "persona": "expert",
+        "jaccard": 0.0638,
+        "kw_rank": 21,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0100",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "how to batch multiple http calls into single ajax request like django",
+      "keyword_query": "batch http requests single call django",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/api-reference/emails/send-batch-emails",
+          "heading_path": "docs/api-reference/emails/send-batch-emails",
+          "content_hash": "sha256:6b6236b7a6b1c3af93fb51e7229a709c3bdfda427357fdfff643939e35e03462",
+          "anchor": "POST /emails/batch Trigger up to 100 batch emails at once. Instead of sending on"
+        }
+      ],
+      "_meta": {
+        "capability": "how to send up to a hundred separate messages in one request instead of making many individual calls",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.1481,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0101",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "how to setup email for chat bot",
+      "keyword_query": "email webhook chat setup",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/chat-sdk",
+          "heading_path": "docs/chat-sdk / Resend Chat SDK Adapter / Setup / Prerequisites",
+          "content_hash": "sha256:7239abc67d9f0608ba98dc330b5d637f6d6c85326c0d6e52482826fc80dca500",
+          "anchor": "## Setup ### Prerequisites * Resend API key stored in `RESEND_API_KEY` env var *"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the setup requirements needed before wiring an inbound email address into a chat-style conversational integration",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.069,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0102",
+      "pack": "resend",
+      "difficulty": "vocabulary_mismatch",
+      "query": "check creds and keys",
+      "keyword_query": "check creds keys",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/cli",
+          "heading_path": "docs/cli / Utility",
+          "content_hash": "sha256:28073efcd41a3bbeb8e06b8597fe07e89d5fceee285adf93126c681c19e43d8c",
+          "anchor": "## Utility Diagnose your setup, manage authentication, and configure shell compl"
+        }
+      ],
+      "_meta": {
+        "capability": "how to diagnose your local command-line setup and check the status of your credentials, key, and domain configuration",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0263,
+        "kw_rank": 21,
+        "nl_rank": 21
+      }
+    },
+    {
+      "id": "r0103",
+      "pack": "resend",
+      "difficulty": "vocabulary_mismatch",
+      "query": "why msg slow far away",
+      "keyword_query": "latency geo region",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/domains/regions",
+          "heading_path": "docs/dashboard/domains/regions / Why is this important?",
+          "content_hash": "sha256:ceccc7a6e8b82c9d734b83304081eff1434de64180a650c745eb8549d8d48ef0",
+          "anchor": "## Why is this important? Especially for transactional emails like magic links, "
+        }
+      ],
+      "_meta": {
+        "capability": "understand why sending messages from a region closer to your users improves speed, simplifies account management, and adds resilience",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.023,
+        "kw_rank": 3,
+        "nl_rank": 29
+      }
+    },
+    {
+      "id": "r0104",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "how to prevent email body from being collapsed by client",
+      "keyword_query": "email body collapse prevention strategy",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/emails/deliverability-insights",
+          "heading_path": "docs/dashboard/emails/deliverability-insights / Attention Insights / Keep email body size small",
+          "content_hash": "sha256:dd554717c6005eef72219bde24c29f63983746b73f65d8d6835480bba67c84e6",
+          "anchor": "#### Keep email body size small Gmail limits the size of each email message to 1"
+        }
+      ],
+      "_meta": {
+        "capability": "understand why keeping a message's content small avoids having it truncated and hidden behind a view-more link by some inboxes",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0667,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0105",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "why does my email recipient get permanently blacklisted after a bounce?",
+      "keyword_query": "permanent bounce blacklist recipient",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/emails/email-suppressions",
+          "heading_path": "docs/dashboard/emails/email-suppressions / What caused the suppression?",
+          "content_hash": "sha256:9c56ea7b44c96bd377c87455a104578f26ff3cf0db52045e86b8bf44cc12c7ab",
+          "anchor": "## What caused the suppression? The suppression is caused by: * `Bounced` when t"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the reasons an address gets blocked from future sends, such as a hard delivery failure or a spam complaint",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0851,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0106",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "fix api err",
+      "keyword_query": "api error fix",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/logs/introduction",
+          "heading_path": "docs/dashboard/logs/introduction / Using the dashboard / Troubleshooting errors",
+          "content_hash": "sha256:84e04091284fc5ada2007404cea9b353ec1873cb32ecb3d09380d088fa8b23b3",
+          "anchor": "### Troubleshooting errors For supported error types, click the **Help me fix** "
+        }
+      ],
+      "_meta": {
+        "capability": "how to get step-by-step guidance and relevant context for resolving a specific error returned by an API call",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0513,
+        "kw_rank": 2,
+        "nl_rank": 3
+      }
+    },
+    {
+      "id": "r0107",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "how to delete a shared partial view template in rails",
+      "keyword_query": "delete shared partial template rails",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dashboard/templates/introduction",
+          "heading_path": "docs/dashboard/templates/introduction / Delete a Template",
+          "content_hash": "sha256:e7d577a371e535753e3be5b5d3020aa56fd501a6c39f464cc775d086ec348c99",
+          "anchor": "## Delete a Template You can delete a Template via the dashboard by clicking on "
+        }
+      ],
+      "_meta": {
+        "capability": "how to permanently remove a reusable message layout either through a visual interface or programmatically",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.125,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0108",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "parse dmarc report and alert on bad senders",
+      "keyword_query": "dmarc parser unauthorized sender alert",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/dmarc-analyzer",
+          "heading_path": "docs/dmarc-analyzer / Features",
+          "content_hash": "sha256:19b1410b995e303a360f773632d873fca0f2aba54b7aedda984492167dd4ff15",
+          "anchor": "## Features * Parse and visualize DMARC XML reports instantly * View SPF and DKI"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the capabilities of a tool that parses authentication reports, flags unauthorized senders, and summarizes results by email digest",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.1064,
+        "kw_rank": 3,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0109",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "does it need approval to go live",
+      "keyword_query": "domain verify pending",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/does-resend-require-production-approval",
+          "heading_path": "docs/knowledge-base/does-resend-require-production-approval / Common misconceptions",
+          "content_hash": "sha256:464eda5a8c0ccf17b9dd6f78529ba541e1529e9c2ab6205275445ceeeec90cb3",
+          "anchor": "## Common misconceptions Some users may think they need production approval if: "
+        }
+      ],
+      "_meta": {
+        "capability": "understand common misconceptions about needing approval before going live, including confusion around pending domain verification status",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0455,
+        "kw_rank": 4,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0110",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "add txt record for auth",
+      "keyword_query": "add txt record auth",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/dreamhost",
+          "heading_path": "docs/knowledge-base/dreamhost / Add TXT SPF Record",
+          "content_hash": "sha256:58b56eec9e71156dfc8f119896bec900a31554d894478e326a66a003b56a6625",
+          "anchor": "## Add TXT SPF Record 1. Navigate to the **DNS** tab. 2. Enter `send` as Host. 3"
+        }
+      ],
+      "_meta": {
+        "capability": "how to add a specific authentication text record with a particular hosting provider's DNS management interface",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.1111,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0111",
+      "pack": "resend",
+      "difficulty": "direct",
+      "query": "add logo to domain for emails",
+      "keyword_query": "logo domain email",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/how-do-i-set-up-apple-branded-mail",
+          "heading_path": "docs/knowledge-base/how-do-i-set-up-apple-branded-mail / Implementing Apple Branded Mail / 6. Add your domain",
+          "content_hash": "sha256:241394d0c8d3d61588eb69ac5da5f1e9c3a9f4f82b1857457ff60f57a9979002",
+          "anchor": "### 6. Add your domain Confirm the domains or email addresses where you want you"
+        }
+      ],
+      "_meta": {
+        "capability": "how to register your brand logo against a root domain or a specific subdomain used for sending",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.125,
+        "kw_rank": 1,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0112",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "auto separate events per client",
+      "keyword_query": "isolated event streams",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/knowledge-base/setting-up-resend-for-multi-tenants",
+          "heading_path": "docs/knowledge-base/setting-up-resend-for-multi-tenants / Webhook routing / Option B: Natural isolation",
+          "content_hash": "sha256:bc635589f5899012ef0f7944fe4a75d032a4d59331206d6e2e0ca291119c916a",
+          "anchor": "### Option B: Natural isolation With separate accounts, each tenant configures t"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how using fully separate accounts per customer automatically isolates event notifications without extra tagging or filtering logic",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.087,
+        "kw_rank": 1,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0113",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "send html email",
+      "keyword_query": "html mail",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-django",
+          "heading_path": "docs/send-with-django / 3. Send email using HTML",
+          "content_hash": "sha256:16b456e97eac7033ed7a4d42f27a87598330176ddfa0992f3fb23aef8a31b032",
+          "anchor": "## 3. Send email using HTML The easiest way to send an email is by using the `ht"
+        }
+      ],
+      "_meta": {
+        "capability": "how to send a message containing styled markup using a familiar web framework's built-in mail helper",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.1,
+        "kw_rank": 1,
+        "nl_rank": 8
+      }
+    },
+    {
+      "id": "r0114",
+      "pack": "resend",
+      "difficulty": "paraphrase",
+      "query": "smtp host pass",
+      "keyword_query": "smtp creds",
+      "gold": [
+        {
+          "source_url": "https://resend.com/docs/send-with-metabase-smtp",
+          "heading_path": "docs/send-with-metabase-smtp / 1. Get the Resend SMTP credentials",
+          "content_hash": "sha256:2dd955614a31f4d3d9e1491a6f92092728c4504530fcf037187da362de7cf171",
+          "anchor": "## 1. Get the Resend SMTP credentials When configuring your SMTP integration, yo"
+        }
+      ],
+      "_meta": {
+        "capability": "how to find the server address, port, username, and password needed to configure outgoing mail delivery over SMTP",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.125,
+        "kw_rank": 4,
+        "nl_rank": null
+      }
+    }
+  ]
+}

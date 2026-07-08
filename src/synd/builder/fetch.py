@@ -4,20 +4,33 @@ from __future__ import annotations
 
 import re
 import time
+from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
+from urllib.parse import urldefrag, urljoin, urlparse
 from urllib.request import Request, urlopen
 
 import markdownify
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 
 from synd.builder.mdx import process_mdx
 from synd.errors import FetchError
 
-_USER_AGENT = "synd/0.1 (https://github.com/trydydd/synaptic-drift)"
+DEFAULT_USER_AGENT = "synd/0.1 (https://github.com/trydydd/synaptic-drift)"
 
 _BOILERPLATE_TAGS = ["nav", "header", "footer", "aside", "script", "style", "noscript"]
 
 _PILCROW_RE = re.compile(r"\[¶\]\([^)]*\)|¶")
+
+
+@dataclass
+class FetchedHtml:
+    """A raw fetched page with the response metadata the crawler needs."""
+
+    url: str  # requested URL
+    final_url: str  # URL after redirects (response.geturl())
+    text: str
+    content_type: str  # media type only, params stripped, lowercased
 
 
 def html_to_markdown(html: str) -> str:
@@ -41,14 +54,42 @@ def html_to_markdown(html: str) -> str:
     return md.strip()
 
 
-def fetch_text(url: str) -> str:
+def extract_links(html: str, base_url: str) -> list[str]:
+    """Extract all followable hyperlinks from an HTML page.
+
+    Returns absolute http(s) URLs resolved against base_url, fragments
+    stripped, in document order with duplicates removed. Non-navigational
+    schemes (mailto:, javascript:, data:, tel:) are skipped. Scope filtering
+    is the crawler's responsibility, not this function's.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    links: list[str] = []
+    seen: set[str] = set()
+    for anchor in soup.find_all("a", href=True):
+        if not isinstance(anchor, Tag):
+            continue
+        href = str(anchor["href"]).strip()
+        if not href:
+            continue
+        scheme = urlparse(href).scheme.lower()
+        if scheme and scheme not in ("http", "https"):
+            continue
+        resolved, _fragment = urldefrag(urljoin(base_url, href))
+        if not resolved or resolved in seen:
+            continue
+        seen.add(resolved)
+        links.append(resolved)
+    return links
+
+
+def fetch_text(url: str, *, user_agent: str = DEFAULT_USER_AGENT) -> str:
     """Fetch a URL and return its raw decoded text content.
 
     Use for plaintext index files (llms-full.txt, llms.txt) where no
     HTML-to-markdown or MDX conversion is wanted.
     Raises FetchError on HTTP error status or network failure.
     """
-    req = Request(url, headers={"User-Agent": _USER_AGENT})
+    req = Request(url, headers={"User-Agent": user_agent})
     try:
         with urlopen(req, timeout=30) as response:  # nosec: B310 (URL from llms.txt/caller)
             raw: str = response.read().decode("utf-8", errors="replace")
@@ -59,7 +100,35 @@ def fetch_text(url: str) -> str:
         raise FetchError(f"Network error fetching {url}: {exc.reason}") from exc
 
 
-def fetch_page(url: str, *, rate_limit_sleep: float = 0.0) -> str:
+def fetch_html(url: str, *, user_agent: str = DEFAULT_USER_AGENT) -> FetchedHtml:
+    """Fetch a URL and return the raw body plus response metadata.
+
+    Unlike fetch_text, surfaces the response Content-Type (for gating what
+    gets converted to markdown) and the post-redirect final URL (for scope
+    re-checking). Does not sleep — the crawler owns request pacing.
+    Raises FetchError on HTTP error status or network failure.
+    """
+    req = Request(url, headers={"User-Agent": user_agent})
+    try:
+        with urlopen(req, timeout=30) as response:  # nosec: B310 (URL from crawl frontier)
+            text: str = response.read().decode("utf-8", errors="replace")
+            content_type: str = response.headers.get_content_type().lower()
+            final_url: str = response.geturl() or url
+    except HTTPError as exc:
+        raise FetchError(f"HTTP {exc.code} fetching {url}") from exc
+    except URLError as exc:
+        raise FetchError(f"Network error fetching {url}: {exc.reason}") from exc
+    return FetchedHtml(
+        url=url, final_url=final_url, text=text, content_type=content_type
+    )
+
+
+def fetch_page(
+    url: str,
+    *,
+    rate_limit_sleep: float = 0.0,
+    user_agent: str = DEFAULT_USER_AGENT,
+) -> str:
     """Fetch a documentation page and return normalised markdown.
 
     Routing:
@@ -72,7 +141,7 @@ def fetch_page(url: str, *, rate_limit_sleep: float = 0.0) -> str:
     rate_limit_sleep: seconds to sleep after a successful fetch. Pass a
     nonzero value when looping over many pages to avoid hammering the server.
     """
-    raw = fetch_text(url)
+    raw = fetch_text(url, user_agent=user_agent)
 
     if rate_limit_sleep > 0:
         time.sleep(rate_limit_sleep)

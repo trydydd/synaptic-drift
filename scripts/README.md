@@ -50,3 +50,20 @@ python scripts/llms_full_to_markdown.py https://modelcontextprotocol.io/llms-ful
 ### Notes
 
 - If remote URL fetch fails in restricted environments (proxy/firewall), download the file locally first and run the script on the local path.
+
+## `build_top20_packs.py`
+
+Acceptance harness for the general web crawler: builds `.ctx` packs for 19 of
+the top-20 most intentionally installed Python packages (pydantic from its
+`llms.txt`, the rest crawled from their docs roots — see
+`docs/top20-python-packages.md`), verifies each with `synd verify`, and prints
+a coverage report. boto3 is excluded by scope decision; its subtree recipe is
+printed at the end of the run.
+
+```bash
+python scripts/build_top20_packs.py                 # everything (network, slow)
+python scripts/build_top20_packs.py --only requests # one package
+```
+
+Already-built packs in `packs/` are skipped, so re-running after a partial
+build is safe.

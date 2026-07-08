@@ -191,10 +191,11 @@ v0.1.1 is complete. Active development is on v0.2.0 (402 tests passing).
 
 **Theme**: Multi-user, multi-project, CI-integrated. Start looking like infrastructure.
 
-- [ ] **`synd build --source <url>`** — general web crawler: follow links from a docs site root, fetch and chunk all reachable pages. For sites without `llms.txt` or `llms-full.txt`. Rate limiting, `robots.txt` compliance, configurable `User-Agent`. No embeddings or JS rendering — static HTML only.
-  - New module: `src/synd/builder/crawler.py`
-  - Extend `src/synd/builder/fetch.py` with link extraction and crawl frontier logic
-- [ ] **Pre-built packs for top 20 libraries** — of the top 20 most intentionally installed Python packages, only pydantic has `llms.txt`/`llms-full.txt`; the rest require the crawler to build cleanly. See `docs/top20-python-packages.md` for coverage research and the requests@2.34.2 manual build as a reference. Publish as GitHub Releases once the crawler is in place.
+- [x] **`synd build --source <url>`** — general web crawler: fetch and chunk all reachable pages from a docs site root. For sites without `llms.txt` or `llms-full.txt`. Rate limiting, `robots.txt` compliance (with `--no-robots` escape hatch), configurable `--user-agent`, `--max-pages` cap with truncation provenance in the manifest. No embeddings or JS rendering — static HTML only. See `decisions.md` D28.
+  - `src/synd/builder/crawler.py` — BFS link-following seeded by sitemaps (robots `Sitemap:` directives → `<root>/sitemap.xml` → `<host>/sitemap.xml`, sitemapindex recursion; sitemaps seed but never replace link-following — RTD sitemaps list only version roots), host+path-prefix scoping, canonical-URL dedup, per-host robots cache honoring `Crawl-delay`
+  - `src/synd/builder/fetch.py` — `extract_links()`, `fetch_html()` (Content-Type + redirect-aware), User-Agent threading
+  - Crawled pages sorted by canonical URL before chunk-ID assignment (deterministic builds); crawl provenance (`crawl_pages_fetched`/`crawl_truncated`/`crawl_max_pages`) recorded in the manifest
+- [ ] **Pre-built packs for top 20 libraries** — the crawler now covers the 19 packages without `llms.txt` (pydantic builds from its llms.txt; boto3 is out of acceptance scope — subtree recipe documented instead). Acceptance harness: `scripts/build_top20_packs.py`. See `docs/top20-python-packages.md`. Publish as GitHub Releases.
 - [ ] **Pack registry (static hosting)** — `synd add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
   - New module: `src/synd/registry/` (client only; server is a static file host)
   - `synd add` accepts `package@version` in addition to file paths

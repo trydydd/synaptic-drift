@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "timestamp": "2026-07-05T18:39:24.477352+00:00",
+    "model": "red",
+    "disable_thinking": true,
+    "runs": 10,
+    "max_turns": 8
+  },
+  "aggregate": {
+    "no_docs": {
+      "pass_rate_mean": 0.7,
+      "pass_rate_stdev": 0.0,
+      "avg_latency_s_mean": 25.3038,
+      "avg_latency_s_stdev": 0.0199,
+      "per_run_pass_rate": [
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7
+      ],
+      "per_run_avg_latency_s": [
+        25.301,
+        25.294,
+        25.293,
+        25.312,
+        25.303,
+        25.264,
+        25.31,
+        25.314,
+        25.343,
+        25.304
+      ]
+    },
+    "with_docs": {
+      "pass_rate_mean": 0.8,
+      "pass_rate_stdev": 0.0,
+      "avg_latency_s_mean": 57.6672,
+      "avg_latency_s_stdev": 0.9463,
+      "per_run_pass_rate": [
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8
+      ],
+      "per_run_avg_latency_s": [
+        60.357,
+        57.392,
+        57.312,
+        57.352,
+        57.394,
+        57.291,
+        57.352,
+        57.406,
+        57.455,
+        57.361
+      ]
+    }
+  }
+}

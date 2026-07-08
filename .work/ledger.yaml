@@ -35,9 +35,18 @@
 #   - Invent missing inputs. Stop and ask.
 # =============================================================================
 
+# PLANNER NOTE (2026-06-11): Ledger revised to add the eval harness stream
+# (chunk-e1 … chunk-e9). The project was renamed tank → synd after the MVP
+# chunks completed; the global block below now describes the CURRENT codebase
+# (src/synd/, markdown-it-py chunker, Python 3.12). DONE chunks are historical
+# and still reference src/tank/ paths — do not "fix" them and do not use their
+# contracts as a source of truth for current file locations. The code is the
+# source of truth.
+
 meta:
-  project: "tank"
+  project: "synd"
   created_at: "2026-05-17T00:30:00Z"
+  revised_at: "2026-06-11T00:00:00Z"
   ledger_version: "2.4"
   models:
     planner: "claude-opus-4-6"
@@ -62,55 +71,61 @@ meta:
 
 global:
 
+  # PLANNER NOTE (2026-06-11): block rewritten to match the current codebase.
   project_summary: |
-    Tank is a local, enterprise-governed documentation pack system. It builds
-    versioned .ctx packs from local documentation source files (Markdown and HTML),
-    verifies them against policy, imports them into a local SQLite FTS5 index,
-    and serves them to AI coding agents via MCP. All data stays on the user's
-    machine. No cloud dependency, no embeddings, no API keys required. The MVP
-    is four commands: tank build, tank verify, tank pull, tank query. The MCP
-    server exposes two tools: query-docs and resolve-deps.
+    Synaptic Drift (package name: synd) is a local-first documentation pack
+    system. It builds versioned .ctx packs from local Markdown/HTML trees or
+    from llms.txt / llms-full.txt URLs, verifies them against policy, imports
+    them into a local SQLite FTS5 index, and serves them to AI coding agents
+    via MCP. All data stays on the user's machine. No cloud dependency, no
+    embeddings, no API keys required. CLI verbs: synd build, verify, add,
+    remove, sync, query, inspect, serve. The MCP server (synd serve) exposes
+    two tools: "search" (summaries + chunk_ids) and "fetch" (full content by
+    chunk_id). The eval harness chunks (chunk-e1 …) measure whether this
+    retrieval actually works: gold-question retrieval quality, and end-task
+    A/B runs driving a local model over a vLLM OpenAI-compatible endpoint.
 
   tech_stack:
-    - "Python 3.11+ (use tomllib from stdlib, str | None union syntax)"
-    - "pytest (test runner, with pytest factories for unit tests)"
-    - "mypy (static type checking, strict mode)"
-    - "ruff (linting and formatting)"
-    - "click (CLI framework for composable subcommands)"
-    - "rich (terminal output — tables, progress bars)"
+    - "Python 3.12+ (tomllib from stdlib, str | None union syntax)"
+    - "pytest (test runner; opt-in flags --network, --benchmark defined in tests/conftest.py)"
+    - "mypy (strict mode, runs on src/ only — NOT on tests/)"
+    - "ruff (linting and formatting, runs on src/ AND tests/)"
+    - "click (CLI framework) + rich (terminal output)"
     - "SQLite + FTS5 (storage and search, via stdlib sqlite3)"
-    - "chunkana (structural Markdown chunking, MIT license, build extra only)"
-    - "mcp (Anthropic MCP Python SDK, base package)"
-    - "tomllib (stdlib, for policy.toml parsing)"
-    - "hashlib (stdlib, SHA-256 for all hash computation)"
-    - "zipfile (stdlib, for .ctx archive creation and reading)"
+    - "markdown-it-py>=3.0 (custom structural Markdown chunker — chunkana was removed)"
+    - "jsonschema (manifest and tool-response schema validation)"
+    - "markdownify + beautifulsoup4 (HTML→Markdown for URL builds)"
+    - "mcp (MCP Python SDK — OPTIONAL [serve] extra; import guarded)"
+    - "hashlib / zipfile (stdlib: SHA-256 hashing, .ctx archive I/O)"
 
   architecture_decisions:
-    - "Shared normalizer: tank.builder.normalizer is the single code path for content normalization at both build and verify time. Both must call the same function. Never duplicate normalization logic."
+    - "Shared normalizer: synd.builder.normalizer is the single code path for content normalization at build and verify time. Never duplicate normalization logic."
     - "No **kwargs: spell out every parameter explicitly in every function signature."
-    - "TankError base class with specific subclasses discovered during TDD. CLI catches subclasses and maps to exit codes."
-    - "pack_digest uses empty-string zeroing: set 'pack_digest' field to '' in manifest.json, assemble the zip, hash the bytes, then rewrite manifest with real digest."
+    - "SyndError base class with specific subclasses (see src/synd/errors.py). CLI maps subclasses to exit codes (src/synd/cli/exit_codes.py)."
+    - "pack_digest: length-prefixed per-entry SHA-256 over ZIP entries sorted by filename, manifest hashed with pack_digest=''. Shared function synd.builder.manifest.compute_pack_digest."
     - "token_count is len(content) // 4. Approximate, advisory only. No tokenizer dependency."
-    - "source_url is always populated, never null. Local builds: relative path from --source root (e.g. 'docs/auth/oauth.md'). Only strip leading './' from the path."
-    - "Lexicographic file walk order (sorted by full relative path) for deterministic chunk ID assignment and reproducible normalized_content_hash."
-    - "Heuristic summaries at build time: first sentence for prose chunks, leading function/class signature for code-heavy chunks (>50% inside code fences)."
-    - "SQLite WAL mode enabled on database creation. Busy timeout 5000ms."
-    - "FTS5 with BM25 ranking is the only search backend for MVP. No embeddings."
-    - "HTML handling: basic tag removal only for MVP. No boilerplate stripping."
+    - "source_url always populated. Local builds: <source-dir-name>/<relative-path> (computed via os.path.relpath(file, source.parent)). URL builds: full https:// page URL."
+    - "Lexicographic file walk order for deterministic chunk ID assignment and reproducible hashes."
+    - "SQLite WAL mode on creation. Busy timeout 5000ms."
+    - "FTS5 with BM25 ranking is the only search backend. BM25 weights: heading_path 2.5x, summary 1.5x, content 1.0x. No embeddings."
+    - "MCP tools enforce two-step retrieval: search returns summaries only, fetch returns content by chunk_id. Tool responses validate against tool-response.v1 schema."
+    - "Tests and benchmarks call the public API (search_docs/fetch_docs, build_pack, CLI) — never internal helpers to work around limits. See .claude/CLAUDE.md Testing."
 
   repo_conventions:
     - "snake_case for files, functions, variables. PascalCase for classes."
     - "Type hints on all functions. Use str | None, not Optional[str]."
     - "No comments by default. Only add when the WHY is non-obvious."
-    - "Tests in tests/ mirroring src/tank/ structure: tests/test_builder/, tests/test_validator/, etc."
-    - "Static fixtures in tests/fixtures/ for integration tests. Pytest factory functions for unit tests."
+    - "Source lives in src/synd/. Tests mirror it: tests/test_builder/, tests/test_search/, etc. Benchmarks in tests/benchmarks/. Evals in tests/evals/."
+    - "Static fixtures in tests/fixtures/ (and tests/evals/fixtures/ for the eval corpus). Pytest factory functions for unit tests."
     - "Prefer dedicated exception classes over generic ValueError/TypeError."
 
   environment:
     required_env_vars: []
     setup_commands:
-      - "pip install -e '.[build,dev]'"
-      - "pytest tests/"
+      - "python3.12 -m venv .venv"
+      - ".venv/bin/pip install -e '.[all]'"
+      - ".venv/bin/pytest -q"
+      - ".venv/bin/ruff check src/ tests/ && .venv/bin/ruff format --check src/ tests/ && .venv/bin/mypy src/"
 
 
 # =============================================================================
@@ -141,7 +156,7 @@ behaviors:
   - id: SHARED_NORMALIZER
     description: |
       Never duplicate normalization logic. Both builder and verifier must use
-      tank.builder.normalizer. If you need normalization, import it — do not rewrite.
+      synd.builder.normalizer. If you need normalization, import it — do not rewrite.
   - id: ERROR_PATHS
     description: |
       Test error paths and edge cases, not just happy paths. Every public function
@@ -159,9 +174,9 @@ taboos:
       If a dep is genuinely needed, stop, record an open_question, and set status NEEDS_REVIEW.
   - id: RAISE_SPECIFIC_EXCEPTIONS
     description: |
-      Never raise ValueError, TypeError, or bare Exception for Tank-specific failures.
-      Use TankError subclasses. If the right subclass doesn't exist yet, create one
-      that inherits from TankError and name it descriptively.
+      Never raise ValueError, TypeError, or bare Exception for synd-specific failures.
+      Use SyndError subclasses (src/synd/errors.py). If the right subclass doesn't
+      exist yet, create one that inherits from SyndError and name it descriptively.
   - id: NO_KWARGS_PASSTHROUGH
     description: |
       Never use **kwargs to pass parameters through. Spell out every parameter
@@ -1981,3 +1996,1600 @@ chunks:
       outcome: "PASSED"
       rejection_reason: ""
       reviewed_at: "2026-05-19"
+
+
+  # ===========================================================================
+  # EVAL HARNESS STREAM (added 2026-06-11)
+  #
+  # PLANNER NOTE: These chunks build the eval harness that measures whether
+  # synd's FTS5 retrieval works: (1) gold-question retrieval quality against a
+  # committed hermetic corpus, (2) an end-task A/B eval driving a local model
+  # through the search/fetch tools over an OpenAI-compatible endpoint (vLLM).
+  #
+  # Seed assets ALREADY COMMITTED by the planner (treat as inputs, do not edit):
+  #   tests/evals/fixtures/corpus/        17 markdown pages (the hermetic corpus)
+  #   tests/evals/datasets/hermetic.json  42 gold questions, refs validated
+  #   tests/evals/datasets/live_mcp.json  20 gold questions vs live-built mcp pack
+  #   tests/evals/datasets/tasks/seed_tasks.json  10 end-task definitions
+  #
+  # RESOLVED AMBIGUITY: datasets are JSON, not YAML — PyYAML is not a project
+  # dependency and allowed_new_deps is empty for every chunk. stdlib json only.
+  #
+  # Planner-measured baseline on the hermetic corpus (97 chunks), via
+  # search_docs(limit=10), 2026-06-11 — floors in chunk-e4 derive from this:
+  #   keyword_query: overall recall@10=0.631 mrr=0.690; direct recall@10=0.738
+  #   query (natural language): overall recall@10=0.298; paraphrase+vocab=0.000
+  # The natural-language collapse is a known FTS5 property (no stemming,
+  # implicit AND), not a harness bug. Do not "fix" queries to make scores rise.
+  #
+  # The user's vLLM endpoint is NOT reachable from CI or cloud sandboxes.
+  # Every definition_of_done below runs fully offline. Live-model runs are
+  # manual, env-gated (SYND_EVAL_BASE_URL), and happen on the user's machine.
+  #
+  # PLANNER NOTE (2026-06-11, verified in a CPU-only sandbox: 4 cores, 15GB
+  # RAM): a llama.cpp llama-server with a Qwen3 GGUF is a working stand-in
+  # for vLLM when smoke-testing chunk-e6/e8 against a REAL model:
+  #   1. Download a llama.cpp release binary (llama-bNNNN-bin-ubuntu-x64.tar.gz
+  #      from github.com/ggml-org/llama.cpp/releases) and a GGUF (below).
+  #   2. ./llama-server -m <model>.gguf --jinja --host 127.0.0.1 \
+  #        --port 8089 -c 16384 -t 4 --reasoning-budget 0
+  #   3. SYND_EVAL_BASE_URL=http://127.0.0.1:8089/v1 SYND_EVAL_MODEL=local
+  #      (llama-server ignores the model field; any non-empty value works).
+  #
+  # SAMPLING PARAMETERS: Alibaba explicitly discourages greedy decoding for
+  # Qwen3. Verified in-sandbox: greedy produced identical-query repetition
+  # loops (model re-sent the same search 8 times at temperature=0). Use:
+  #   temperature=0.7, top_p=0.8, top_k=20, min_p=0
+  # llama-server accepts top_k and min_p as OpenAI-API extensions.
+  # These params go in the live run request payload in chunk-e8's driver.
+  #
+  # Model capability ladder — fully measured end-to-end (2026-06-11/15):
+  # all 10 seed tasks, real synd search_docs/fetch_docs (with query
+  # relaxation from 2026-06-14) against an index built from the eval corpus,
+  # Alibaba sampling, verified query guidance. Full progression:
+  #
+  #   Run | Model | Relaxation | Retrieval | Passes | Notes
+  #   ----+-------+------------+-----------+--------+----------------------------
+  #    1  |  8B   |    no      |   2/10    |  2/10  | greedy, no guidance
+  #    2  |  8B   |    no      |   3/3*    |  1/3*  | greedy + query wording (*partial)
+  #    3  |  8B   |    no      |  10/10    |  2/10  | Alibaba sampling + guidance
+  #    4  |  8B   |    no      |  10/10    |  3/10  | + fetch-then-answer, 12T
+  #    5  | 14B   |    no      |   4/10    |  4/10  | verbose queries defeat AND
+  #    6  | 14B   |    YES     |   6/10    |  7/10  | query relaxation in server
+  #
+  # RECOMMENDED SANDBOX MODEL: Qwen3-14B UD-Q4_K_XL
+  #   (unsloth/Qwen3-14B-GGUF, ~8.6GB, ~11GB RAM; ~1.5-4 min/task on 4 CPU)
+  #   7/10 passes with real retrieval + relaxation. 3 remaining failures are
+  #   corpus vocabulary gaps (FTS5 no stemming: "prompts"≠"prompt") and
+  #   semantic gaps (model searches "language model", corpus says "sampling")
+  #   — not harness bugs. This is directionally meaningful signal for A/B.
+  #
+  # - Qwen3-8B Q4_K_M (Qwen/Qwen3-8B-GGUF, ~4.7GB, ~6GB RAM):
+  #   HARNESS SMOKE ONLY. 3/10 passes even with 10/10 retrieval hits;
+  #   code-gen at 8B is too unreliable to measure A/B lift. Use for:
+  #   verifying tool-call wire format, loop mechanics, dispatch wiring.
+  # - Qwen3-4B-Instruct-2507 Q4_K_M (unsloth/Qwen3-4B-Instruct-2507-GGUF,
+  #   ~2.4GB; Qwen's own -2507-GGUF repo 401s on anonymous download):
+  #   LOOP-MECHANICS ONLY. Skips retrieval without forceful prompting;
+  #   code-gen below 8B.
+  # - Qwen3-0.6B-Q8_0 (~610MB): WIRE FORMAT only. Answers not gradeable.
+  # - Qwen2.5-0.5B-Instruct: NOT suitable; ignores tools entirely.
+  #
+  # Remaining 3 failures at 14B with relaxation — not harness bugs:
+  #   t07 (prompts): FTS5 no stemming — "prompt" ≠ "prompts" in heading;
+  #       "register prompt" relaxes to "register" and hits wrong chunk.
+  #       Fixable by stemming tokenizer or synonym expansion (future spike).
+  #   t09 (sampling): semantic gap — model searches "language model" /
+  #       "client rejection"; FastMCP uses "sampling"/"ctx.sample". Right
+  #       chunk IS findable via "sample client" but model never tries it.
+  #   t10 (read resource): relaxation lands on wrong chunk (chunk 20 with
+  #       get_resource vocabulary); right chunk findable via "read resource".
+  #
+  # For real measurements, use your vLLM-served model. 14B+ is the minimum
+  # for code-synthesis from fetched docs to be reliable enough to detect lift.
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e1-eval-metrics"
+    title: "Eval errors module and retrieval metrics (recall@k, MRR, nDCG@k)"
+    status: DONE
+    depends_on: []
+    token_budget_hint: small
+
+    local_context: |
+      First chunk of the eval harness. Everything in this stream lives under
+      tests/evals/ (mirroring how tests/benchmarks/ holds benchmark logic plus
+      its own tests). Nothing under tests/ is type-checked by mypy, but ruff
+      checks and formats it.
+
+      This chunk creates two small modules:
+      1. tests/evals/eval_errors.py — the error hierarchy for the whole eval
+         stream. Later chunks import from here.
+      2. tests/evals/metrics.py — pure ranking-quality functions. No I/O, no
+         database, no randomness. They take a ranked list of chunk ids (search
+         output order) and a set of relevant ids (the gold answer) and return
+         a float in [0.0, 1.0].
+
+      Definitions you must implement exactly:
+      - recall_at_k: |relevant ∩ first k of ranked| / |relevant|.
+        Count DISTINCT ids — a duplicate id in ranked counts once.
+      - mrr: 1 / rank of the FIRST relevant id in ranked (rank is 1-based).
+        0.0 when no relevant id appears anywhere in ranked.
+      - ndcg_at_k: binary relevance nDCG.
+        DCG  = sum over 1-based positions i <= k where ranked[i-1] is relevant
+               of 1 / log2(i + 1).
+        IDCG = sum for i = 1 .. min(|relevant|, k) of 1 / log2(i + 1).
+        ndcg = DCG / IDCG.
+      All three raise EvalError when relevant_ids is empty — a question with
+      no gold answer is a dataset bug and must never score silently.
+
+    objective: |
+      tests/evals/eval_errors.py exports EvalError and EvalDatasetError.
+      tests/evals/metrics.py exports recall_at_k, mrr, ndcg_at_k with the exact
+      semantics above. All golden-pair cases below are implemented as exact
+      assertions in tests/evals/test_metrics.py and pass.
+
+    interface_contract:
+      inputs:
+        - path: "src/synd/errors.py"
+          consumes: [SyndError]
+      outputs:
+        - path: "tests/evals/__init__.py"
+          exports: []
+        - path: "tests/evals/eval_errors.py"
+          exports:
+            - "class EvalError(SyndError): base class for eval harness failures"
+            - "class EvalDatasetError(EvalError): malformed dataset or unresolvable gold ref"
+        - path: "tests/evals/metrics.py"
+          exports:
+            - "def recall_at_k(ranked_ids: list[int], relevant_ids: set[int], k: int) -> float"
+            - "def mrr(ranked_ids: list[int], relevant_ids: set[int]) -> float"
+            - "def ndcg_at_k(ranked_ids: list[int], relevant_ids: set[int], k: int) -> float"
+        - path: "tests/evals/test_metrics.py"
+          exports:
+            - "test_recall_at_k_partial_hit()"
+            - "test_recall_at_k_k_beyond_length()"
+            - "test_recall_counts_duplicates_once()"
+            - "test_mrr_first_relevant_at_rank_three()"
+            - "test_mrr_no_relevant_returns_zero()"
+            - "test_ndcg_perfect_ranking_is_one()"
+            - "test_ndcg_relevant_at_second_position()"
+            - "test_empty_relevant_ids_raises_eval_error()"
+            - "test_reversed_ranking_scores_strictly_lower()  # NEG: ndcg must be sensitive to ordering — ndcg_at_k([9,1],{1},2) < ndcg_at_k([1,9],{1},2)"
+            - "test_recall_never_exceeds_one()  # NEG: duplicated relevant id in ranked must not push recall above 1.0"
+      allowed_new_deps: []
+
+    assumptions:
+      - "Import SyndError with: from synd.errors import SyndError. The synd package is importable because the project is installed editable (pip install -e '.[all]')."
+      - "Tests in tests/evals/ are auto-discovered by pytest (testpaths = ['tests'] in pyproject.toml). No registration needed."
+      - "Use math.log2 from stdlib for nDCG. Do not add numpy."
+      - "ranked_ids is the order returned by search — index 0 is the best hit. rank = index + 1."
+      - "k can exceed len(ranked_ids); that is valid, not an error."
+      - "k < 1 raises EvalError — there is no meaningful recall at k=0."
+      - "Return plain Python float. Compare floats in tests with == only for exact values (1.0, 0.0, 0.5); use pytest.approx for log-derived values."
+      - "mypy does not run on these files. ruff does — run both ruff commands before submitting."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/test_metrics.py -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/evals/"
+          must_pass: true
+        - cmd: ".venv/bin/ruff format --check tests/evals/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "All three metric functions are pure: no I/O, no globals, no mutation of arguments"
+        - "EvalError inherits from SyndError, EvalDatasetError from EvalError"
+
+    capability_ceiling:
+      - "Do not add graded (non-binary) relevance to ndcg. Binary only. If you think grades are needed, stop and flag it."
+      - "Do not import from src/synd/ anything except synd.errors in this chunk."
+      - "Do not create a metrics registry, plugin system, or any abstraction beyond the three functions."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - .claude/CLAUDE.md
+        - tests/evals/datasets/hermetic.json
+
+    review_targets:
+      - target: "recall_at_k uses distinct-id counting"
+        verified_by: "test_recall_counts_duplicates_once"
+        assertion: "recall_at_k([1, 1, 2], {1, 2}, 3) == 1.0"
+      - target: "nDCG is ordering-sensitive"
+        verified_by: "test_reversed_ranking_scores_strictly_lower"
+        assertion: "ndcg_at_k([9, 1], {1}, 2) < ndcg_at_k([1, 9], {1}, 2)"
+      - target: "Empty gold set is a hard error, not a 0.0 score"
+        verified_by: "test_empty_relevant_ids_raises_eval_error"
+        assertion: "recall_at_k([1], set(), 5) raises EvalError (and same for mrr, ndcg_at_k)"
+
+    verification_inputs:
+      - function: "recall_at_k"
+        cases:
+          - input: "ranked_ids=[1,2,3,4,5], relevant_ids={2,9}, k=3"
+            expected: "0.5"
+            label: "one of two gold ids inside top-3"
+          - input: "ranked_ids=[1,2,3], relevant_ids={1,2,3}, k=10"
+            expected: "1.0"
+            label: "k larger than result list"
+      - function: "mrr"
+        cases:
+          - input: "ranked_ids=[5,6,7], relevant_ids={7}"
+            expected: "pytest.approx(1/3)"
+            label: "first relevant at rank 3"
+          - input: "ranked_ids=[5,6,7], relevant_ids={9}"
+            expected: "0.0"
+            label: "no relevant id present"
+      - function: "ndcg_at_k"
+        cases:
+          - input: "ranked_ids=[1,2], relevant_ids={1,2}, k=2"
+            expected: "1.0"
+            label: "perfect ranking"
+          - input: "ranked_ids=[9,1], relevant_ids={1}, k=2"
+            expected: "pytest.approx(0.6309297535714574)"
+            label: "single relevant at position 2: (1/log2(3)) / 1.0"
+
+    negative_tests:
+      - test_name: "test_reversed_ranking_scores_strictly_lower"
+        description: "A metric that ignores position would score [9,1] and [1,9] equally for relevant={1}."
+        must_not: "ndcg_at_k([9,1],{1},2) == ndcg_at_k([1,9],{1},2)"
+      - test_name: "test_recall_never_exceeds_one"
+        description: "Counting a duplicated relevant id twice would yield recall > 1.0."
+        must_not: "recall_at_k([1,1],{1},2) > 1.0"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: |
+        Implemented per spec. Note: tests/evals/metrics.py and
+        tests/evals/l1_retrieval.py already existed from prior ad-hoc eval
+        work (a pilot-run L1 harness built before this ledger chunk was
+        executed) with a slightly different contract (reciprocal_rank
+        instead of mrr; returned 0.0 on empty gold instead of raising).
+        Reworked both to the exact spec here and updated l1_retrieval.py's
+        call sites accordingly (reciprocal_rank -> mrr); its own behavior
+        with real data is unaffected since it never calls the scoring
+        functions with an empty gold set (already filtered upstream).
+      files_modified:
+        - "tests/evals/__init__.py"
+        - "tests/evals/eval_errors.py"
+        - "tests/evals/metrics.py"
+        - "tests/evals/test_metrics.py"
+        - "tests/evals/l1_retrieval.py"
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e2-eval-dataset"
+    title: "Gold dataset loader and gold-ref resolver"
+    status: DONE
+    depends_on: ["chunk-e1-eval-metrics"]
+    token_budget_hint: small
+
+    local_context: |
+      Gold datasets are committed JSON files (see tests/evals/datasets/
+      hermetic.json — read it first; your loader must accept that exact file).
+      A dataset has a corpus block (package/version it targets) and questions.
+      Each question has a natural-language "query", a "keyword_query", and a
+      "gold" list of refs. A ref identifies chunks by (source_path,
+      heading_path) — NEVER by raw chunk id, because chunk ids shift when a
+      pack is rebuilt.
+
+      Resolution semantics (exact):
+        a chunk matches a ref when
+          chunk.source_url.endswith(ref.source_path)
+          AND chunk.heading_path == ref.heading_path
+      One ref may match MULTIPLE chunks (a long section split into several
+      chunks shares one heading_path) — all matches are relevant. A ref that
+      matches ZERO chunks raises EvalDatasetError naming the ref: this is the
+      dataset-rot guard, and silently skipping would corrupt every metric.
+
+      Do the suffix match in Python, not SQL LIKE — source_path can contain
+      '_' which is a LIKE wildcard. Query by package + heading_path (exact,
+      parameterized SQL), then filter source_url with str.endswith in Python.
+
+    objective: |
+      load_dataset() parses tests/evals/datasets/hermetic.json into typed
+      dataclasses and rejects malformed input with EvalDatasetError.
+      resolve_gold_refs() maps refs to chunk-id sets against a Database and
+      raises EvalDatasetError on any unresolvable ref.
+
+    interface_contract:
+      inputs:
+        - path: "tests/evals/eval_errors.py"
+          consumes: [EvalDatasetError]
+        - path: "src/synd/storage/db.py"
+          consumes: [Database]
+        - path: "tests/evals/datasets/hermetic.json"
+          consumes: ["the committed dataset — your loader must load it unmodified"]
+      outputs:
+        - path: "tests/evals/dataset.py"
+          exports:
+            - |
+              @dataclass
+              class GoldRef:
+                  source_path: str
+                  heading_path: str
+            - |
+              @dataclass
+              class GoldQuestion:
+                  id: str
+                  difficulty: str
+                  query: str
+                  keyword_query: str
+                  gold: list[GoldRef]
+            - |
+              @dataclass
+              class EvalDataset:
+                  schema_version: int
+                  corpus_type: str
+                  package: str
+                  version: str | None
+                  questions: list[GoldQuestion]
+            - "def load_dataset(path: Path) -> EvalDataset"
+            - "def resolve_gold_refs(db: Database, package: str, refs: list[GoldRef]) -> set[int]"
+        - path: "tests/evals/test_dataset.py"
+          exports:
+            - "test_load_committed_hermetic_dataset()"
+            - "test_load_missing_file_raises()"
+            - "test_load_invalid_json_raises()"
+            - "test_load_missing_required_field_raises()"
+            - "test_load_duplicate_question_ids_raises()"
+            - "test_resolve_refs_returns_all_matching_chunk_ids()"
+            - "test_resolve_multiple_chunks_per_ref()"
+            - "test_unresolvable_ref_raises_not_skips()  # NEG: a ref matching zero chunks must raise EvalDatasetError, never return a smaller set"
+            - "test_underscore_in_source_path_is_literal()  # NEG: source_path 'a_b.md' must not match source_url 'axb.md' (no LIKE-wildcard semantics)"
+      allowed_new_deps: []
+
+    assumptions:
+      - "Parse with stdlib json. json.JSONDecodeError inherits from ValueError; catch it and re-raise as EvalDatasetError with the file path in the message."
+      - "Required question fields: id, difficulty, query, keyword_query, gold (non-empty list). Missing any -> EvalDatasetError naming the field and question id."
+      - "difficulty is one of: direct, paraphrase, vocabulary_mismatch. Any other value -> EvalDatasetError."
+      - "Database has property .conn (sqlite3.Connection with row_factory = sqlite3.Row). For resolution use SQL: SELECT id, source_url FROM chunks WHERE package = ? AND heading_path = ? — then filter rows with row['source_url'].endswith(ref.source_path) in Python."
+      - "For DB-backed tests, build an in-memory fixture exactly like tests/test_search/test_fts.py does: Database(tmp_path / 'index.db'), db.create_schema(), db.import_pack(pack, pages, chunks) with hand-built Pack/Page/Chunk models from synd.storage.models. Read that test file for the established factory pattern."
+      - "Chunk model constructor requires package and version on every chunk — chunks.jsonl entries do not carry them; they come from the pack."
+      - "resolve_gold_refs returns the UNION of matches across the refs list."
+      - "Dataclasses are plain containers — no methods beyond what @dataclass generates."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/test_dataset.py -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/evals/"
+          must_pass: true
+        - cmd: ".venv/bin/ruff format --check tests/evals/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "test_load_committed_hermetic_dataset asserts: 42 questions, schema_version 1, package 'evalcorpus'"
+        - "No SQL string interpolation — package and heading_path are bound with ?"
+
+    capability_ceiling:
+      - "Do not edit tests/evals/datasets/*.json. If the loader cannot accept the committed file as-is, your loader is wrong — fix the loader or flag it."
+      - "Do not add a dataset-writing/serialization API. Load-only."
+      - "Do not use SQL LIKE for the source_path match. If you believe LIKE is needed, stop and flag it."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - tests/evals/datasets/hermetic.json
+        - tests/test_search/test_fts.py
+        - .claude/CLAUDE.md
+
+    review_targets:
+      - target: "Committed dataset loads without modification"
+        verified_by: "test_load_committed_hermetic_dataset"
+        assertion: "load_dataset(Path('tests/evals/datasets/hermetic.json')) returns 42 questions with package == 'evalcorpus'"
+      - target: "Dataset rot is a hard error"
+        verified_by: "test_unresolvable_ref_raises_not_skips"
+        assertion: "resolve_gold_refs against a DB lacking the ref raises EvalDatasetError whose message contains the heading_path"
+      - target: "Suffix match is literal, not LIKE"
+        verified_by: "test_underscore_in_source_path_is_literal"
+        assertion: "ref with source_path 'a_b.md' does not match a chunk whose source_url ends in 'axb.md'"
+
+    verification_inputs:
+      - function: "resolve_gold_refs"
+        cases:
+          - input: "DB with chunks (id=1, source_url='corpus/mcp/tools.md', heading_path='mcp/tools / Tools') and (id=2, source_url='corpus/mcp/tools.md', heading_path='mcp/tools / Tools'); ref=(source_path='mcp/tools.md', heading_path='mcp/tools / Tools')"
+            expected: "{1, 2}"
+            label: "one ref, two matching chunks — both relevant"
+          - input: "same DB; refs=[matching ref, ref with heading_path='nope / nope']"
+            expected: "EvalDatasetError raised"
+            label: "any single unresolvable ref fails the whole call"
+
+    negative_tests:
+      - test_name: "test_unresolvable_ref_raises_not_skips"
+        description: "Skipping unresolvable refs would silently shrink the gold set and inflate recall."
+        must_not: "resolve_gold_refs returns a result when any ref matched zero chunks"
+      - test_name: "test_underscore_in_source_path_is_literal"
+        description: "SQL LIKE treats '_' as any-single-char; a LIKE-based implementation passes other tests but matches wrong files."
+        must_not: "ref 'a_b.md' resolving against source_url '.../axb.md'"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: ""
+      files_modified:
+        - "tests/evals/dataset.py"
+        - "tests/evals/test_dataset.py"
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e3-eval-fixtures"
+    title: "Pytest gating flags (--evals, --live-model) and eval_db fixture"
+    status: DONE
+    depends_on: ["chunk-e2-eval-dataset"]
+    token_budget_hint: small
+
+    local_context: |
+      The eval suite must not slow down the default test run. The repo already
+      gates expensive tests with --network and --benchmark flags wired in
+      tests/conftest.py (pytest_addoption + pytest_collection_modifyitems) and
+      registered under [tool.pytest.ini_options] markers in pyproject.toml.
+      This chunk adds two more flags with the IDENTICAL pattern: --evals
+      (retrieval eval) and --live-model (end-task eval against a real model
+      endpoint; never run in CI).
+
+      It also adds tests/evals/conftest.py with the shared eval_db fixture:
+      build the committed corpus (tests/evals/fixtures/corpus/, 17 pages) into
+      a .ctx pack with synd.builder.build.build_pack(), then load that .ctx
+      into a fresh Database. Loading a .ctx means: unzip, read manifest.json /
+      pages.json / chunks.jsonl, construct Pack/Page/Chunk models, call
+      db.import_pack(). tests/benchmarks/test_query_latency.py contains
+      _load_pack_into_db() doing exactly this — read it and replicate the
+      pattern inside tests/evals/conftest.py. Do NOT import from
+      tests/benchmarks (cross-suite imports create hidden coupling).
+
+    objective: |
+      pytest --evals and --live-model flags exist and gate via markers.
+      The eval_db session fixture yields a Database containing the evalcorpus
+      pack (97 chunks at the time of writing — assert > 50, not an exact
+      number, so corpus edits don't break the fixture test).
+
+    interface_contract:
+      inputs:
+        - path: "tests/conftest.py"
+          consumes: ["existing pytest_addoption / pytest_collection_modifyitems to extend"]
+        - path: "pyproject.toml"
+          consumes: ["[tool.pytest.ini_options] markers list to extend"]
+        - path: "src/synd/builder/build.py"
+          consumes: [build_pack]
+        - path: "src/synd/storage/db.py"
+          consumes: [Database]
+        - path: "src/synd/storage/models.py"
+          consumes: [Pack, Page, Chunk]
+        - path: "tests/evals/fixtures/corpus/"
+          consumes: ["committed corpus markdown tree"]
+      outputs:
+        - path: "tests/conftest.py"
+          exports:
+            - "pytest_addoption gains --evals and --live-model (action='store_true', default False)"
+            - "pytest_collection_modifyitems skips 'evals' marker without --evals and 'live_model' marker without --live-model"
+        - path: "pyproject.toml"
+          exports:
+            - "markers list gains: 'evals: retrieval quality evals (opt-in via --evals)' and 'live_model: drives a real model endpoint (opt-in via --live-model)'"
+        - path: "tests/evals/conftest.py"
+          exports:
+            - "EVAL_CORPUS_DIR: Path  # tests/evals/fixtures/corpus resolved relative to this file"
+            - "EVAL_PACKAGE: str = 'evalcorpus'"
+            - "EVAL_VERSION: str = '1.0.0'"
+            - "def load_ctx_into_db(ctx_path: Path, db: Database) -> int  # returns chunk count"
+            - "@pytest.fixture(scope='session') def eval_db(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Database]"
+        - path: "tests/evals/test_fixtures.py"
+          exports:
+            - "test_eval_db_contains_corpus_pack()"
+            - "test_eval_db_chunk_count_above_floor()"
+            - "test_corpus_build_is_deterministic()  # NEG: building the corpus twice must yield identical chunk counts and identical chunk-1 content_hash — guards accidental nondeterminism in the fixture path"
+      allowed_new_deps: []
+
+    assumptions:
+      - "build_pack returns a TUPLE (ctx_path, raw_chunks) — not a bare Path. Signature: build_pack(package, version, source, output, lifecycle='draft', doc_version_status='stable', owner=None, policy_profile=None, source_commit=None, max_chunk_tokens=800, min_chunk_tokens=20, warn_chunk_tokens=None)."
+      - "Resolve the corpus dir relative to the conftest file, not the cwd: Path(__file__).parent / 'fixtures' / 'corpus'. pytest may be invoked from any directory."
+      - "manifest.json keys: package, version, lifecycle_state, doc_version_status, pack_digest, source_url (among others). It has NO 'name' key — Pack.name = manifest['package']."
+      - "chunks.jsonl entries have NO package/version keys; construct Chunk with package/version from the manifest. pages.json entries DO carry package/version."
+      - "Chunk source_url for this corpus looks like 'corpus/mcp/tools.md' (source-dir name + relative path) regardless of where the source dir lives on disk."
+      - "Build the pack into a tmp_path_factory directory, never into the repo tree."
+      - "Use scope='session' and yield the Database, closing it after the yield (try/finally). All eval tests share one build."
+      - "Markers gate, flags enable — both --evals tests and --live-model tests must be marked at module level: pytestmark = pytest.mark.evals (see how tests/benchmarks files use pytest.mark.benchmark)."
+      - "test_fixtures.py itself must be marked evals so the default suite stays fast."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/test_fixtures.py --evals -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/pytest tests/evals/ -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/ && .venv/bin/ruff format --check tests/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "Without --evals, tests/evals/test_fixtures.py tests show as SKIPPED, not run, not failed"
+        - "pyproject markers list still contains the original network and benchmark entries"
+
+    capability_ceiling:
+      - "Do not modify any file under tests/evals/fixtures/corpus/. The corpus is a committed input; changing it invalidates the gold dataset."
+      - "Do not import anything from tests/benchmarks/. Replicate the loader pattern locally."
+      - "Do not change build_pack or any src/synd/ file. If the public API seems insufficient, stop and flag it."
+      - "Do not use synd add / the lockfile flow here — that writes synd.lock in cwd. Import directly via db.import_pack."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - tests/conftest.py
+        - tests/benchmarks/test_query_latency.py
+        - tests/evals/datasets/hermetic.json
+
+    review_targets:
+      - target: "Gating works exactly like --benchmark"
+        verified_by: "test_eval_db_contains_corpus_pack"
+        assertion: "pytest tests/evals/ -q (no flag) reports the eval tests as skipped; with --evals they run"
+      - target: "Fixture loads the real committed corpus"
+        verified_by: "test_eval_db_chunk_count_above_floor"
+        assertion: "eval_db contains package 'evalcorpus' version '1.0.0' with more than 50 chunks"
+      - target: "Fixture path is deterministic"
+        verified_by: "test_corpus_build_is_deterministic"
+        assertion: "two builds from the same corpus produce equal chunk counts and equal first-chunk content_hash"
+
+    verification_inputs: []
+
+    negative_tests:
+      - test_name: "test_corpus_build_is_deterministic"
+        description: "If the fixture build is nondeterministic, gold refs resolve to different ids between runs and every downstream metric becomes noise."
+        must_not: "two builds of tests/evals/fixtures/corpus differing in chunk count or chunk-1 content_hash"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: |
+        Found and fixed a real gating bug while implementing this: gating on
+        `"evals" in item.keywords` (the pattern the existing --network/
+        --benchmark gates use) silently skipped every test under tests/evals/
+        — including chunk-e1/e2's fast, ungated unit tests — because pytest's
+        item.keywords auto-includes path/module name components, and the
+        directory is literally named "evals". ("benchmark"/"network" never
+        collided since the directory is "benchmarks", plural.) Switched all
+        four gates (network, benchmark, evals, live_model) to
+        item.get_closest_marker(name), which checks for an actually-applied
+        marker instead of a keyword-string match. Verified: plain `pytest -q`
+        now runs chunk-e1/e2's 19 tests unconditionally (matching their DoD)
+        and only test_fixtures.py's 3 corpus-building tests are skipped
+        without --evals.
+      files_modified:
+        - "tests/conftest.py"
+        - "pyproject.toml"
+        - "tests/evals/conftest.py"
+        - "tests/evals/test_fixtures.py"
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e4-retrieval-runner"
+    title: "Hermetic retrieval eval runner with results JSON and regression floors"
+    status: PENDING
+    depends_on: ["chunk-e1-eval-metrics", "chunk-e2-eval-dataset", "chunk-e3-eval-fixtures"]
+    token_budget_hint: medium
+
+    local_context: |
+      The runner ties the previous chunks together: for every gold question it
+      resolves the relevant chunk ids, runs a search through the PUBLIC API
+      (synd.server.search_docs — never synd.search.fts.search directly; see
+      .claude/CLAUDE.md Testing), computes metrics, and aggregates.
+
+      Each question is evaluated TWICE: once with the natural-language 'query'
+      field and once with 'keyword_query'. The gap between the two is itself a
+      product signal (measured baseline: keyword recall@10 0.631 vs natural
+      0.298 — see the stream header note).
+
+      search_docs can raise SearchError (e.g. an all-stopword query). That is
+      a legitimate retrieval failure for the eval's purposes: catch it, record
+      ranked_ids = [], score the question 0, and keep going. A crashing eval
+      measures nothing.
+
+      Results are written as JSON to tests/evals/results/, following the shape
+      conventions of tests/benchmarks/results/latest.json (timestamp,
+      git_commit, plus payload). Floors assert only on the keyword_query
+      aggregates and sit ~10 points below the measured baseline so they catch
+      regressions (a broken tokenizer, lost BM25 weights) without tripping on
+      dataset tweaks.
+
+    objective: |
+      run_retrieval_eval() produces a complete, JSON-serializable result dict
+      for a (db, dataset, query_field) triple. The --evals-gated test writes
+      tests/evals/results/retrieval_latest.json covering both query fields and
+      asserts the keyword floors: overall recall@10 >= 0.50, overall mrr >=
+      0.55, direct-difficulty recall@10 >= 0.60.
+
+    interface_contract:
+      inputs:
+        - path: "tests/evals/metrics.py"
+          consumes: [recall_at_k, mrr, ndcg_at_k]
+        - path: "tests/evals/dataset.py"
+          consumes: [load_dataset, resolve_gold_refs, EvalDataset, GoldQuestion]
+        - path: "tests/evals/conftest.py"
+          consumes: [eval_db, EVAL_PACKAGE]
+        - path: "src/synd/server.py"
+          consumes: [search_docs]
+        - path: "src/synd/errors.py"
+          consumes: [SearchError]
+      outputs:
+        - path: "tests/evals/retrieval.py"
+          exports:
+            - |
+              @dataclass
+              class QuestionResult:
+                  question_id: str
+                  difficulty: str
+                  query_used: str
+                  ranked_chunk_ids: list[int]
+                  relevant_chunk_ids: list[int]  # sorted, for JSON stability
+                  recall_at_5: float
+                  recall_at_10: float
+                  mrr: float
+                  ndcg_at_10: float
+                  search_error: str | None
+            - "def run_retrieval_eval(db: Database, dataset: EvalDataset, query_field: str, limit: int = 10) -> dict[str, object]"
+            - "def write_results(payload: dict[str, object], out_path: Path) -> None"
+        - path: "tests/evals/test_retrieval.py"
+          exports:
+            - "pytestmark = pytest.mark.evals"
+            - "test_retrieval_eval_writes_results_json()"
+            - "test_keyword_overall_recall_floor()"
+            - "test_keyword_overall_mrr_floor()"
+            - "test_keyword_direct_recall_floor()"
+            - "test_question_with_search_error_scores_zero()  # NEG: a SearchError question must appear in per_question with all-zero metrics, not be dropped from aggregates"
+            - "test_aggregates_average_over_all_questions()  # NEG: aggregate recall must equal mean over every question incl. zero-scorers — dropping misses would inflate it"
+      allowed_new_deps: []
+
+    assumptions:
+      - "search_docs(db, query, packages=['evalcorpus'], limit=10) returns a dict; on success key 'results' holds hits in rank order; each hit dict has 'chunk_id'. A {'status': 'not_indexed'} response here means the fixture is broken — raise EvalDatasetError."
+      - "query_field is the literal attribute name: 'query' or 'keyword_query'. Any other value -> EvalError."
+      - "The result dict layout: {'meta': {'timestamp', 'git_commit', 'dataset', 'query_field', 'limit', 'pack', 'chunk_count'}, 'aggregates': {'overall': {...}, 'by_difficulty': {'direct': {...}, 'paraphrase': {...}, 'vocabulary_mismatch': {...}}}, 'per_question': [QuestionResult as dict, ...]}. Aggregate dicts carry mean recall_at_5, recall_at_10, mrr, ndcg_at_10 and 'n'."
+      - "git commit: subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], ...) with fallback to 'unknown' — copy the approach used in tests/benchmarks/test_token_overhead.py."
+      - "Aggregates are arithmetic means over ALL questions of the slice, including zero-scoring ones."
+      - "write_results creates parent dirs, writes json.dumps(payload, indent=2) + trailing newline."
+      - "The floor test runs run_retrieval_eval twice (query_field='query' and 'keyword_query') against the same eval_db and writes ONE file: {'natural_language': <payload>, 'keyword': <payload>} to tests/evals/results/retrieval_latest.json, resolved relative to tests/evals/__file__, not cwd."
+      - "Floors apply ONLY to the keyword payload. The natural-language payload is informational — DO NOT assert floors on it; at the measured baseline paraphrase scores 0.000 and that is the finding, not a bug."
+      - "Floats in JSON: round to 4 decimals when building dicts to keep diffs readable."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/ --evals -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/ && .venv/bin/ruff format --check tests/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "tests/evals/results/retrieval_latest.json exists after the run and contains both 'natural_language' and 'keyword' sections"
+        - "No call to synd.search.fts.search anywhere in tests/evals/ — public API only"
+
+    capability_ceiling:
+      - "Do not tune queries, stopwords, BM25 weights, or anything in src/synd/ to raise scores. The eval measures the product as-is; improving retrieval is separate work."
+      - "Do not change the floor values. If a floor fails, the search stack regressed (or the fixture broke) — investigate and flag, do not lower the bar."
+      - "Do not add nDCG floors or natural-language floors. Floors are exactly the three listed."
+      - "Do not parallelize question execution. Sequential and deterministic."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - tests/evals/dataset.py
+        - tests/benchmarks/test_token_overhead.py
+        - src/synd/server.py
+
+    review_targets:
+      - target: "Public API only"
+        verified_by: "test_retrieval_eval_writes_results_json"
+        assertion: "tests/evals/retrieval.py imports search_docs from synd.server and contains no import of synd.search.fts"
+      - target: "Regression floors hold on the committed dataset"
+        verified_by: "test_keyword_overall_recall_floor"
+        assertion: "keyword aggregates: overall recall_at_10 >= 0.50, overall mrr >= 0.55, direct recall_at_10 >= 0.60"
+      - target: "Failed searches stay in the denominator"
+        verified_by: "test_aggregates_average_over_all_questions"
+        assertion: "aggregate recall_at_10 equals mean(per_question recall_at_10) computed independently in the test"
+
+    verification_inputs:
+      - function: "run_retrieval_eval (aggregation logic)"
+        cases:
+          - input: "three QuestionResults with recall_at_10 = 1.0, 0.5, 0.0"
+            expected: "overall recall_at_10 == 0.5"
+            label: "zero-scoring question included in the mean"
+
+    negative_tests:
+      - test_name: "test_question_with_search_error_scores_zero"
+        description: "Catching SearchError but dropping the question would shrink the denominator."
+        must_not: "len(per_question) != len(dataset.questions) for any run"
+      - test_name: "test_aggregates_average_over_all_questions"
+        description: "Aggregating only over questions with hits inflates every metric."
+        must_not: "aggregate mean computed over a filtered subset of questions"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: ""
+      files_modified: []
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e5-live-and-compare"
+    title: "Live-corpus eval mode, eval compare tool, CI wiring"
+    status: PENDING
+    depends_on: ["chunk-e4-retrieval-runner"]
+    token_budget_hint: small
+
+    local_context: |
+      Three follow-ons to the hermetic runner.
+
+      1. Live mode: tests/evals/datasets/live_mcp.json targets a pack built
+         from https://modelcontextprotocol.io/llms-full.txt at eval time. The
+         test is double-gated (network AND evals markers). Build the pack via
+         the PUBLIC CLI — click.testing.CliRunner invoking the synd build
+         command with a URL source — then load the .ctx with the chunk-e3
+         loader. No floors: the assertion is that every gold ref still
+         resolves (resolve_gold_refs is the dataset-rot alarm) and the run
+         completes; scores are informational.
+
+      2. Compare tool: tests/evals/compare_evals.py, an argparse CLI mirroring
+         tests/benchmarks/compare.py (read it first). Compares two
+         retrieval_latest.json files (baseline, candidate) on the keyword
+         aggregates and exits 1 when candidate drops more than 0.05 absolute
+         on overall recall_at_10 or overall mrr. --markdown emits a GitHub
+         table for the PR comment.
+
+      3. CI: .github/workflows/benchmark.yml already builds PR and baseline
+         venvs and posts one PR comment. Add the eval run (pytest
+         tests/evals/ --evals) for PR and baseline, and append the compare
+         tool's markdown to the same comment file. Add tests/evals/** to the
+         workflow's path triggers. The live (network) eval never runs in CI.
+
+    objective: |
+      Live eval runs under --evals --network and fails loudly on dataset rot.
+      compare_evals.py exits 0/1 on threshold logic with unit tests.
+      benchmark.yml runs the hermetic eval on PR + baseline and appends the
+      eval comparison to the existing PR comment.
+
+    interface_contract:
+      inputs:
+        - path: "tests/evals/retrieval.py"
+          consumes: [run_retrieval_eval, write_results]
+        - path: "tests/evals/conftest.py"
+          consumes: [load_ctx_into_db]
+        - path: "tests/evals/datasets/live_mcp.json"
+          consumes: ["committed live dataset"]
+        - path: "tests/benchmarks/compare.py"
+          consumes: ["pattern reference for CLI/exit codes/markdown"]
+        - path: ".github/workflows/benchmark.yml"
+          consumes: ["existing job structure to extend"]
+      outputs:
+        - path: "tests/evals/test_retrieval_live.py"
+          exports:
+            - "pytestmark = [pytest.mark.evals, pytest.mark.network]"
+            - "test_live_mcp_refs_still_resolve()"
+            - "test_live_retrieval_eval_completes_and_writes_results()"
+        - path: "tests/evals/compare_evals.py"
+          exports:
+            - "def compare(baseline: dict[str, object], candidate: dict[str, object]) -> dict[str, object]"
+            - "def format_text(result: dict[str, object]) -> str"
+            - "def format_markdown(result: dict[str, object]) -> str"
+            - "def main(argv: list[str] | None = None) -> int"
+        - path: "tests/evals/test_compare_evals.py"
+          exports:
+            - "test_no_regression_exits_zero()"
+            - "test_recall_drop_beyond_threshold_exits_one()"
+            - "test_markdown_output_contains_table()"
+            - "test_small_drop_within_threshold_passes()  # NEG: a 0.04 drop must NOT fail — threshold is strictly greater-than 0.05"
+            - "test_improvement_never_fails()  # NEG: candidate better than baseline must never exit 1"
+        - path: ".github/workflows/benchmark.yml"
+          exports:
+            - "eval steps: run pytest tests/evals/ --evals on PR and baseline venvs; append compare_evals markdown to the existing comment file; tests/evals/** added to on.pull_request.paths"
+      allowed_new_deps: []
+
+    assumptions:
+      - "Live pack build via CLI: from synd.cli.main import cli; CliRunner().invoke(cli, ['build', 'mcp@live', '--source', 'https://modelcontextprotocol.io/llms-full.txt', '--output', str(tmp)]). Assert result.exit_code == 0. The build takes on the order of a minute."
+      - "live_mcp.json corpus.version is null — the version is whatever the test builds ('live'). resolve refs against package='mcp'."
+      - "Live results go to tests/evals/results/retrieval_live_latest.json with the same two-section shape as the hermetic file."
+      - "Threshold semantics: fail when (baseline - candidate) > 0.05 for overall recall_at_10 OR overall mrr, keyword section only. Exactly 0.05 passes."
+      - "Exit codes: 0 pass, 1 regression, 2 usage error — same scheme as tests/benchmarks/compare.py."
+      - "In benchmark.yml, eval steps must tolerate a baseline (main) that predates the eval harness: skip the comparison and emit a standalone section instead — mirror how the workflow already soft-fails the missing-main-benchmark case."
+      - "The PR comment marker <!-- synd-benchmark --> must stay unchanged — the eval section is appended to the same body, not posted separately."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/test_compare_evals.py -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/ && .venv/bin/ruff format --check tests/"
+          must_pass: true
+        - cmd: "python -c \"import yaml\" 2>/dev/null || true; .venv/bin/python -c \"print('workflow YAML is validated by GitHub on push')\""
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "test_retrieval_live tests are skipped without BOTH --evals and --network"
+        - "Workflow changes reviewed by eye: no secrets, no new triggers beyond path additions"
+
+    capability_ceiling:
+      - "Do not run the live eval in CI. If you think CI should fetch modelcontextprotocol.io, stop and flag it."
+      - "Do not modify tests/benchmarks/compare.py or its thresholds — the eval compare is a separate file."
+      - "Do not change benchmark.yml trigger events (pull_request only) or the comment marker."
+      - "Do not edit tests/evals/datasets/live_mcp.json. If a gold ref no longer resolves because upstream docs changed, record an open_question listing the dead refs — the planner re-validates the dataset."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - tests/benchmarks/compare.py
+        - .github/workflows/benchmark.yml
+        - tests/evals/datasets/live_mcp.json
+
+    review_targets:
+      - target: "Dataset rot fails loudly in live mode"
+        verified_by: "test_live_mcp_refs_still_resolve"
+        assertion: "every gold ref in live_mcp.json resolves against the freshly built mcp pack, else EvalDatasetError propagates"
+      - target: "Threshold boundary is exact"
+        verified_by: "test_small_drop_within_threshold_passes"
+        assertion: "drop of 0.04 exits 0; drop of 0.06 exits 1"
+      - target: "Improvements never block"
+        verified_by: "test_improvement_never_fails"
+        assertion: "candidate aggregates above baseline exit 0"
+
+    verification_inputs:
+      - function: "compare"
+        cases:
+          - input: "baseline keyword overall recall_at_10=0.63, candidate=0.56"
+            expected: "regression flagged (0.07 > 0.05), main() exit 1"
+            label: "real regression caught"
+          - input: "baseline 0.63, candidate 0.59"
+            expected: "no flag, exit 0"
+            label: "noise-band drop tolerated"
+
+    negative_tests:
+      - test_name: "test_small_drop_within_threshold_passes"
+        description: "An off-by-one comparison (>= instead of >) makes the gate flaky on noise."
+        must_not: "exit code 1 for a 0.04 absolute drop"
+      - test_name: "test_improvement_never_fails"
+        description: "A sign error in the delta computation fails improvements instead of regressions."
+        must_not: "exit code 1 when candidate >= baseline on both gated metrics"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: ""
+      files_modified: []
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e6-model-client"
+    title: "OpenAI-compatible chat client (stdlib only) for local model endpoints"
+    status: DONE
+    depends_on: ["chunk-e1-eval-metrics"]
+    token_budget_hint: small
+
+    local_context: |
+      The end-task eval drives a local model served by vLLM through its
+      OpenAI-compatible API. This chunk builds the minimal client: one POST to
+      {base_url}/chat/completions per turn, tool-calling supported, stdlib
+      urllib.request only (the repo already uses urllib for fetching — see
+      src/synd/builder/fetch.py for the established request pattern).
+
+      The client must work against ANY OpenAI-compatible server (vLLM,
+      LM Studio, llama.cpp), so nothing vLLM-specific goes in the code. The
+      operator-facing vLLM specifics (documented later in docs/evals.md):
+      tool calling requires vLLM to be launched with --enable-auto-tool-choice
+      and a --tool-call-parser matching the model family (hermes for Qwen);
+      the model name must match a name listed by GET {base_url}/models.
+      The endpoint is NEVER hardcoded — it always comes from env vars, because
+      the eval runs only where the operator's endpoint is reachable (it is NOT
+      reachable from CI or cloud sandboxes).
+
+      Tests use a stdlib http.server stub on 127.0.0.1 with canned responses —
+      no network marker needed (loopback only), no real model needed.
+
+    objective: |
+      ChatClient.chat() sends a correct chat/completions request (tools
+      included when provided), parses the assistant message including
+      tool_calls, and raises ModelClientError on HTTP errors, timeouts, and
+      malformed payloads. Fully tested against a local HTTP stub.
+
+    interface_contract:
+      inputs:
+        - path: "tests/evals/eval_errors.py"
+          consumes: [EvalError]
+        - path: "src/synd/builder/fetch.py"
+          consumes: ["pattern reference for urllib usage only — do not import from it"]
+      outputs:
+        - path: "tests/evals/model_client.py"
+          exports:
+            - "class ModelClientError(EvalError): endpoint unreachable, HTTP error, timeout, or malformed response"
+            - |
+              @dataclass
+              class ToolCall:
+                  id: str
+                  name: str
+                  arguments: dict[str, object]
+            - |
+              @dataclass
+              class ChatReply:
+                  content: str | None
+                  tool_calls: list[ToolCall]
+                  finish_reason: str
+            - |
+              class ChatClient:
+                  def __init__(self, base_url: str, model: str, api_key: str | None = None, timeout: float = 120.0) -> None: ...
+                  def chat(
+                      self,
+                      messages: list[dict[str, object]],
+                      tools: list[dict[str, object]] | None = None,
+                      temperature: float = 0.0,
+                      max_tokens: int = 2048,
+                  ) -> ChatReply: ...
+            - "def client_from_env() -> ChatClient  # reads SYND_EVAL_BASE_URL, SYND_EVAL_MODEL, SYND_EVAL_API_KEY; raises ModelClientError naming any missing required var"
+        - path: "tests/evals/test_model_client.py"
+          exports:
+            - "test_chat_returns_text_reply()"
+            - "test_chat_parses_tool_calls()"
+            - "test_tools_field_sent_only_when_provided()"
+            - "test_http_error_raises_model_client_error()"
+            - "test_malformed_json_raises_model_client_error()"
+            - "test_client_from_env_missing_vars_raises()"
+            - "test_no_auth_header_when_api_key_unset()  # NEG: request must NOT contain an Authorization header unless api_key is set"
+            - "test_tool_call_arguments_json_string_decoded()  # NEG: OpenAI-format arguments arrive as a JSON STRING; passing the raw string through instead of json.loads-ing it must not happen"
+      allowed_new_deps: []
+
+    assumptions:
+      - "Request: POST {base_url}/chat/completions, header Content-Type: application/json, body {'model', 'messages', 'temperature', 'max_tokens'} plus 'tools' ONLY when tools is not None. base_url is used as given minus any trailing '/' — the operator supplies it WITH the /v1 suffix (e.g. http://192.168.0.214:8000/v1)."
+      - "Authorization: Bearer {api_key} header added ONLY when api_key is not None."
+      - "Response parsing: choices[0].message. 'content' may be null when the model only calls tools. 'tool_calls' (may be absent) is a list of {'id', 'type': 'function', 'function': {'name', 'arguments'}} where arguments is a JSON-encoded STRING — json.loads it into a dict; a malformed arguments string raises ModelClientError."
+      - "finish_reason comes from choices[0].finish_reason; default to 'stop' if absent."
+      - "urllib.request.urlopen raises urllib.error.HTTPError (subclass of OSError) on non-2xx and TimeoutError/URLError on connect issues — catch all three and re-raise as ModelClientError with the status/reason in the message."
+      - "HTTP stub pattern: http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler) — port 0 picks a free port, read it from server.server_address. Run with threading.Thread(daemon=True), shut down in fixture teardown. The handler records the request body for assertions (json.loads of rfile.read(content-length))."
+      - "client_from_env: SYND_EVAL_BASE_URL and SYND_EVAL_MODEL are required; SYND_EVAL_API_KEY optional. Use os.environ.get; monkeypatch.setenv/delenv in tests."
+      - "Loopback-only tests need NO pytest.mark.network — that marker is for real internet access."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/test_model_client.py -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/ && .venv/bin/ruff format --check tests/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "No third-party HTTP library imported (no requests, no httpx)"
+        - "No retry logic — one request per chat() call; the eval driver decides about retries"
+
+    capability_ceiling:
+      - "Do not implement streaming (stream=true). Single-shot completions only. If streaming seems required, stop and flag it."
+      - "Do not hardcode any endpoint URL or model name in tests/evals/model_client.py — env vars and constructor args only."
+      - "Do not add request retries, backoff, or connection pooling."
+      - "Do not implement the agent loop here — that is chunk-e8."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - src/synd/builder/fetch.py
+        - tests/evals/eval_errors.py
+
+    review_targets:
+      - target: "Tool-call arguments decoded from JSON string"
+        verified_by: "test_tool_call_arguments_json_string_decoded"
+        assertion: "stub returns arguments='{\"query\": \"x\"}' (a string); ChatReply.tool_calls[0].arguments == {'query': 'x'} (a dict)"
+      - target: "Auth header strictly conditional"
+        verified_by: "test_no_auth_header_when_api_key_unset"
+        assertion: "stub-recorded request headers contain no 'Authorization' key when api_key=None, and 'Bearer k' when api_key='k'"
+      - target: "Failures are typed"
+        verified_by: "test_http_error_raises_model_client_error"
+        assertion: "stub returning 500 causes ModelClientError, not urllib.error.HTTPError, at the call site"
+
+    verification_inputs:
+      - function: "ChatClient.chat (request construction)"
+        cases:
+          - input: "messages=[{'role':'user','content':'hi'}], tools=None"
+            expected: "request body has no 'tools' key"
+            label: "no-docs arm sends no tools field"
+          - input: "same messages, tools=[<one schema>]"
+            expected: "request body 'tools' == the list passed"
+            label: "with-docs arm forwards schemas untouched"
+
+    negative_tests:
+      - test_name: "test_no_auth_header_when_api_key_unset"
+        description: "Unconditionally sending 'Authorization: Bearer None' breaks anonymous vLLM deployments."
+        must_not: "Authorization header present when api_key is None"
+      - test_name: "test_tool_call_arguments_json_string_decoded"
+        description: "The classic OpenAI-format trap: arguments is a JSON string, not an object. Passing it through breaks the chunk-e8 dispatcher in ways unit tests of the dispatcher alone won't catch."
+        must_not: "ToolCall.arguments being of type str"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: ""
+      files_modified:
+        - "tests/evals/model_client.py"
+        - "tests/evals/test_model_client.py"
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e7-tasks-and-graders"
+    title: "End-task definitions loader and static graders (no code execution)"
+    status: DONE
+    depends_on: ["chunk-e1-eval-metrics"]
+    token_budget_hint: small
+
+    local_context: |
+      End-task evals give the model a coding task; the reply is graded
+      STATICALLY: regex patterns over the python code extracted from the
+      reply, plus an ast.parse syntax check. Model-generated code is NEVER
+      executed, imported, eval'd, or exec'd — this is a hard security
+      boundary, not a style preference: replies come from an untrusted model
+      and may contain arbitrary side effects.
+
+      The committed task file is tests/evals/datasets/tasks/seed_tasks.json
+      (read it first; the loader must accept it unmodified). Each task has a
+      prompt, graders {must_parse, must_match, must_not_match}, and a
+      'teaches' list naming the corpus heading_paths containing the
+      information the model needs — used for failure analysis, not grading.
+
+      Code extraction: a reply usually wraps code in fenced blocks. Extract
+      all blocks fenced with ```python or ```py or bare ```; join with
+      newlines. If the reply contains no fences at all, treat the entire
+      reply as the code (small models sometimes skip fencing).
+
+    objective: |
+      load_tasks() parses the committed task file into dataclasses.
+      extract_python_code() implements the fence rules. grade() applies
+      must_parse / must_match / must_not_match and returns a GradeResult that
+      names every failed criterion. No code path can execute model output.
+
+    interface_contract:
+      inputs:
+        - path: "tests/evals/eval_errors.py"
+          consumes: [EvalDatasetError]
+        - path: "tests/evals/datasets/tasks/seed_tasks.json"
+          consumes: ["committed task definitions"]
+      outputs:
+        - path: "tests/evals/tasks.py"
+          exports:
+            - |
+              @dataclass
+              class Graders:
+                  must_parse: bool
+                  must_match: list[str]
+                  must_not_match: list[str]
+            - |
+              @dataclass
+              class EvalTask:
+                  id: str
+                  prompt: str
+                  graders: Graders
+                  teaches: list[str]
+            - |
+              @dataclass
+              class TaskSet:
+                  schema_version: int
+                  package: str
+                  version: str | None
+                  tasks: list[EvalTask]
+            - "def load_tasks(path: Path) -> TaskSet"
+            - "def extract_python_code(reply: str) -> str"
+            - |
+              @dataclass
+              class GradeResult:
+                  passed: bool
+                  failures: list[str]
+            - "def grade(reply: str, task: EvalTask) -> GradeResult"
+        - path: "tests/evals/test_tasks.py"
+          exports:
+            - "test_load_committed_seed_tasks()"
+            - "test_load_duplicate_task_ids_raises()"
+            - "test_extract_single_python_fence()"
+            - "test_extract_multiple_fences_joined()"
+            - "test_extract_no_fence_returns_whole_reply()"
+            - "test_grade_passing_reply()"
+            - "test_grade_missing_pattern_lists_failure()"
+            - "test_grade_syntax_error_fails_must_parse()"
+            - "test_grade_must_not_match_violation()"
+            - "test_grader_never_executes_code()  # NEG: grading code with file-writing side effects must not create the file — proves no exec/eval/import of model output"
+            - "test_unfenced_reply_still_graded()  # NEG: a fence-only extractor would grade '' for unfenced replies and silently fail every pattern"
+      allowed_new_deps: []
+
+    assumptions:
+      - "Fence regex must handle: opening line of three backticks optionally followed by 'python' or 'py' (any case), block content, closing line of three backticks. Use re.findall with re.DOTALL on a pattern like: ```(?:python|py)?\\s*\\n(.*?)``` — non-greedy body."
+      - "ast.parse(code) raises SyntaxError on invalid python — catch it; the failure string must include 'must_parse'. ast.parse only COMPILES to an AST; it never executes. compile()+exec is forbidden."
+      - "must_match patterns are applied with re.search(pattern, code) — plain, no flags. Each non-matching pattern appends 'must_match: <pattern>' to failures."
+      - "must_not_match: each pattern that DOES match appends 'must_not_match: <pattern>'."
+      - "grade() runs ALL criteria and reports every failure — no short-circuit; partial failure info is the analysis payload."
+      - "Task file required fields mirror the dataset loader: missing field or duplicate id -> EvalDatasetError."
+      - "The side-effect NEG test: grade a reply whose code is open('<tmp_path>/marker.txt', 'w').write('x') with a must_match that hits — then assert the marker file does NOT exist."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/test_tasks.py -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/ && .venv/bin/ruff format --check tests/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "grep -n 'exec\\|eval(' tests/evals/tasks.py returns nothing (ast.literal_eval also absent — not needed)"
+        - "test_load_committed_seed_tasks asserts 10 tasks, package 'evalcorpus'"
+
+    capability_ceiling:
+      - "Never execute, import, exec, eval, or compile-and-run model output. ast.parse is the ONLY allowed operation on extracted code. If a task seems to need execution-based grading, stop and flag it."
+      - "Do not edit tests/evals/datasets/tasks/seed_tasks.json."
+      - "Do not add grader types beyond must_parse/must_match/must_not_match."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - tests/evals/datasets/tasks/seed_tasks.json
+        - tests/evals/dataset.py
+
+    review_targets:
+      - target: "Static-only grading is provable"
+        verified_by: "test_grader_never_executes_code"
+        assertion: "grading code containing a file write leaves no file behind"
+      - target: "Committed tasks load unmodified"
+        verified_by: "test_load_committed_seed_tasks"
+        assertion: "load_tasks(Path('tests/evals/datasets/tasks/seed_tasks.json')).tasks has length 10"
+      - target: "Every failure is named"
+        verified_by: "test_grade_missing_pattern_lists_failure"
+        assertion: "GradeResult.failures contains the literal failed pattern string"
+
+    verification_inputs:
+      - function: "extract_python_code"
+        cases:
+          - input: "reply: 'text\\n```python\\nx = 1\\n```\\nmore'"
+            expected: "'x = 1\\n' (modulo trailing-newline normalization — assert 'x = 1' in result and 'text' not in result)"
+            label: "single fenced block extracted, prose dropped"
+          - input: "reply: 'just code, no fences: x = 1'"
+            expected: "the whole reply string"
+            label: "unfenced fallback"
+      - function: "grade"
+        cases:
+          - input: "reply with code 'def f(:' and graders must_parse=true"
+            expected: "passed=False, failures contains an entry mentioning must_parse"
+            label: "syntax error caught by ast.parse"
+
+    negative_tests:
+      - test_name: "test_grader_never_executes_code"
+        description: "An implementation that 'validates' by exec-ing in a namespace passes the other tests and is a security hole."
+        must_not: "any filesystem side effect from graded code"
+      - test_name: "test_unfenced_reply_still_graded"
+        description: "Small models often reply with bare code; extracting only fences grades empty string and every task fails for the wrong reason."
+        must_not: "extract_python_code returning '' for a non-empty unfenced reply"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: ""
+      files_modified:
+        - "tests/evals/tasks.py"
+        - "tests/evals/test_tasks.py"
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e8-endtask-driver"
+    title: "End-task A/B driver: agent loop over search/fetch, per-arm pass rates"
+    status: DONE
+    depends_on: ["chunk-e3-eval-fixtures", "chunk-e6-model-client", "chunk-e7-tasks-and-graders"]
+    token_budget_hint: medium
+
+    local_context: |
+      This is the chunk that answers the project's central question: does
+      giving a small model synd's doc retrieval improve its code output?
+
+      Each task runs in two arms:
+        no_docs   — the model gets only the task prompt. No tools.
+        with_docs — the model additionally gets two tools, 'search' and
+                    'fetch', whose schemas mirror the real MCP server's tools.
+                    Tool calls are dispatched IN-PROCESS to
+                    synd.server.search_docs / fetch_docs against the eval_db
+                    fixture — no MCP transport, no subprocess, same public
+                    API, deterministic.
+
+      The agent loop per arm: send system prompt + task prompt; while the
+      reply contains tool_calls and turns < max_turns, execute each tool
+      call, append the assistant message (with its tool_calls) and one
+      role='tool' message per call (content = JSON of the tool result,
+      tool_call_id = the call's id), and request the next completion. The
+      final assistant content is graded with chunk-e7's grade().
+
+      with_docs system prompt — verified end-to-end against real models,
+      real synd retrieval, all 10 seed tasks (2026-06-11):
+        "You are a coding assistant with NO prior knowledge of the FastMCP
+        API. Your memory of FastMCP is unreliable and outdated. You MUST
+        call the search tool before answering, and base your code ONLY on
+        fetched documentation. Search uses exact keyword matching: every
+        term must appear in a chunk, so use 1-3 distinctive terms (e.g.
+        'progress', 'prompt template', 'stdio'), never full sentences. If a
+        search returns no results, retry ONCE with fewer, different terms.
+        When search returns results, IMMEDIATELY fetch the most relevant
+        chunk_ids — never repeat a similar search. Once you have fetched
+        relevant documentation, give your final answer. Answer with Python
+        code in a fenced code block."
+      The forceful wording + AND-semantics explanation raised retrieval hits
+      from 2/10 to 10/10 with no code changes. Without it, Qwen3-8B at
+      greedy with only task prompts: 2/10 retrieval, 2/10 passes. With it:
+      10/10 retrieval, 3/10 passes (remaining failures are code-generation
+      quality, not retrieval or harness bugs). Keeping the forceful wording
+      protects the treatment arm's lift across model sizes.
+
+      search tool description — the real server.py docstring was updated to
+      match the AND-semantics guidance (2026-06-11, spike S13). The with_docs
+      arm uses the live tool schemas from the MCP server; no separate override
+      needed — the fix is in the product itself.
+
+      Sampling parameters for live runs: use Alibaba's recommended Qwen3
+      non-thinking settings: temperature=0.7, top_p=0.8, top_k=20, min_p=0.
+      Greedy decoding (temperature=0) causes identical-query repetition loops;
+      verified in-sandbox. Pass these in every request payload. OpenAI-compat
+      servers accept top_k and min_p as extensions.
+
+      Turn budget: max_turns=12 is sufficient; 8-turn budget caused time-outs
+      on tasks that needed 3-4 searches before converging. 12 turns verified
+      to give the model enough room without runaway loops.
+
+      CI/sandbox verification uses a FakeChatClient with scripted replies —
+      the loop, dispatch, and grading wiring are fully testable without any
+      model. The live run (real vLLM endpoint) is env-gated and manual: it
+      executes ONLY where the operator's endpoint is reachable, which
+      excludes CI and cloud sandboxes by design.
+
+    objective: |
+      run_task() executes one task in one arm and returns a graded result.
+      run_endtask_eval() executes all tasks in both arms with reps, producing
+      a JSON payload with per-arm pass rates. The loop terminates on
+      max_turns even against a model that never stops calling tools. Fully
+      unit-tested with a fake client; live test skips cleanly without env.
+
+    interface_contract:
+      inputs:
+        - path: "tests/evals/model_client.py"
+          consumes: [ChatClient, ChatReply, ToolCall, ModelClientError, client_from_env]
+        - path: "tests/evals/tasks.py"
+          consumes: [TaskSet, EvalTask, load_tasks, grade, GradeResult]
+        - path: "tests/evals/conftest.py"
+          consumes: [eval_db, EVAL_PACKAGE]
+        - path: "src/synd/server.py"
+          consumes: [search_docs, fetch_docs]
+      outputs:
+        - path: "tests/evals/endtask.py"
+          exports:
+            - "SEARCH_TOOL_SCHEMA: dict[str, object]  # OpenAI function-tool format: name 'search', params: query (string, required), limit (integer, default 5)"
+            - "FETCH_TOOL_SCHEMA: dict[str, object]  # name 'fetch', params: chunk_ids (array of integer, required)"
+            - "SYSTEM_PROMPT_WITH_DOCS: str"
+            - "SYSTEM_PROMPT_NO_DOCS: str"
+            - |
+              class ChatClientProtocol(Protocol):
+                  def chat(
+                      self,
+                      messages: list[dict[str, object]],
+                      tools: list[dict[str, object]] | None = None,
+                      temperature: float = 0.0,
+                      max_tokens: int = 2048,
+                  ) -> ChatReply: ...
+            - |
+              @dataclass
+              class TaskRunResult:
+                  task_id: str
+                  arm: str
+                  passed: bool
+                  failures: list[str]
+                  turns_used: int
+                  tool_calls_made: int
+                  reply_chars: int
+                  error: str | None
+            - "def dispatch_tool_call(db: Database, package: str, call: ToolCall) -> str  # returns JSON string for the role='tool' message"
+            - "def run_task(client: ChatClientProtocol, db: Database | None, task: EvalTask, package: str, arm: str, max_turns: int = 8) -> TaskRunResult"
+            - "def run_endtask_eval(client: ChatClientProtocol, db: Database, taskset: TaskSet, reps: int = 1, max_turns: int = 8) -> dict[str, object]"
+        - path: "tests/evals/test_endtask.py"
+          exports:
+            - "class FakeChatClient:  # scripted list[ChatReply], records every chat() call's messages and tools"
+            - "test_no_docs_arm_sends_no_tools()"
+            - "test_with_docs_arm_sends_both_schemas()"
+            - "test_tool_call_dispatched_to_search_docs()"
+            - "test_tool_results_appended_as_tool_messages()"
+            - "test_final_reply_is_graded()"
+            - "test_model_client_error_recorded_not_raised()"
+            - "test_pass_rates_aggregated_per_arm()"
+            - "test_loop_terminates_at_max_turns()  # NEG: a client that returns tool_calls forever must stop at max_turns with error='max_turns', not hang"
+            - "test_unknown_tool_name_returns_error_payload()  # NEG: a hallucinated tool name must produce a JSON error tool-message, not crash the run"
+            - "test_endtask_eval_live()  # gated: pytest.mark.live_model + pytest.mark.evals; skips with actionable message when SYND_EVAL_BASE_URL unset"
+      allowed_new_deps: []
+
+    assumptions:
+      - "Tool schemas use the OpenAI function format: {'type': 'function', 'function': {'name': ..., 'description': ..., 'parameters': {JSON Schema}}}. Descriptions should mirror the real server's tool docstrings: search returns summaries+chunk_ids (keywords only — rephrase natural language into search terms); fetch returns full content for chunk_ids."
+      - "dispatch_tool_call: name 'search' -> search_docs(db, query=args['query'], packages=[package], limit=args.get('limit', 5)); name 'fetch' -> fetch_docs(db, chunk_ids=[int(i) for i in args['chunk_ids']]); any other name -> json.dumps({'error': f'unknown tool: {name}'}). SearchError from search_docs -> json.dumps({'error': str(exc), 'results': []}) — the model gets feedback and may retry differently."
+      - "Conversation message shapes (OpenAI format): assistant turn with tool calls must be appended as {'role': 'assistant', 'content': reply.content, 'tool_calls': [{'id': c.id, 'type': 'function', 'function': {'name': c.name, 'arguments': json.dumps(c.arguments)}} for c in reply.tool_calls]}; each result as {'role': 'tool', 'tool_call_id': c.id, 'content': <dispatch result string>}."
+      - "SYSTEM_PROMPT_WITH_DOCS must instruct: use the search tool with KEYWORD queries to find relevant documentation, fetch the chunks you need, then answer with complete python code in a fenced block. SYSTEM_PROMPT_NO_DOCS: answer with complete python code in a fenced block. Both prompts are constants — identical task framing, only the tool guidance differs."
+      - "run_task arm='no_docs': tools=None and db may be None. arm='with_docs': db is required — passing None raises EvalError. Any other arm string raises EvalError."
+      - "ModelClientError during a run is caught: TaskRunResult(passed=False, error=str(exc)) — one dead endpoint mid-run must not lose the rest of the eval."
+      - "run_endtask_eval payload: {'meta': {'timestamp', 'git_commit', 'model', 'reps', 'max_turns', 'task_count'}, 'arms': {'no_docs': {'pass_rate', 'n'}, 'with_docs': {'pass_rate', 'n'}}, 'per_task': [{'task_id', 'arm', 'rep', ...TaskRunResult fields}]}. meta['model'] = getattr(client, 'model', 'fake')."
+      - "pass_rate = passed runs / total runs for the arm, rounded to 4 decimals. reps repeats every (task, arm) pair; with temperature 0.0 and reps=1 the run is deterministic — reps > 1 is for operator experiments with temperature."
+      - "The live test reads client_from_env(); if SYND_EVAL_BASE_URL or SYND_EVAL_MODEL is unset, pytest.skip with a message that names BOTH variables and gives a full example: SYND_EVAL_BASE_URL=http://<your-vllm-host>:8000/v1 SYND_EVAL_MODEL=<served-model-name> .venv/bin/pytest tests/evals/test_endtask.py --evals --live-model -s. It writes tests/evals/results/endtask_latest.json via the same write pattern as chunk-e4."
+      - "FakeChatClient: constructor takes list[ChatReply]; chat() pops the next reply and appends (deep copies of) messages/tools to a .calls list for assertions. Raises AssertionError if exhausted — a scripted test must know its turn count."
+      - "Protocol comes from typing. FakeChatClient satisfies ChatClientProtocol structurally — no inheritance."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/test_endtask.py --evals -v"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/pytest tests/evals/ --evals -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/ && .venv/bin/ruff format --check tests/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "test_endtask_eval_live SKIPS (not fails) when env vars are absent — verified in the --evals --live-model run without env set"
+        - "No MCP transport, no subprocess, no socket in the with_docs dispatch path"
+
+    capability_ceiling:
+      - "Do not execute model-generated code — grading goes through chunk-e7's grade() only."
+      - "Do not implement retries, streaming, or context-window management in the loop. If a task systematically overflows the model context, flag it."
+      - "Do not change SEARCH/FETCH schemas to diverge from the real server's parameter names (query, limit, chunk_ids). The eval must measure the real tool surface."
+      - "Do not auto-start, install, or shell out to any model server (vLLM, ollama, llama.cpp). The endpoint either exists in env or the live test skips."
+      - "Do not mark test_endtask_eval_live with the network marker — live_model is its own gate; the operator may run it without --network."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - tests/evals/model_client.py
+        - tests/evals/tasks.py
+        - src/synd/server.py
+
+    review_targets:
+      - target: "Arms differ only in tools"
+        verified_by: "test_no_docs_arm_sends_no_tools"
+        assertion: "FakeChatClient.calls[0] for no_docs has tools=None; for with_docs has exactly [SEARCH_TOOL_SCHEMA, FETCH_TOOL_SCHEMA]"
+      - target: "Dispatch reaches the real public API"
+        verified_by: "test_tool_call_dispatched_to_search_docs"
+        assertion: "a scripted search tool_call against eval_db returns a JSON string containing real chunk_ids from the evalcorpus pack"
+      - target: "Termination is guaranteed"
+        verified_by: "test_loop_terminates_at_max_turns"
+        assertion: "a fake client always returning one tool_call yields TaskRunResult with turns_used == max_turns and error == 'max_turns'"
+      - target: "Per-arm aggregation is correct"
+        verified_by: "test_pass_rates_aggregated_per_arm"
+        assertion: "scripted run with 1 pass + 1 fail per arm yields pass_rate 0.5 in both arms"
+
+    verification_inputs:
+      - function: "dispatch_tool_call"
+        cases:
+          - input: "ToolCall(id='1', name='nonsense', arguments={})"
+            expected: "json string with key 'error' containing 'unknown tool: nonsense'"
+            label: "hallucinated tool name handled"
+          - input: "ToolCall(id='2', name='fetch', arguments={'chunk_ids': [1]}) against eval_db"
+            expected: "json string whose 'results' list is non-empty and contains 'content'"
+            label: "fetch round-trips through fetch_docs"
+
+    negative_tests:
+      - test_name: "test_loop_terminates_at_max_turns"
+        description: "Without a turn cap, a tool-looping model hangs the eval forever."
+        must_not: "run_task looping beyond max_turns"
+      - test_name: "test_unknown_tool_name_returns_error_payload"
+        description: "Small models hallucinate tool names; raising KeyError would abort the whole eval instead of letting the model recover."
+        must_not: "dispatch_tool_call raising on an unknown tool name"
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: |
+        Deviation from local_context, intentional: SYSTEM_PROMPT_WITH_DOCS and
+        the SEARCH_TOOL_SCHEMA description do NOT use the verbatim AND-semantics
+        wording quoted in this chunk's local_context (verified 2026-06-11,
+        pre-dates this implementation). Between that verification and this
+        chunk being built, search_relaxed was changed from implicit-AND with
+        term-dropping relaxation to OR+BM25 ranking (decision D29,
+        docs/decisions.md, docs/pilot-results.md) — the real server.py tool
+        docstring was updated to match. Copying the old wording verbatim would
+        describe search semantics that no longer exist and would mislead the
+        model (e.g. telling it to avoid full sentences when the current
+        backend handles them fine). Updated the prompt text to describe the
+        current OR-ranking behavior while keeping the verified structural
+        lesson intact (MUST call search before answering — that lesson is
+        about retrieval-skipping, not about AND vs OR, and still holds).
+        Un-verified against a real model in this session (no live endpoint
+        available); the live test path (test_endtask_eval_live) is fully
+        wired and skips cleanly without SYND_EVAL_BASE_URL/SYND_EVAL_MODEL —
+        confirmed by running with --evals --live-model and no env set.
+        The chunk-e4/e5 "same write pattern" reference for results JSON
+        doesn't exist yet either (e4/e5 remain PENDING) — established the
+        meta/timestamp/git_commit convention by following
+        tests/benchmarks/test_token_overhead.py's _git_commit() pattern.
+      files_modified:
+        - "tests/evals/endtask.py"
+        - "tests/evals/test_endtask.py"
+      open_questions:
+        - "SYSTEM_PROMPT_WITH_DOCS's updated wording is unverified against a
+           real served model — worth a live smoke run (--live-model) before
+           trusting a model-size sweep's with_docs numbers."
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""
+
+
+  # ---------------------------------------------------------------------------
+  - id: "chunk-e9-eval-docs"
+    title: "Eval harness documentation, roadmap and decisions entries"
+    status: PENDING
+    depends_on: ["chunk-e4-retrieval-runner", "chunk-e8-endtask-driver"]
+    token_budget_hint: small
+
+    local_context: |
+      Closing chunk: document what was built so an operator can run every
+      layer without reading the ledger. The repo's documentation conventions
+      are in .claude/CLAUDE.md (Docs Structure): decisions.md is the permanent
+      record of settled decisions; roadmap.md is the versioned checklist.
+
+      docs/evals.md is the operator manual. It must distinguish the three
+      execution contexts clearly:
+        1. CI / any machine: hermetic retrieval eval (--evals) — no network,
+           no model.
+        2. Network-capable machine: live retrieval eval (--evals --network).
+        3. The operator's own machine ONLY: end-task eval (--evals
+           --live-model) against their vLLM endpoint. This endpoint is not
+           reachable from CI or cloud sandboxes; the documented example uses
+           the operator's host http://192.168.0.214:8000/v1 explicitly as an
+           EXAMPLE value for SYND_EVAL_BASE_URL, with a note to substitute
+           your own.
+
+    objective: |
+      docs/evals.md exists and is accurate against the implemented code
+      (verify every command in it by running it). roadmap.md gains a
+      completed eval-harness section under v0.2.0. decisions.md gains one
+      entry recording the eval design decisions.
+
+    interface_contract:
+      inputs:
+        - path: "tests/evals/"
+          consumes: ["the implemented harness — source of truth for every documented command"]
+        - path: "docs/roadmap.md"
+          consumes: ["v0.2.0 section to extend"]
+        - path: "docs/decisions.md"
+          consumes: ["existing numbering — find the highest D-number and use the next"]
+      outputs:
+        - path: "docs/evals.md"
+          exports:
+            - "sections: Why these evals exist; Layer 1 hermetic retrieval (commands, metrics definitions, floor values and the measured baseline table); Layer 1b live retrieval; Layer 2 end-task A/B (vLLM setup: --enable-auto-tool-choice, --tool-call-parser hermes for Qwen, env vars with the operator example endpoint; Alibaba-recommended sampling: temperature=0.7 top_p=0.8 top_k=20 min_p=0 — greedy causes repetition loops; max_turns=12 verified); Smoke-testing without vLLM (llama.cpp + Qwen3-14B-UD-Q4_K_XL recipe from the stream header PLANNER NOTE; 14B with query relaxation reaches 7/10 on seed tasks — directionally meaningful signal; 8B is harness-mechanics only at 3/10; full progression table in the PLANNER NOTE); Reading the results JSON; Extending the datasets (ref format, rot guard, re-validation procedure)"
+        - path: "docs/roadmap.md"
+          exports:
+            - "v0.2.0 'Eval harness' subsection: checklist entries for chunks e1-e8 marked done with one-line descriptions"
+        - path: "docs/decisions.md"
+          exports:
+            - "next sequential D-entry: eval harness design — gold refs keyed by (source_path suffix, heading_path) never chunk_id; JSON datasets (no PyYAML dep); static-only grading (no execution of model output); floors on keyword queries only; live-model eval is manual and env-gated"
+      allowed_new_deps: []
+
+    assumptions:
+      - "Every command block in docs/evals.md must be copy-paste runnable from the repo root and verified by actually running it before submitting (except the --live-model command, which is verified to SKIP cleanly without env vars)."
+      - "The measured baseline table comes from tests/evals/results/retrieval_latest.json produced by the chunk-e4 test run — cite those numbers, not the planner's pre-implementation measurements, if they differ."
+      - "decisions.md entries follow the existing format in that file — read two recent entries and mirror their structure."
+      - "Do not include any Claude session links or model identifiers in any committed file."
+      - "README.md is NOT in scope — do not edit it."
+
+    definition_of_done:
+      automated:
+        - cmd: ".venv/bin/pytest tests/evals/ --evals -q"
+          must_pass: true
+        - cmd: ".venv/bin/pytest -q"
+          must_pass: true
+        - cmd: ".venv/bin/ruff check tests/ && .venv/bin/ruff format --check tests/"
+          must_pass: true
+      coverage_floor: null
+      manual_checklist:
+        - "Every documented command was executed and behaved as documented"
+        - "docs/evals.md states explicitly that the end-task eval cannot run in CI or remote sandboxes"
+        - "roadmap.md still renders as valid markdown (heading levels consistent with siblings)"
+
+    capability_ceiling:
+      - "Do not document aspirational features (synonym expansion, hybrid search, execution-based grading). Document what exists."
+      - "Do not renumber or edit existing decisions.md entries."
+      - "Do not change any code in this chunk. Docs only. If the code contradicts what you expected to document, flag it instead of 'fixing' either side."
+
+    prerequisites:
+      read_first:
+        - progress.txt
+        - docs/decisions.md
+        - docs/roadmap.md
+        - tests/evals/results/retrieval_latest.json
+
+    review_targets:
+      - target: "Docs match reality"
+        verified_by: "manual_checklist"
+        assertion: "each command in docs/evals.md executed verbatim produces the documented behavior"
+      - target: "Execution contexts are unambiguous"
+        verified_by: "manual_checklist"
+        assertion: "docs/evals.md names which layers run in CI vs operator-only, and the env-var example is marked as an example"
+
+    verification_inputs: []
+
+    negative_tests: []
+
+    rollback_anchor:
+      git_ref: ""
+      file_checksums: {}
+
+    handoff:
+      status_note: ""
+      files_modified: []
+      open_questions: []
+      progress_log_updated: false
+
+    review:
+      outcome: ""
+      rejection_reason: ""
+      reviewed_at: ""

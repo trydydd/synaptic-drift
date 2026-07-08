@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 from synd.errors import SearchError
-from synd.search.fts import search, get_chunks_by_id, _preprocess_query
+from synd.search.fts import search, search_relaxed, get_chunks_by_id, _preprocess_query
 from synd.storage.db import Database
 from synd.storage.models import Chunk, Page, Pack
 
@@ -495,3 +495,173 @@ def test_search_heading_path_weighted_higher() -> None:
     # Chunk 2 matches in both heading_path (2.5x weight) and summary (1.5x weight);
     # chunk 1 matches only in summary (1.5x weight). Chunk 2 must rank first.
     assert results[0].chunk_id == 2
+
+
+# ---------------------------------------------------------------------------
+# search_relaxed() tests
+# ---------------------------------------------------------------------------
+
+
+def _make_relaxed_db() -> Database:
+    """DB with two chunks that do NOT share any term except 'progress'."""
+    with tempfile.TemporaryDirectory() as tmp:
+        db_path = Path(tmp) / "relaxed.db"
+        db = Database(db_path)
+        db.create_schema()
+        return db
+
+
+def _pack_pages_chunks(
+    pkg: str,
+) -> tuple[Pack, list[Page], list[Chunk]]:
+    pack = Pack(
+        name=pkg,
+        version="1.0.0",
+        lifecycle_state="approved",
+        doc_version_status="stable",
+        indexed_at="2026-01-01T00:00:00Z",
+    )
+    pages = [Page(id=1, package=pkg, version="1.0.0", url="index.md")]
+    chunks = [
+        Chunk(
+            id=1,
+            package=pkg,
+            version="1.0.0",
+            page_id=1,
+            heading_path="Progress Reporting",
+            summary="Call report_progress to update the client",
+            content="Long-running tools should call report_progress periodically",
+            source_url="index.md",
+        )
+    ]
+    return pack, pages, chunks
+
+
+def test_search_relaxed_returns_results_on_first_try() -> None:
+    """When the original query matches, returns (results, preprocessed_query)."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    results, effective = search_relaxed(db, "progress")
+    assert len(results) == 1
+    assert effective == "progress"
+
+
+def test_search_relaxed_matches_on_partial_term_overlap() -> None:
+    """A term absent from the corpus doesn't zero out an otherwise-good match.
+
+    Under the old implicit-AND behavior this returned nothing until the
+    unmatched term was dropped by relaxation. Under OR+BM25 there is no
+    zero-result cliff: the chunk matching 'progress' alone is still a
+    candidate, and is returned directly.
+    """
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    # "progress xyznotexistent" — 'xyznotexistent' does not exist anywhere
+    results, effective = search_relaxed(db, "progress xyznotexistent")
+    assert len(results) == 1
+    assert effective == "progress OR xyznotexistent"
+    assert results[0].heading_path == "Progress Reporting"
+
+
+def test_search_relaxed_all_terms_preserved_in_effective_query() -> None:
+    """OR-joins every preprocessed term — none are dropped, matching or not."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    results, effective = search_relaxed(db, "progress missing1 missing2 missing3")
+    assert len(results) == 1
+    assert effective == "progress OR missing1 OR missing2 OR missing3"
+
+
+def test_search_relaxed_returns_empty_when_nothing_matches() -> None:
+    """When no term matches anywhere in the corpus, returns []."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    results, effective = search_relaxed(db, "zzznomatch anotherterm")
+    assert results == []
+    assert effective == "zzznomatch OR anotherterm"
+
+
+def test_search_relaxed_multi_term_or_joined() -> None:
+    """Both terms present → effective_query is the OR-joined preprocessed form."""
+    db = _make_relaxed_db()
+    pack, pages, chunks = _pack_pages_chunks("docs")
+    db.import_pack(pack, pages, chunks)
+
+    # both 'progress' and 'report_progress' appear in the chunk content
+    results, effective = search_relaxed(db, "progress report_progress")
+    assert len(results) == 1
+    assert effective == "progress OR report_progress"
+
+
+def test_search_relaxed_ranks_full_match_above_partial_match() -> None:
+    """A chunk matching every query term outranks one matching only some,
+    even though OR makes both candidates — this is the actual behavior the
+    AND->OR change depends on: broadening the candidate pool must not come
+    at the cost of burying the best match.
+    """
+    db = _make_relaxed_db()
+    pack = Pack(
+        name="docs",
+        version="1.0.0",
+        lifecycle_state="approved",
+        doc_version_status="stable",
+        indexed_at="2026-01-01T00:00:00Z",
+    )
+    pages = [Page(id=1, package="docs", version="1.0.0", url="index.md")]
+    chunks = [
+        Chunk(
+            id=1,
+            package="docs",
+            version="1.0.0",
+            page_id=1,
+            heading_path="Full Match",
+            summary="",
+            content="alpha beta gamma",
+            source_url="index.md",
+        ),
+        Chunk(
+            id=2,
+            package="docs",
+            version="1.0.0",
+            page_id=1,
+            heading_path="Partial Match",
+            summary="",
+            content="alpha only, nothing else relevant here",
+            source_url="index.md",
+        ),
+    ]
+    db.import_pack(pack, pages, chunks)
+
+    results, effective = search_relaxed(db, "alpha beta gamma")
+    assert effective == "alpha OR beta OR gamma"
+    assert len(results) == 2
+    assert results[0].chunk_id == 1  # full match ranks first
+    assert results[1].chunk_id == 2  # partial match still returned, ranked lower
+
+
+def test_search_relaxed_stopwords_only_raises() -> None:
+    """Stopwords-only input raises SearchError, same as search()."""
+    db = _make_relaxed_db()
+    with pytest.raises(SearchError, match="common words"):
+        search_relaxed(db, "the is a")
+
+
+def test_search_relaxed_empty_string_returns_empty() -> None:
+    db = _make_relaxed_db()
+    results, effective = search_relaxed(db, "")
+    assert results == []
+
+
+def test_search_relaxed_malformed_operator_raises() -> None:
+    """Incomplete FTS5 boolean operator still raises SearchError."""
+    db = _make_relaxed_db()
+    with pytest.raises(SearchError):
+        search_relaxed(db, "foo AND")

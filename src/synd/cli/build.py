@@ -14,7 +14,8 @@ from synd.builder.chunking import (
     _DEFAULT_MAX_CHUNK_TOKENS,
     _DEFAULT_MIN_CHUNK_TOKENS,
 )
-from synd.builder.url_filter import DEFAULT_NOISE_URL_PATTERNS
+from synd.builder.crawler import DEFAULT_MAX_PAGES
+from synd.builder.manifest import load_manifest
 from synd.cli.exit_codes import EXIT_USAGE, exit_code_for
 from synd.errors import BuildError, SyndError
 
@@ -53,7 +54,10 @@ def _parse_package_spec(spec: str) -> tuple[str, str]:
     "--source",
     required=True,
     type=str,
-    help="Local directory or URL (llms-full.txt / llms.txt)",
+    help=(
+        "Local directory, llms(-full).txt URL, or docs-site root URL "
+        "(crawled when it does not end in llms.txt/llms-full.txt)"
+    ),
 )
 @click.option("--output", type=click.Path(path_type=Path), default=Path("."))
 @click.option(
@@ -81,6 +85,41 @@ def _parse_package_spec(spec: str) -> tuple[str, str]:
     is_flag=True,
     default=False,
     help="Disable all URL noise filtering. URL builds only.",
+)
+@click.option(
+    "--max-pages",
+    default=DEFAULT_MAX_PAGES,
+    show_default=True,
+    type=int,
+    help=(
+        "Page cap for crawled builds. Hitting it truncates the crawl with a "
+        "warning; the pack is built from what was fetched."
+    ),
+)
+@click.option(
+    "--user-agent",
+    default=None,
+    type=str,
+    help=(
+        "Override the User-Agent header sent on every request, including "
+        "robots.txt. Some docs hosts reject the default. URL builds only."
+    ),
+)
+@click.option(
+    "--no-robots",
+    is_flag=True,
+    default=False,
+    help=(
+        "Skip robots.txt checks for crawled builds. robots.txt is respected "
+        "by default; use only for public docs you have reason to mirror."
+    ),
+)
+@click.option(
+    "--rate-limit",
+    default=0.5,
+    show_default=True,
+    type=float,
+    help="Seconds to sleep between page requests. URL builds only.",
 )
 @click.option(
     "--max-chunk-tokens",
@@ -113,6 +152,10 @@ def build(
     policy_profile: str | None,
     exclude_url_pattern: tuple[str, ...],
     no_url_filter: bool,
+    max_pages: int,
+    user_agent: str | None,
+    no_robots: bool,
+    rate_limit: float,
     max_chunk_tokens: int | None,
     min_chunk_tokens: int | None,
     warn_chunk_tokens: int | None,
@@ -121,12 +164,16 @@ def build(
 
     PACKAGE_SPEC is in the format package@version (e.g. my-lib@1.0.0).
 
-    --source accepts a local directory or a URL ending in llms-full.txt
-    or llms.txt (e.g. https://docs.example.com/llms-full.txt).
+    --source accepts a local directory, a URL ending in llms-full.txt or
+    llms.txt (e.g. https://docs.example.com/llms-full.txt), or any other
+    docs-site root URL — which is crawled: pages are discovered via
+    sitemap.xml when available, otherwise by following links, confined to
+    the root's host and path.
 
-    URL builds filter out noise pages (changelogs, release notes, etc.) by
-    default. Use --exclude-url-pattern to add extra patterns or --no-url-filter
-    to disable filtering entirely.
+    URL builds filter out noise pages (changelogs, release notes, and for
+    crawls also generated Sphinx pages like genindex/search/_modules) by
+    default. Use --exclude-url-pattern to add extra patterns or
+    --no-url-filter to disable filtering entirely.
     """
     try:
         pkg, ver = _parse_package_spec(package_spec)
@@ -136,11 +183,6 @@ def build(
         sys.exit(EXIT_USAGE)
 
     output_dir = Path(output)
-
-    if no_url_filter:
-        url_patterns: tuple[str, ...] = ()
-    else:
-        url_patterns = DEFAULT_NOISE_URL_PATTERNS + tuple(exclude_url_pattern)
 
     resolved_max = (
         max_chunk_tokens if max_chunk_tokens is not None else _DEFAULT_MAX_CHUNK_TOKENS
@@ -161,10 +203,15 @@ def build(
                 doc_version_status=doc_version_status,
                 owner=owner,
                 policy_profile=policy_profile,
-                excluded_url_patterns=url_patterns,
+                rate_limit_sleep=rate_limit,
+                excluded_url_patterns=() if no_url_filter else None,
+                extra_url_patterns=tuple(exclude_url_pattern),
                 max_chunk_tokens=resolved_max,
                 min_chunk_tokens=resolved_min,
                 warn_chunk_tokens=warn_chunk_tokens,
+                max_pages=max_pages,
+                user_agent=user_agent,
+                respect_robots=not no_robots,
             )
         else:
             source_path = Path(source)
@@ -188,10 +235,32 @@ def build(
                 warn_chunk_tokens=warn_chunk_tokens,
             )
         console.print(f"[green]Pack built: {ctx_path}[/green]")
+        _print_crawl_summary(ctx_path)
         _print_oversized_warnings(oversized, resolved_max, warn_chunk_tokens)
     except SyndError as exc:
         console.print(f"[red]error: {exc}[/red]")
         sys.exit(exit_code_for(exc))
+
+
+def _print_crawl_summary(ctx_path: Path) -> None:
+    """Report crawl provenance for crawled builds; no-op for other sources.
+
+    Reads the crawl_* fields back from the built pack's manifest — the pack
+    is the artifact of record for what the crawl actually fetched.
+    """
+    manifest = load_manifest(ctx_path)
+    if "crawl_pages_fetched" not in manifest:
+        return
+    console.print(
+        f"  crawled {manifest['crawl_pages_fetched']} page(s) "
+        f"(--max-pages {manifest['crawl_max_pages']})"
+    )
+    if manifest.get("crawl_truncated"):
+        console.print(
+            f"[yellow]  crawl truncated at {manifest['crawl_max_pages']} pages — "
+            "the pack is incomplete; raise --max-pages or point --source at a "
+            "deeper docs path.[/yellow]"
+        )
 
 
 def _print_oversized_warnings(

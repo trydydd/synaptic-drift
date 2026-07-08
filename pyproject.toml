@@ -45,6 +45,8 @@ testpaths = ["tests"]
 markers = [
     "network: requires real network access (opt-in via --network)",
     "benchmark: token overhead benchmark (opt-in via --benchmark)",
+    "evals: retrieval quality evals (opt-in via --evals)",
+    "live_model: drives a real model endpoint (opt-in via --live-model)",
 ]
 
 [tool.ruff]
