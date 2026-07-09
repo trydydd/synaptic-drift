@@ -327,6 +327,29 @@ def test_html_to_markdown_strips_pydata_secondary_sidebar() -> None:
     assert "On this page" not in md
 
 
+def test_html_to_markdown_strips_sqlalchemy_sidebar_by_id() -> None:
+    # sqlalchemy's theme has no <main>/role="main", so extraction falls back
+    # to <body> — which includes the full navigation TOC in
+    # <div id="fixed-sidebar">, duplicated into every page (an 11k-token
+    # chunk on all 138 crawled pages).
+    html = (
+        "<html><body>"
+        '<div id="docs-top-navigation-container">'
+        "<a>Download this Documentation</a></div>"
+        '<div id="fixed-sidebar" class="withsidebar">'
+        '<div id="docs-sidebar"><ul><li>SQL Statements and Expressions API'
+        "</li></ul></div></div>"
+        '<div id="narrow-index-nav">On this page:</div>'
+        '<div id="docs-body"><h1>Core Internals</h1><p>Actual API docs.</p></div>'
+        "</body></html>"
+    )
+    md = html_to_markdown(html)
+    assert "Actual API docs." in md
+    assert "SQL Statements and Expressions API" not in md
+    assert "Download this Documentation" not in md
+    assert "On this page:" not in md
+
+
 def test_html_to_markdown_keeps_elements_with_unrelated_classes() -> None:
     html = (
         "<html><body><main>"

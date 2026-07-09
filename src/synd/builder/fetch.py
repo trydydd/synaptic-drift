@@ -36,6 +36,20 @@ _BOILERPLATE_CSS_CLASSES = frozenset(
     }
 )
 
+# Same idea for element ids. sqlalchemy's theme has no <main>/role="main",
+# so extraction falls back to <body> and would swallow the sidebar TOC.
+_BOILERPLATE_IDS = frozenset(
+    {
+        # sqlalchemy docs theme (no <main>): sidebar TOC, page-top header
+        # with prev/next + download links, and the mobile "On this page" TOC
+        "fixed-sidebar",
+        "docs-sidebar",
+        "docs-top-navigation-container",
+        "narrow-index-nav",
+        "docs-narrow-top-navigation",
+    }
+)
+
 _PILCROW_RE = re.compile(r"\[¶\]\([^)]*\)|¶")
 
 
@@ -64,6 +78,9 @@ def html_to_markdown(html: str) -> str:
     for tag in soup.find_all(
         class_=lambda c: c is not None and c in _BOILERPLATE_CSS_CLASSES
     ):
+        tag.decompose()
+
+    for tag in soup.find_all(id=lambda i: i is not None and i in _BOILERPLATE_IDS):
         tag.decompose()
 
     main = soup.find("main") or soup.find(role="main") or soup.find("article")
