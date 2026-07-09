@@ -1,0 +1,80 @@
+{"pack_name": "fastapi", "chunk_id": 14, "capability": "understand the automatically generated interactive documentation page for trying out endpoints"}
+{"pack_name": "fastapi", "chunk_id": 54, "capability": "how to declare a value as one of several types when the vertical bar syntax is unavailable"}
+{"pack_name": "fastapi", "chunk_id": 57, "capability": "how to write asynchronous test functions when the standard synchronous test client no longer works"}
+{"pack_name": "fastapi", "chunk_id": 64, "capability": "understand why trailing slash redirects can point to the wrong scheme behind a proxy"}
+{"pack_name": "fastapi", "chunk_id": 68, "capability": "how to read the path prefix the application sees for each request when behind a proxy"}
+{"pack_name": "fastapi", "chunk_id": 92, "capability": "how to stream a file from disk as a response with custom headers and filename"}
+{"pack_name": "fastapi", "chunk_id": 97, "capability": "how to declare request and response shapes using plain dataclasses instead of model classes"}
+{"pack_name": "fastapi", "chunk_id": 147, "capability": "how to reference parts of the original request in a documented callback path expression"}
+{"pack_name": "fastapi", "chunk_id": 166, "capability": "how to change the status code of a response from inside the handler function"}
+{"pack_name": "fastapi", "chunk_id": 168, "capability": "how to set cookies when building and returning a response object directly"}
+{"pack_name": "fastapi", "chunk_id": 183, "capability": "how to securely compare a submitted username and password to guard against timing attacks"}
+{"pack_name": "fastapi", "chunk_id": 194, "capability": "how to declare an authorization scheme with named permission scopes and their descriptions"}
+{"pack_name": "fastapi", "chunk_id": 196, "capability": "understand how declared permission scopes appear on the login screen of the documentation page"}
+{"pack_name": "fastapi", "chunk_id": 203, "capability": "how to check token permission scopes inside dependencies using an alternative non-annotated style"}
+{"pack_name": "fastapi", "chunk_id": 211, "capability": "understand how nested dependencies accumulate the permission scopes declared by everything that depends on them"}
+{"pack_name": "fastapi", "chunk_id": 214, "capability": "how to require permission scopes through the decorator's dependency list without a function parameter"}
+{"pack_name": "fastapi", "chunk_id": 233, "capability": "how to stream raw binary data or plain strings to the client incrementally"}
+{"pack_name": "fastapi", "chunk_id": 261, "capability": "how to render server-side page templates with a commonly used template engine"}
+{"pack_name": "fastapi", "chunk_id": 291, "capability": "how to mount a legacy synchronous web application inside an asynchronous one"}
+{"pack_name": "fastapi", "chunk_id": 324, "capability": "choose between concurrency and parallelism depending on whether the workload is waiting-heavy or compute-heavy"}
+{"pack_name": "fastapi", "chunk_id": 332, "capability": "understand the internal handling of coroutine versus regular function endpoints"}
+{"pack_name": "fastapi", "chunk_id": 399, "capability": "when to run a single server process per container instead of multiple workers"}
+{"pack_name": "fastapi", "chunk_id": 413, "capability": "how to deploy the application to any cloud provider using standard guides"}
+{"pack_name": "fastapi", "chunk_id": 446, "capability": "how to safely upgrade the framework version by relying on a test suite"}
+{"pack_name": "fastapi", "chunk_id": 453, "capability": "understand what environment variables are and how programs read settings from them"}
+{"pack_name": "fastapi", "chunk_id": 457, "capability": "understand the special variable that tells the operating system where to find programs"}
+{"pack_name": "fastapi", "chunk_id": 463, "capability": "how to explicitly specify which application object the development command should run"}
+{"pack_name": "fastapi", "chunk_id": 473, "capability": "how to find the community members who answer the most user questions"}
+{"pack_name": "fastapi", "chunk_id": 483, "capability": "how to find the reviewers who approve documentation translations into other languages"}
+{"pack_name": "fastapi", "chunk_id": 508, "capability": "how to get help with the framework or contribute help to others"}
+{"pack_name": "fastapi", "chunk_id": 548, "capability": "how to verify that self-hosted static assets for the documentation page are being served"}
+{"pack_name": "fastapi", "chunk_id": 570, "capability": "how to confirm a custom logo shows in the overridden documentation page"}
+{"pack_name": "fastapi", "chunk_id": 576, "capability": "how to set the description text shown for a response in the generated documentation"}
+{"pack_name": "fastapi", "chunk_id": 599, "capability": "understand how optional input fields appear as not required in the generated documentation"}
+{"pack_name": "fastapi", "chunk_id": 607, "capability": "how to find the guided course-style introduction for learning the framework"}
+{"pack_name": "fastapi", "chunk_id": 699, "capability": "understand the code and reason attributes on the websocket close exception"}
+{"pack_name": "fastapi", "chunk_id": 706, "capability": "configure whether endpoints are included in the generated schema and documentation"}
+{"pack_name": "fastapi", "chunk_id": 714, "capability": "how to include a group of routes from another module into the main application"}
+{"pack_name": "fastapi", "chunk_id": 745, "capability": "configure the response model to drop fields whose values are unset or none"}
+{"pack_name": "fastapi", "chunk_id": 750, "capability": "understand the deprecated startup and shutdown event hooks and their modern replacement"}
+{"pack_name": "fastapi", "chunk_id": 792, "capability": "how to generate the alternative documentation page while self-hosting its script assets"}
+{"pack_name": "fastapi", "chunk_id": 796, "capability": "understand the allowed primitive type names in the generated schema model"}
+{"pack_name": "fastapi", "chunk_id": 905, "capability": "understand how a reserved field name is aliased in the schema models"}
+{"pack_name": "fastapi", "chunk_id": 911, "capability": "understand the link object fields for describing relations between operations in the schema"}
+{"pack_name": "fastapi", "chunk_id": 916, "capability": "understand schema model fields that default to none and allow extra values"}
+{"pack_name": "fastapi", "chunk_id": 999, "capability": "understand the top-level schema object fields like servers and paths"}
+{"pack_name": "fastapi", "chunk_id": 1009, "capability": "how to enforce numeric bounds like minimum and maximum on a path parameter"}
+{"pack_name": "fastapi", "chunk_id": 1022, "capability": "how to access the raw request object directly inside a handler without validation"}
+{"pack_name": "fastapi", "chunk_id": 1127, "capability": "understand how a cookie-based key credential is represented in the security utilities"}
+{"pack_name": "fastapi", "chunk_id": 1203, "capability": "how to serve a directory of static files from the application"}
+{"pack_name": "fastapi", "chunk_id": 1230, "capability": "how to use named constants for redirect status codes instead of bare numbers"}
+{"pack_name": "fastapi", "chunk_id": 1265, "capability": "how to use a named constant for the unsupported protocol version status code"}
+{"pack_name": "fastapi", "chunk_id": 1303, "capability": "understand the asynchronous backend configuration used internally by the test client"}
+{"pack_name": "fastapi", "chunk_id": 1340, "capability": "understand how the websocket receive call enforces valid connection state transitions"}
+{"pack_name": "fastapi", "chunk_id": 1365, "capability": "how to install the framework with its recommended optional dependencies in a virtual environment"}
+{"pack_name": "fastapi", "chunk_id": 1368, "capability": "how to schedule work to run in the background after returning a response"}
+{"pack_name": "fastapi", "chunk_id": 1391, "capability": "how to include route groups from submodules into the main application of a larger project"}
+{"pack_name": "fastapi", "chunk_id": 1395, "capability": "how to verify that routes from all submodules appear in the generated documentation"}
+{"pack_name": "fastapi", "chunk_id": 1425, "capability": "how to replace an item entirely with a put request, converting values for storage"}
+{"pack_name": "fastapi", "chunk_id": 1447, "capability": "how to declare cookie values as typed parameters in a handler function"}
+{"pack_name": "fastapi", "chunk_id": 1469, "capability": "how to declare a shared dependency function whose result is injected into handlers"}
+{"pack_name": "fastapi", "chunk_id": 1490, "capability": "how to raise errors from dependencies attached to the route decorator, like header validation"}
+{"pack_name": "fastapi", "chunk_id": 1514, "capability": "understand how a shared sub-dependency is called once per request and its value cached"}
+{"pack_name": "fastapi", "chunk_id": 1546, "capability": "how to point the development server command at a specific file or application object"}
+{"pack_name": "fastapi", "chunk_id": 1592, "capability": "how to receive multiple values of the same repeated request header as a list"}
+{"pack_name": "fastapi", "chunk_id": 1599, "capability": "how to group endpoints under named tags with descriptions in the documentation"}
+{"pack_name": "fastapi", "chunk_id": 1605, "capability": "how to write middleware that runs around every request and can modify the response"}
+{"pack_name": "fastapi", "chunk_id": 1629, "capability": "how to declare a typed path segment parameter with automatic conversion and validation"}
+{"pack_name": "fastapi", "chunk_id": 1657, "capability": "how to add a maximum length validation to an optional query parameter"}
+{"pack_name": "fastapi", "chunk_id": 1671, "capability": "how to mark a query parameter as deprecated while keeping it functional"}
+{"pack_name": "fastapi", "chunk_id": 1679, "capability": "understand how optional query parameters get default values when omitted from the url"}
+{"pack_name": "fastapi", "chunk_id": 1681, "capability": "understand how boolean query parameter values are converted from different textual spellings"}
+{"pack_name": "fastapi", "chunk_id": 1719, "capability": "how to annotate return types that are not valid model fields just for editor support"}
+{"pack_name": "fastapi", "chunk_id": 1728, "capability": "how to include or exclude specific model attributes from a response without a separate model"}
+{"pack_name": "fastapi", "chunk_id": 1748, "capability": "how to declare multiple named request examples shown in the interactive documentation"}
+{"pack_name": "fastapi", "chunk_id": 1815, "capability": "how to stream server-sent events to browsers over the native event stream format"}
+{"pack_name": "fastapi", "chunk_id": 1817, "capability": "how to stream server-sent events by yielding values with a special response class"}
+{"pack_name": "fastapi", "chunk_id": 1822, "capability": "how to stream pre-formatted text without json encoding in server-sent events"}
+{"pack_name": "fastapi", "chunk_id": 1863, "capability": "how to interact with a relational database using combined data and table models"}
+{"pack_name": "fastapi", "chunk_id": 1900, "capability": "how to deactivate the isolated package environment when finished working"}

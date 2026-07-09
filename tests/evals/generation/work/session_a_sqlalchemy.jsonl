@@ -1,0 +1,80 @@
+{"pack_name": "sqlalchemy", "chunk_id": 27, "capability": "how to run statements inside a database transaction and commit or roll back the changes"}
+{"pack_name": "sqlalchemy", "chunk_id": 103, "capability": "how to write a plugin that listens for connection events and registers itself through package entry points"}
+{"pack_name": "sqlalchemy", "chunk_id": 109, "capability": "how to apply per-execution options to future database connections while reusing the same connection pool"}
+{"pack_name": "sqlalchemy", "chunk_id": 123, "capability": "how to fetch all remaining rows of a query result at once as a sequence"}
+{"pack_name": "sqlalchemy", "chunk_id": 131, "capability": "understand which result inspection helpers only work after insert or update statements"}
+{"pack_name": "sqlalchemy", "chunk_id": 178, "capability": "how to emit a table constraint conditionally for a specific backend or runtime condition"}
+{"pack_name": "sqlalchemy", "chunk_id": 188, "capability": "how to declare a link between a column and another table's column when defining schemas"}
+{"pack_name": "sqlalchemy", "chunk_id": 285, "capability": "how to declare a column whose values the database generates from an automatic incrementing sequence"}
+{"pack_name": "sqlalchemy", "chunk_id": 323, "capability": "understand which database backends are supported and when an extra driver package must be installed"}
+{"pack_name": "sqlalchemy", "chunk_id": 327, "capability": "how to write the connection address format for different database backends"}
+{"pack_name": "sqlalchemy", "chunk_id": 357, "capability": "how to fully take over or customize the low-level driver connection process"}
+{"pack_name": "sqlalchemy", "chunk_id": 380, "capability": "how to run custom code the first time a pooled database connection is created"}
+{"pack_name": "sqlalchemy", "chunk_id": 384, "capability": "understand how a pooled connection is marked to reconnect later without being closed immediately"}
+{"pack_name": "sqlalchemy", "chunk_id": 397, "capability": "how to intercept statements right before or after they execute on a connection"}
+{"pack_name": "sqlalchemy", "chunk_id": 414, "capability": "understand the errors raised when statement compilation fails or a constraint names a missing column"}
+{"pack_name": "sqlalchemy", "chunk_id": 419, "capability": "understand why rendering a statement to a plain string can fail for certain expression elements"}
+{"pack_name": "sqlalchemy", "chunk_id": 420, "capability": "how to find the reference for building statements and column expressions in code"}
+{"pack_name": "sqlalchemy", "chunk_id": 457, "capability": "understand the internal interfaces that adapt driver connections, compiled statements, and parameter typing"}
+{"pack_name": "sqlalchemy", "chunk_id": 512, "capability": "how to check whether a named sequence or schema exists in the database"}
+{"pack_name": "sqlalchemy", "chunk_id": 572, "capability": "how to render a query to text with its bound parameter values inlined"}
+{"pack_name": "sqlalchemy", "chunk_id": 637, "capability": "how to compare a column against null or boolean constants in a query expression"}
+{"pack_name": "sqlalchemy", "chunk_id": 654, "capability": "configure a connection pool to skip the rollback normally issued when connections are returned"}
+{"pack_name": "sqlalchemy", "chunk_id": 667, "capability": "understand why pooled database connections must not be shared with forked child processes"}
+{"pack_name": "sqlalchemy", "chunk_id": 788, "capability": "how to control where common table expressions are placed or embed data-changing statements within them"}
+{"pack_name": "sqlalchemy", "chunk_id": 815, "capability": "how to inspect the columns that a query statement will return before executing it"}
+{"pack_name": "sqlalchemy", "chunk_id": 882, "capability": "how to serialize query structures to disk and restore them attached to live schema objects"}
+{"pack_name": "sqlalchemy", "chunk_id": 896, "capability": "how to call an arbitrary database function by name inside a query expression"}
+{"pack_name": "sqlalchemy", "chunk_id": 903, "capability": "how to apply a specific datatype's value handling to a literal without emitting a cast"}
+{"pack_name": "sqlalchemy", "chunk_id": 915, "capability": "understand the flag that marks a custom expression construct as safe for statement caching"}
+{"pack_name": "sqlalchemy", "chunk_id": 934, "capability": "how to do a case-insensitive substring match with automatic escaping of wildcard characters"}
+{"pack_name": "sqlalchemy", "chunk_id": 953, "capability": "understand how comparison and boolean operators on column expressions are implemented and customized"}
+{"pack_name": "sqlalchemy", "chunk_id": 954, "capability": "understand how the plus operator behaves on numeric versus string columns in expressions"}
+{"pack_name": "sqlalchemy", "chunk_id": 1004, "capability": "understand the mixin that marks a datatype as supporting concatenation of values"}
+{"pack_name": "sqlalchemy", "chunk_id": 1084, "capability": "understand how the library communicates with different database drivers and backends"}
+{"pack_name": "sqlalchemy", "chunk_id": 1127, "capability": "understand the floating point and row version column types for a commercial database backend"}
+{"pack_name": "sqlalchemy", "chunk_id": 1140, "capability": "how to send long string parameters using modern variable-length types instead of deprecated text types"}
+{"pack_name": "sqlalchemy", "chunk_id": 1141, "capability": "how to disable a database driver's built-in connection pooling that conflicts with the library's own pool"}
+{"pack_name": "sqlalchemy", "chunk_id": 1190, "capability": "understand the column types for storing very large text or binary values on a popular open source database"}
+{"pack_name": "sqlalchemy", "chunk_id": 1207, "capability": "how to connect to a popular open source database through a pure python driver"}
+{"pack_name": "sqlalchemy", "chunk_id": 1390, "capability": "how to give a floating point column different precision settings for one specific backend"}
+{"pack_name": "sqlalchemy", "chunk_id": 1405, "capability": "understand the column types representing integer, timestamp, and date ranges on an open source database"}
+{"pack_name": "sqlalchemy", "chunk_id": 1420, "capability": "configure driver-specific connection keyword arguments like default transaction isolation level"}
+{"pack_name": "sqlalchemy", "chunk_id": 1486, "capability": "understand the built-in driver used to connect to an embedded file-based database"}
+{"pack_name": "sqlalchemy", "chunk_id": 1498, "capability": "understand transaction quirks like savepoints and isolation when using an embedded file-based database"}
+{"pack_name": "sqlalchemy", "chunk_id": 1511, "capability": "understand the error raised when all pooled connections are checked out and the overflow limit is reached"}
+{"pack_name": "sqlalchemy", "chunk_id": 1533, "capability": "understand the error requiring a subquery when placing a select statement where a table is expected"}
+{"pack_name": "sqlalchemy", "chunk_id": 1569, "capability": "how to keep long-lived idle connections from being closed by the server, using periodic recycling"}
+{"pack_name": "sqlalchemy", "chunk_id": 1575, "capability": "how to automatically retry a statement after the database connection is lost mid-transaction"}
+{"pack_name": "sqlalchemy", "chunk_id": 1737, "capability": "how to store a mapped collection as a dictionary keyed by a column value"}
+{"pack_name": "sqlalchemy", "chunk_id": 1747, "capability": "how to map a group of columns onto a single custom value object with named attributes"}
+{"pack_name": "sqlalchemy", "chunk_id": 1750, "capability": "how to build a composite mapped attribute from separately declared column attributes"}
+{"pack_name": "sqlalchemy", "chunk_id": 1858, "capability": "understand how a mapped column derives its datatype and nullability from the type annotation"}
+{"pack_name": "sqlalchemy", "chunk_id": 1876, "capability": "how to declare a mapped class from an already constructed table object"}
+{"pack_name": "sqlalchemy", "chunk_id": 1900, "capability": "how to run custom code when a unit of work transaction commits or begins"}
+{"pack_name": "sqlalchemy", "chunk_id": 2088, "capability": "how to prevent unexpected lazy database access when using the asynchronous interface"}
+{"pack_name": "sqlalchemy", "chunk_id": 2215, "capability": "understand when relationship arguments given as strings get evaluated during configuration"}
+{"pack_name": "sqlalchemy", "chunk_id": 2251, "capability": "understand the default containers created when setting an indexed attribute whose underlying structure is missing"}
+{"pack_name": "sqlalchemy", "chunk_id": 2252, "capability": "how to subclass an indexed attribute to add casting or coercion when values are accessed"}
+{"pack_name": "sqlalchemy", "chunk_id": 2280, "capability": "understand how a static type checker infers mapped attribute types from column definitions"}
+{"pack_name": "sqlalchemy", "chunk_id": 2317, "capability": "understand the internal descriptor and comparator classes behind mapped attribute operations"}
+{"pack_name": "sqlalchemy", "chunk_id": 2383, "capability": "how to customize the join condition used between two related tables"}
+{"pack_name": "sqlalchemy", "chunk_id": 2432, "capability": "how to pass backend-specific query hints through a dynamically loaded relationship query"}
+{"pack_name": "sqlalchemy", "chunk_id": 2437, "capability": "how to validate or transform attribute values with a decorated method before they are set"}
+{"pack_name": "sqlalchemy", "chunk_id": 2484, "capability": "configure the mapper to fetch server-generated defaults immediately after inserts and updates"}
+{"pack_name": "sqlalchemy", "chunk_id": 2491, "capability": "understand the deterministic ordering of mapped class attributes and their descriptors"}
+{"pack_name": "sqlalchemy", "chunk_id": 2552, "capability": "how to route different entities or shards to different database connections from one session"}
+{"pack_name": "sqlalchemy", "chunk_id": 2593, "capability": "how to limit which columns load for one entity when several entities are selected together"}
+{"pack_name": "sqlalchemy", "chunk_id": 2622, "capability": "when to use multiple parameter sets in a single bulk insert statement versus separate executions"}
+{"pack_name": "sqlalchemy", "chunk_id": 2638, "capability": "choose between unit of work deletes and bulk statements for multi-table inheritance mappings"}
+{"pack_name": "sqlalchemy", "chunk_id": 2680, "capability": "understand the legacy query object's methods and their modern result api equivalents"}
+{"pack_name": "sqlalchemy", "chunk_id": 2727, "capability": "understand how loader options propagate to the secondary queries issued by lazy loading"}
+{"pack_name": "sqlalchemy", "chunk_id": 2790, "capability": "how to propagate primary key changes to referencing rows using database update cascades"}
+{"pack_name": "sqlalchemy", "chunk_id": 2878, "capability": "when to create, commit, and close the unit of work object during an application operation"}
+{"pack_name": "sqlalchemy", "chunk_id": 2891, "capability": "understand the events fired during the flush that writes pending object changes to the database"}
+{"pack_name": "sqlalchemy", "chunk_id": 2904, "capability": "understand the difference between marking an object for deletion and it actually being deleted"}
+{"pack_name": "sqlalchemy", "chunk_id": 2951, "capability": "how to verify the installed library version before following the tutorial examples"}
+{"pack_name": "sqlalchemy", "chunk_id": 3007, "capability": "how to update rows using values computed from a correlated subquery on another table"}
+{"pack_name": "sqlalchemy", "chunk_id": 3035, "capability": "how to define mapped classes using type annotations that drive column types"}
+{"pack_name": "sqlalchemy", "chunk_id": 3052, "capability": "how to delete a loaded object through the unit of work and see when it takes effect"}
+{"pack_name": "sqlalchemy", "chunk_id": 3056, "capability": "how to find copyright and attribution information for the documentation pages"}

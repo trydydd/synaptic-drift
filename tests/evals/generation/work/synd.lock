@@ -1,21 +1,21 @@
 [meta]
 schema_version = 2
-generated_at = "2026-07-04T19:15:20Z"
+generated_at = "2026-07-09T03:45:49Z"
 
-[packs."mcp@2025-05-29"]
-pack_digest = "sha256:527ea1ccb23bfe79c72896a297b0d24b7abb36bd7e0f3664963dd4a3e2a35245"
+[packs."fastapi@0.115.14"]
+pack_digest = "sha256:ed203d62181b3c3857eefa669acd5232f2e53d146fc42b8905686341e175a26e"
 lifecycle_state = "draft"
-indexed_at = "2026-07-04T19:15:12Z"
-source_url = "https://modelcontextprotocol.io/llms-full.txt"
+indexed_at = "2026-07-09T03:45:49Z"
+source_url = "https://fastapi.tiangolo.com/"
 
-[packs."resend@2025-05-29"]
-pack_digest = "sha256:d93e6761e4cd5ac9d1f654847506dfaf087ead2b09c1253efbb651c689f03588"
+[packs."matplotlib@3.10.3"]
+pack_digest = "sha256:667588ad1c4740e54127d5ebeb907ab610fb2d4035d50a04476ce1df437b9dd5"
 lifecycle_state = "draft"
-indexed_at = "2026-07-04T19:15:20Z"
-source_url = "https://resend.com/docs/llms-full.txt"
+indexed_at = "2026-07-09T03:45:30Z"
+source_url = "https://matplotlib.org/stable/"
 
-[packs."trigger@2025-05-29"]
-pack_digest = "sha256:4728da2b9f79deba19292f8883d34e80ff1ecf5510d86bdd2901fa485ebe56d6"
+[packs."sqlalchemy@2.0.41"]
+pack_digest = "sha256:6fc0df80271c40ea1a23901e1da51f97a437ce77f3f5d0fe1978895a0c0ccdfa"
 lifecycle_state = "draft"
-indexed_at = "2026-07-04T19:15:17Z"
-source_url = "https://trigger.dev/docs/llms-full.txt"
+indexed_at = "2026-07-09T03:45:41Z"
+source_url = "https://docs.sqlalchemy.org/en/20/"
