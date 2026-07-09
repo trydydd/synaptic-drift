@@ -590,3 +590,5 @@ The between-block overflow split was also generalized from paragraph boundaries 
 - **Hard cap with fence splitting**: still rejected, same rationale as D24 — a code example cut mid-function is worse than one large chunk.
 
 **Revisit when**: an L1-style eval over a crawled-HTML gold corpus (not just curated llms.txt packs) exists to re-verify; or giant atomic fences (fastapi mkdocstrings reference pages, matplotlib's sample matplotlibrc) prove to materially degrade retrieval, which would reopen the fence-atomicity tradeoff.
+
+**D29 revisit closed (2026-07-09)**: the crawled-HTML gold corpus now exists — `tests/evals/datasets/real/html_v1.json` (229 questions over matplotlib/sqlalchemy/fastapi packs built with the D29 chunker and boilerplate stripping). L1 baseline: NL recall@5 = 0.712 vs 0.692 on the curated llms.txt pilot corpus — retrieval over crawled HTML is at parity, so the stripping and intra-block splitting hold up on the corpus type where they fire. The paraphrase-tier collapse (NL recall@5 = 0.000, n=56) reproduces the pilot finding at real scale; see `tests/evals/results/html_l1_baseline.json`.
