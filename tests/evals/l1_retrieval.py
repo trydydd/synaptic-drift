@@ -28,9 +28,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import statistics
 import sys
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -40,34 +38,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from synd.search.fts import SearchError  # noqa: E402
 from synd.server import search_docs  # noqa: E402
 from synd.storage.db import Database  # noqa: E402
-from tests.evals.metrics import mrr, ndcg_at_k, recall_at_k  # noqa: E402
+from tests.evals.retrieval_scoring import (  # noqa: E402
+    K_VALUES,
+    aggregate,
+    load_hash_to_ids,
+    metric_names,
+    resolve_gold_ids,
+    score_one,
+    slice_by,
+)
 
-_K_VALUES = (1, 5, 10, 20)
-_NDCG_K = 10
-_LIMIT = max(_K_VALUES)
+_LIMIT = max(K_VALUES)
 _QUERY_FORMS = ("query", "keyword_query")
-
-
-def _load_hash_to_ids(db: Database) -> dict[str, set[int]]:
-    """Map content_hash -> set of chunk ids across the whole indexed corpus.
-
-    A set (not a single id) because content_hash collisions are possible in
-    principle (identical content chunked from two sources); scoring treats
-    any of them as a valid gold hit.
-    """
-    out: dict[str, set[int]] = defaultdict(set)
-    for row in db.conn.execute("SELECT content_hash, id FROM chunks"):
-        out[row["content_hash"]].add(row["id"])
-    return out
-
-
-def _resolve_gold_ids(
-    question: dict[str, Any], hash_to_ids: dict[str, set[int]]
-) -> set[int]:
-    gold_ids: set[int] = set()
-    for gold in question.get("gold", []):
-        gold_ids |= hash_to_ids.get(gold.get("content_hash", ""), set())
-    return gold_ids
 
 
 def _ranked_chunk_ids(db: Database, query_text: str) -> list[int]:
@@ -89,50 +71,18 @@ def _ranked_chunk_ids(db: Database, query_text: str) -> list[int]:
     return [r["chunk_id"] for r in results]
 
 
-def _score_one(ranked_ids: list[int], gold_ids: set[int]) -> dict[str, float]:
-    scores: dict[str, float] = {
-        f"recall@{k}": recall_at_k(ranked_ids, gold_ids, k) for k in _K_VALUES
-    }
-    scores["mrr"] = mrr(ranked_ids, gold_ids)
-    scores[f"ndcg@{_NDCG_K}"] = ndcg_at_k(ranked_ids, gold_ids, _NDCG_K)
-    return scores
-
-
-def _metric_names() -> list[str]:
-    return [f"recall@{k}" for k in _K_VALUES] + ["mrr", f"ndcg@{_NDCG_K}"]
-
-
-def _aggregate(rows: list[dict[str, Any]]) -> dict[str, float]:
-    if not rows:
-        return {name: 0.0 for name in _metric_names()}
-    return {
-        name: round(statistics.mean(row[name] for row in rows), 4)
-        for name in _metric_names()
-    }
-
-
-def _slice_by(rows: list[dict[str, Any]], key: str) -> dict[str, dict[str, Any]]:
-    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for row in rows:
-        groups[row[key]].append(row)
-    return {
-        value: {"n": len(group), **_aggregate(group)}
-        for value, group in sorted(groups.items())
-    }
-
-
 def run_l1(dataset_path: Path, db_path: Path) -> dict[str, Any]:
     with dataset_path.open(encoding="utf-8") as fh:
         dataset = json.load(fh)
 
     db = Database(db_path)
-    hash_to_ids = _load_hash_to_ids(db)
+    hash_to_ids = load_hash_to_ids(db)
 
     rows: list[dict[str, Any]] = []
     unresolved: list[str] = []
 
     for question in dataset.get("questions", []):
-        gold_ids = _resolve_gold_ids(question, hash_to_ids)
+        gold_ids = resolve_gold_ids(question, hash_to_ids)
         if not gold_ids:
             unresolved.append(question["id"])
             continue
@@ -145,7 +95,7 @@ def run_l1(dataset_path: Path, db_path: Path) -> dict[str, Any]:
                 "pack": question["pack"],
                 "difficulty": question["difficulty"],
                 "query_form": form,
-                **_score_one(ranked_ids, gold_ids),
+                **score_one(ranked_ids, gold_ids),
             }
             rows.append(row)
 
@@ -168,15 +118,15 @@ def run_l1(dataset_path: Path, db_path: Path) -> dict[str, Any]:
         "n_gold_unresolved": len(unresolved),
         "gold_unresolved_ids": unresolved,
         "overall": {
-            form: _aggregate([r for r in rows if r["query_form"] == form])
+            form: aggregate([r for r in rows if r["query_form"] == form])
             for form in _QUERY_FORMS
         },
         "by_difficulty": {
-            form: _slice_by([r for r in rows if r["query_form"] == form], "difficulty")
+            form: slice_by([r for r in rows if r["query_form"] == form], "difficulty")
             for form in _QUERY_FORMS
         },
         "by_pack": {
-            form: _slice_by([r for r in rows if r["query_form"] == form], "pack")
+            form: slice_by([r for r in rows if r["query_form"] == form], "pack")
             for form in _QUERY_FORMS
         },
         "questions": rows,
@@ -196,17 +146,17 @@ def _print_summary(result: dict[str, Any]) -> None:
     print("\n  Overall (query form vs keyword form — the query-formulation tax):")
     for form in _QUERY_FORMS:
         m = result["overall"][form]
-        metrics_str = "  ".join(f"{name}={m[name]:.3f}" for name in _metric_names())
+        metrics_str = "  ".join(f"{name}={m[name]:.3f}" for name in metric_names())
         print(f"    {form:15s} {metrics_str}")
 
     print("\n  By difficulty tier (query form = 'query', i.e. natural language):")
     for tier, m in result["by_difficulty"]["query"].items():
-        metrics_str = "  ".join(f"{name}={m[name]:.3f}" for name in _metric_names())
+        metrics_str = "  ".join(f"{name}={m[name]:.3f}" for name in metric_names())
         print(f"    {tier:20s} n={m['n']:<4d} {metrics_str}")
 
     print("\n  By pack (query form = 'query'):")
     for pack, m in result["by_pack"]["query"].items():
-        metrics_str = "  ".join(f"{name}={m[name]:.3f}" for name in _metric_names())
+        metrics_str = "  ".join(f"{name}={m[name]:.3f}" for name in metric_names())
         print(f"    {pack:20s} n={m['n']:<4d} {metrics_str}")
 
 
