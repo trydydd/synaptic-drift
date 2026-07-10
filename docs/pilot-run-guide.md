@@ -463,3 +463,79 @@ If any step fails, paste the last 20 lines of output from the failing command.
 The committed `pilot_v1.json` is the gold dataset; `l1_retrieval.py` turns it into
 the FTS5-ceiling evidence per difficulty tier, informing the case for/against
 embeddings investment.
+
+---
+
+## HTML corpus (`html_v1`): completing the weak half
+
+The HTML-corpus gold set (`tests/evals/datasets/real/html_v1.json`, packs
+matplotlib/sqlalchemy/fastapi) was generated in a cloud session where the vLLM
+endpoint was unreachable, so it contains only the strong-half personas
+(expert, paraphrase); its `vocabulary_mismatch` tier is n=3. The steps below
+are Steps 4b–8 with the HTML corpus substituted, plus a DB rebuild first
+(`html.db` is regenerable and not committed; the packs it builds from are).
+
+Stage C is deterministic and model-free, so the existing questions re-tier
+identically — the weak half only adds rows.
+
+```bash
+# 0 — rebuild the HTML corpus DB from the committed packs
+SYND=$(pwd)/.venv/bin/synd
+cd tests/evals/generation/work
+for p in matplotlib@3.10.3 sqlalchemy@2.0.41 fastapi@0.115.14; do
+  $SYND add packs/$p.ctx
+done
+mv .synd/index.db html.db && rm -rf .synd
+cd -
+
+# 1 — weak half (as Step 4b; appends, skips chunks already present)
+export SYND_GEN_VLLM_URL=http://192.168.0.214:8000/v1
+export SYND_GEN_VLLM_MODEL=<name from /v1/models>
+# export SYND_GEN_VLLM_API_KEY=<token>   # only if your vLLM requires auth
+for p in matplotlib sqlalchemy fastapi; do
+  python tests/evals/generation/generate_stage_b.py \
+    tests/evals/generation/work/capabilities_$p.jsonl \
+    --output tests/evals/generation/work/raw_queries_$p.jsonl
+done
+
+# 2 — measured tiering (as Step 5)
+for p in matplotlib sqlalchemy fastapi; do
+  python tests/evals/generation/stage_c_tier.py \
+    --raw-queries tests/evals/generation/work/raw_queries_$p.jsonl \
+    --chunks      tests/evals/generation/work/chunks_$p.jsonl \
+    --db          tests/evals/generation/work/html.db \
+    --pack $p \
+    --output tests/evals/generation/work/tiered_$p.jsonl
+done
+
+# 3 — assemble + rot-guard (as Step 6)
+python tests/evals/generation/assemble_dataset.py \
+  tests/evals/generation/work/tiered_matplotlib.jsonl \
+  tests/evals/generation/work/tiered_sqlalchemy.jsonl \
+  tests/evals/generation/work/tiered_fastapi.jsonl \
+  --output tests/evals/datasets/real/html_v1.json
+python tests/evals/generation/validate_rot_guard.py \
+  tests/evals/datasets/real/html_v1.json \
+  --db tests/evals/generation/work/html.db
+
+# 4 — refresh the L1 baseline (as Step 8)
+python tests/evals/l1_retrieval.py \
+  tests/evals/datasets/real/html_v1.json \
+  --db tests/evals/generation/work/html.db \
+  --output tests/evals/results/html_l1_baseline.json
+
+# 5 — commit the refreshed artifacts (as Step 7)
+git add -f tests/evals/generation/work/raw_queries_matplotlib.jsonl \
+           tests/evals/generation/work/raw_queries_sqlalchemy.jsonl \
+           tests/evals/generation/work/raw_queries_fastapi.jsonl \
+           tests/evals/generation/work/tiered_matplotlib.jsonl \
+           tests/evals/generation/work/tiered_sqlalchemy.jsonl \
+           tests/evals/generation/work/tiered_fastapi.jsonl
+git add tests/evals/datasets/real/html_v1.json \
+        tests/evals/results/html_l1_baseline.json
+git commit -m "data(evals): html_v1 weak half — vocab_mismatch/hurried personas via vLLM"
+```
+
+Report back the assembler's tier breakdown and the new L1 summary — the
+`vocabulary_mismatch` row is the number the hybrid-search decision (D25) has
+been waiting on.
