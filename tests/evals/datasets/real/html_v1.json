@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "description": "Gold retrieval questions for scaled eval harness. Generated via dual-model pipeline (Stage A-D). Corpus version: 2025-05-29. Tiers: {'direct': 170, 'paraphrase': 56, 'vocabulary_mismatch': 3}. Packs: ['fastapi', 'matplotlib', 'sqlalchemy'].",
+  "description": "Gold retrieval questions for scaled eval harness. Generated via dual-model pipeline (Stage A-D). Corpus version: 2025-05-29. Tiers: {'direct': 176, 'paraphrase': 98, 'vocabulary_mismatch': 26}. Packs: ['fastapi', 'matplotlib', 'sqlalchemy'].",
   "corpus": {
     "type": "real",
     "version": "2025-05-29",
@@ -1831,6 +1831,581 @@
     },
     {
       "id": "r0080",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "flip axis direction",
+      "keyword_query": "reverse y axis",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/api/axes_api.html",
+          "heading_path": "stable/api/axes_api / `matplotlib.axes`[#](#matplotlib-axes \"Link to this heading\") / [Axis / limits](#id17)[#](#axis-limits \"Link to this heading\") / [Axis limits and direction](#id19)[#](#axis-limits-and-direction \"Link to this heading\")",
+          "content_hash": "sha256:427cd2f7682038fc058761fa78d893983018b3466ae2a47ea729eb07f28da549",
+          "anchor": "### [Axis limits and direction](#id19)[#](#axis-limits-and-direction \"Link to th"
+        }
+      ],
+      "_meta": {
+        "capability": "how to reverse the direction of a plot axis or control its display limits",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0952,
+        "kw_rank": 30,
+        "nl_rank": 9
+      }
+    },
+    {
+      "id": "r0081",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how to add confidence intervals to scatter plot markers in d3",
+      "keyword_query": "d3 scatter plot confidence intervals markers",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/",
+          "heading_path": "stable/gallery/ / Examples[#](#examples \"Link to this heading\") / Statistics[#](#statistics \"Link to this heading\")",
+          "content_hash": "sha256:0f0d4cf0588aac0f0d45df904275355ec517f26d69d2810fa4a9b0cfff01bdff",
+          "anchor": "## Statistics[#](#statistics \"Link to this heading\") ![](../_images/sphx_glr_err"
+        }
+      ],
+      "_meta": {
+        "capability": "how to find examples of plotting data with error bars in different styles",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0408,
+        "kw_rank": 39,
+        "nl_rank": 49
+      }
+    },
+    {
+      "id": "r0082",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "query": "make 3d scatter plot spin",
+      "keyword_query": "3d plot rotate",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/",
+          "heading_path": "stable/gallery/ / Examples[#](#examples \"Link to this heading\") / 3D plotting[#](#d-plotting \"Link to this heading\")",
+          "content_hash": "sha256:42e2e38252c32c6ad514b358648d5c13640e26db0cfc646522fd2a6af71d2502",
+          "anchor": "3D plot projection types ![](../_images/sphx_glr_quiver3d_thumb.png) [3D quiver "
+        }
+      ],
+      "_meta": {
+        "capability": "how to find examples of three-dimensional plots like scatter, arrows, and rotating views",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0217,
+        "kw_rank": 3,
+        "nl_rank": 33
+      }
+    },
+    {
+      "id": "r0083",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "put pics exact spot keep size",
+      "keyword_query": "place img exact size",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/images_contours_and_fields/image_exact_placement.html",
+          "heading_path": "stable/gallery/images_contours_and_fields/image_exact_placement / Placing images, preserving relative sizes[#](#placing-images-preserving-relative-sizes \"Link to this heading\") / Explicit placement[#](#explicit-placement \"Link to this heading\")",
+          "content_hash": "sha256:48803bd3c4d7457951e3d9e93b2b84ed8641c7180e55ee1f04711bd6ba0b7020",
+          "anchor": "## Explicit placement[#](#explicit-placement \"Link to this heading\") The above a"
+        }
+      ],
+      "_meta": {
+        "capability": "how to place images at exact positions in a figure while preserving relative sizes",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0104,
+        "kw_rank": 3,
+        "nl_rank": 6
+      }
+    },
+    {
+      "id": "r0084",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "plot slope on mesh",
+      "keyword_query": "tri mesh grad plot",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/images_contours_and_fields/trigradient_demo.html",
+          "heading_path": "stable/gallery/images_contours_and_fields/trigradient_demo / Trigradient Demo[#](#trigradient-demo \"Link to this heading\")",
+          "content_hash": "sha256:08119622d1d84000abe6e1db16abdec106c29fea0ed0c1a31b02579a73cb697c",
+          "anchor": "# Trigradient Demo[#](#trigradient-demo \"Link to this heading\") Demonstrates com"
+        }
+      ],
+      "_meta": {
+        "capability": "how to compute and visualize the gradient field of data on a triangular mesh",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0,
+        "kw_rank": 6,
+        "nl_rank": 10
+      }
+    },
+    {
+      "id": "r0085",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how to rotate and merge 3d charts in angular",
+      "keyword_query": "angular 3d chart rotation merge",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/mplot3d/",
+          "heading_path": "stable/gallery/mplot3d/ / 3D plotting[#](#d-plotting \"Link to this heading\")",
+          "content_hash": "sha256:f537337522cdcbdcccda24339da58ba67f4f37c3472f975aed24b14ad67415f0",
+          "anchor": "![](../../_images/sphx_glr_rotate_axes3d_sgskip_thumb.png) [Rotating a 3D plot]("
+        }
+      ],
+      "_meta": {
+        "capability": "how to find examples of rotating, scaling, and combining three-dimensional plots",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0,
+        "kw_rank": 29,
+        "nl_rank": 7
+      }
+    },
+    {
+      "id": "r0086",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "query": "plot 3d surfce from tris",
+      "keyword_query": "plot 3d mesh",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/mplot3d/trisurf3d.html",
+          "heading_path": "stable/gallery/mplot3d/trisurf3d / Triangular 3D surfaces[#](#triangular-3d-surfaces \"Link to this heading\")",
+          "content_hash": "sha256:578e5b185dcfbf8d197f0e18bafd92d7bc9561074d4bcf5dfb756c32660a7d3f",
+          "anchor": "# Triangular 3D surfaces[#](#triangular-3d-surfaces \"Link to this heading\") Plot"
+        }
+      ],
+      "_meta": {
+        "capability": "how to plot a three-dimensional surface built from a triangular mesh",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0175,
+        "kw_rank": 3,
+        "nl_rank": 22
+      }
+    },
+    {
+      "id": "r0087",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "plot hex bin count",
+      "keyword_query": "hex bin plot",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/statistics/hexbin_demo.html",
+          "heading_path": "stable/gallery/statistics/hexbin_demo / Hexagonal binned plot[#](#hexagonal-binned-plot \"Link to this heading\")",
+          "content_hash": "sha256:7768d6dbca3a66b99765af4d818d1111a2ef5daa1e30948e5c71cdd030698c4b",
+          "anchor": "# Hexagonal binned plot[#](#hexagonal-binned-plot \"Link to this heading\") [`hexb"
+        }
+      ],
+      "_meta": {
+        "capability": "how to plot a two-dimensional histogram with hexagonal bins colored by point density",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0278,
+        "kw_rank": 12,
+        "nl_rank": 14
+      }
+    },
+    {
+      "id": "r0088",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to display latex formulas in chart axis names",
+      "keyword_query": "rails chart gem latex axis labels",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/text_labels_and_annotations/mathtext_demo.html",
+          "heading_path": "stable/gallery/text_labels_and_annotations/mathtext_demo / Mathtext[#](#mathtext \"Link to this heading\")",
+          "content_hash": "sha256:29d8766fbcbd140e485e51f77ffc8200d7c0cdb260f06616f8ce58393c81d645",
+          "anchor": "# Mathtext[#](#mathtext \"Link to this heading\") Use Matplotlib's internal LaTeX "
+        }
+      ],
+      "_meta": {
+        "capability": "how to render mathematical expressions and symbols in labels and titles",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0233,
+        "kw_rank": 16,
+        "nl_rank": 50
+      }
+    },
+    {
+      "id": "r0089",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how to configure x-axis date granularity in rails chartkick",
+      "keyword_query": "rails chartkick xaxis date format",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/ticks/date_formatters_locators.html",
+          "heading_path": "stable/gallery/ticks/date_formatters_locators / Date tick locators and formatters[#](#date-tick-locators-and-formatters \"Link to this heading\") / [Date tick locators](../../api/dates_api.html#date-locators)[#](#date-locators \"Link to this heading\")",
+          "content_hash": "sha256:64431c2681c8c09e015ecba72be00410dd34a1b2f57c568964bb28d6eb5bf3ce",
+          "anchor": "## [Date tick locators](../../api/dates_api.html#date-locators)[#](#date-locator"
+        }
+      ],
+      "_meta": {
+        "capability": "how to control where date ticks appear on a time axis at yearly, monthly, or hourly intervals",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0196,
+        "kw_rank": 36,
+        "nl_rank": 14
+      }
+    },
+    {
+      "id": "r0090",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "add small ticks between big ones",
+      "keyword_query": "auto minor ticks",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/gallery/ticks/major_minor_demo.html",
+          "heading_path": "stable/gallery/ticks/major_minor_demo / Major and minor ticks[#](#major-and-minor-ticks \"Link to this heading\")",
+          "content_hash": "sha256:dd33837d228a4462c826cf2789fa44b54ea478ca9a3533b2333315f510a351f9",
+          "anchor": "Automatic tick selection for major and minor ticks. Use interactive pan and zoom"
+        }
+      ],
+      "_meta": {
+        "capability": "how to add automatic minor tick marks between major tick intervals",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0303,
+        "kw_rank": 9,
+        "nl_rank": 19
+      }
+    },
+    {
+      "id": "r0091",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "query": "install plot lib fast",
+      "keyword_query": "plot lib install",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/install/",
+          "heading_path": "stable/install/ / Installation[#](#installation \"Link to this heading\") / Frequently asked questions[#](#frequently-asked-questions \"Link to this heading\") / macOS Notes[#](#macos-notes \"Link to this heading\") / Installing macOS binary wheels[#](#installing-macos-binary-wheels \"Link to this heading\")",
+          "content_hash": "sha256:4aafcf1e17b2586c80757087a36c286c0b6094e1460ce3b04054c578411b16f1",
+          "anchor": "#### Installing macOS binary wheels[#](#installing-macos-binary-wheels \"Link to "
+        }
+      ],
+      "_meta": {
+        "capability": "how to install the plotting library using a standard package installer on a desktop operating system",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0213,
+        "kw_rank": 18,
+        "nl_rank": 23
+      }
+    },
+    {
+      "id": "r0092",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "query": "where does the gem store its assets on the file system",
+      "keyword_query": "gem asset path location",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/install/",
+          "heading_path": "stable/install/ / Installation[#](#installation \"Link to this heading\") / Troubleshooting[#](#troubleshooting \"Link to this heading\") / `matplotlib` install location[#](#matplotlib-install-location \"Link to this heading\")",
+          "content_hash": "sha256:ad71320ce42ca94455f63b978a2a948f1002bbeaa3b903d3a2f5cf5e78a59843",
+          "anchor": "### `matplotlib` install location[#](#matplotlib-install-location \"Link to this "
+        }
+      ],
+      "_meta": {
+        "capability": "how to find the directory where an installed package lives on disk",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0,
+        "kw_rank": 2,
+        "nl_rank": 33
+      }
+    },
+    {
+      "id": "r0093",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "where is this lib installed",
+      "keyword_query": "lib install path",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/install/",
+          "heading_path": "stable/install/ / Installation[#](#installation \"Link to this heading\") / Troubleshooting[#](#troubleshooting \"Link to this heading\") / `matplotlib` install location[#](#matplotlib-install-location \"Link to this heading\")",
+          "content_hash": "sha256:ad71320ce42ca94455f63b978a2a948f1002bbeaa3b903d3a2f5cf5e78a59843",
+          "anchor": "### `matplotlib` install location[#](#matplotlib-install-location \"Link to this "
+        }
+      ],
+      "_meta": {
+        "capability": "how to find the directory where an installed package lives on disk",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.04,
+        "kw_rank": 17,
+        "nl_rank": 25
+      }
+    },
+    {
+      "id": "r0094",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how to file a formal grievance against a maintainer for code of conduct violations",
+      "keyword_query": "rails code of conduct violation report",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/project/code_of_conduct.html",
+          "heading_path": "stable/project/code_of_conduct / Contributor Covenant Code of Conduct[#](#contributor-covenant-code-of-conduct \"Link to this heading\") / Enforcement[#](#enforcement \"Link to this heading\")",
+          "content_hash": "sha256:5b9bb65cf64e7fd397318699998418876bb047eda9aa54fd087c134ecda4f1cc",
+          "anchor": "## Enforcement[#](#enforcement \"Link to this heading\") Instances of abusive, har"
+        }
+      ],
+      "_meta": {
+        "capability": "how to report abusive or unacceptable behavior to the project's community leaders",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0294,
+        "kw_rank": 1,
+        "nl_rank": 9
+      }
+    },
+    {
+      "id": "r0095",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "query": "plot array as img",
+      "keyword_query": "array to image plot",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/tutorials/images.html",
+          "heading_path": "stable/tutorials/images / Image tutorial[#](#image-tutorial \"Link to this heading\") / Plotting numpy arrays as images[#](#plotting-numpy-arrays-as-images \"Link to this heading\")",
+          "content_hash": "sha256:58437b102d89c7547b902f48d656fd7a1a2072d62c395aac1035f33a1406df48",
+          "anchor": "## Plotting numpy arrays as images[#](#plotting-numpy-arrays-as-images \"Link to "
+        }
+      ],
+      "_meta": {
+        "capability": "how to display a numeric data array as an image in a plot",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0811,
+        "kw_rank": 1,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0096",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "make plot square based on data",
+      "keyword_query": "plot aspect ratio data units",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/axes/axes_intro.html",
+          "heading_path": "stable/users/explain/axes/axes_intro / Introduction to Axes (or Subplots)[#](#introduction-to-axes-or-subplots \"Link to this heading\") / Axes layout[#](#axes-layout \"Link to this heading\")",
+          "content_hash": "sha256:ba94ac81c5651af5845617aef3952c667eafb4f5b48de39c7798a61e01aaa345",
+          "anchor": "## Axes layout[#](#axes-layout \"Link to this heading\") Sometimes it is important"
+        }
+      ],
+      "_meta": {
+        "capability": "how to set the aspect ratio of a plot in data coordinates",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.05,
+        "kw_rank": 3,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0097",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how to create a heatmap with neutral white in the middle for positive and negative values",
+      "keyword_query": "rails heatmap neutral center gradient",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/colors/colormapnorms.html",
+          "heading_path": "stable/users/explain/colors/colormapnorms / Colormap normalization[#](#colormap-normalization \"Link to this heading\") / Centered[#](#centered \"Link to this heading\")",
+          "content_hash": "sha256:ab36153a23db6ed7cad26e2eb0277ea4067c53dc6119dd8133a0d41681ef346a",
+          "anchor": "## Centered[#](#centered \"Link to this heading\") In many cases, data is symmetri"
+        }
+      ],
+      "_meta": {
+        "capability": "how to map data symmetric around a center value onto a diverging color scale",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0345,
+        "kw_rank": 20,
+        "nl_rank": 10
+      }
+    },
+    {
+      "id": "r0098",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to force the browser to process the event queue and repaint the screen",
+      "keyword_query": "rails actiondispatch process events immediately",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/figure/interactive_guide.html",
+          "heading_path": "stable/users/explain/figure/interactive_guide / Interactive figures and asynchronous programming[#](#interactive-figures-and-asynchronous-programming \"Link to this heading\") / Scripts and functions[#](#scripts-and-functions \"Link to this heading\") / Explicitly spinning the event loop[#](#explicitly-spinning-the-event-loop \"Link to this heading\")",
+          "content_hash": "sha256:8a6bb262f5277647b7154a2f00e23a0f0eb4035722e090b3a6667cdfcaf43486",
+          "anchor": "### Explicitly spinning the event loop[#](#explicitly-spinning-the-event-loop \"L"
+        }
+      ],
+      "_meta": {
+        "capability": "how to manually flush pending window events and request redraws in a custom event loop",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0319,
+        "kw_rank": 2,
+        "nl_rank": 23
+      }
+    },
+    {
+      "id": "r0099",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "force redraw now pls",
+      "keyword_query": "flush events redraw",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/figure/interactive_guide.html",
+          "heading_path": "stable/users/explain/figure/interactive_guide / Interactive figures and asynchronous programming[#](#interactive-figures-and-asynchronous-programming \"Link to this heading\") / Scripts and functions[#](#scripts-and-functions \"Link to this heading\") / Explicitly spinning the event loop[#](#explicitly-spinning-the-event-loop \"Link to this heading\")",
+          "content_hash": "sha256:8a6bb262f5277647b7154a2f00e23a0f0eb4035722e090b3a6667cdfcaf43486",
+          "anchor": "### Explicitly spinning the event loop[#](#explicitly-spinning-the-event-loop \"L"
+        }
+      ],
+      "_meta": {
+        "capability": "how to manually flush pending window events and request redraws in a custom event loop",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.011,
+        "kw_rank": 3,
+        "nl_rank": 13
+      }
+    },
+    {
+      "id": "r0100",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "plot with functions or objects?",
+      "keyword_query": "oo vs functional plotting",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/quick_start.html",
+          "heading_path": "stable/users/explain/quick_start / Quick start guide[#](#quick-start-guide \"Link to this heading\") / Coding styles[#](#coding-styles \"Link to this heading\") / The explicit and the implicit interfaces[#](#the-explicit-and-the-implicit-interfaces \"Link to this heading\")",
+          "content_hash": "sha256:a228072dd46aefcfa536b356f22643afcd0add15b1a27ae73f4ae04da2e6eeea",
+          "anchor": "## Coding styles[#](#coding-styles \"Link to this heading\") ### The explicit and "
+        }
+      ],
+      "_meta": {
+        "capability": "choose between the explicit object-oriented style and the implicit convenience style for building plots",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.023,
+        "kw_rank": 2,
+        "nl_rank": 16
+      }
+    },
+    {
+      "id": "r0101",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how to map a scalar field to a colormap in a scatter view",
+      "keyword_query": "scalar field colormap scatter view",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/quick_start.html",
+          "heading_path": "stable/users/explain/quick_start / Quick start guide[#](#quick-start-guide \"Link to this heading\") / Color mapped data[#](#color-mapped-data \"Link to this heading\")",
+          "content_hash": "sha256:3d100eaa272df1def70fab11396314c33fbb8cc97ad9a1f070eb2d57374e81f3",
+          "anchor": "## Color mapped data[#](#color-mapped-data \"Link to this heading\") Often we want"
+        }
+      ],
+      "_meta": {
+        "capability": "how to represent a third data dimension using colors in a two-dimensional plot",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0408,
+        "kw_rank": 5,
+        "nl_rank": 14
+      }
+    },
+    {
+      "id": "r0102",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "query": "add arrow to point on graph",
+      "keyword_query": "arrow to point",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/text/annotations.html",
+          "heading_path": "stable/users/explain/text/annotations / [Annotations](#id3)[#](#annotations \"Link to this heading\") / [Basic annotation](#id4)[#](#basic-annotation \"Link to this heading\")",
+          "content_hash": "sha256:71fa29268d4d9fec3c12888a8907b6980572b14fe4758aecd31a83adfab5d770",
+          "anchor": "## [Basic annotation](#id4)[#](#basic-annotation \"Link to this heading\") In an a"
+        }
+      ],
+      "_meta": {
+        "capability": "how to annotate a data point with text and an arrow pointing to it",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.011,
+        "kw_rank": 30,
+        "nl_rank": 49
+      }
+    },
+    {
+      "id": "r0103",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how to inject custom latex header and font family into pdf generator",
+      "keyword_query": "rails pdf generator custom header font",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/text/pgf.html",
+          "heading_path": "stable/users/explain/text/pgf / Text rendering with XeLaTeX/LuaLaTeX via the `pgf` backend[#](#text-rendering-with-xelatex-lualatex-via-the-pgf-backend \"Link to this heading\") / Custom preamble[#](#custom-preamble \"Link to this heading\")",
+          "content_hash": "sha256:20284f261d6b3cf5790b57ec340f76195cfcd1ee3069c7fbd99a9c657537c147",
+          "anchor": "## Custom preamble[#](#custom-preamble \"Link to this heading\") Full customizatio"
+        }
+      ],
+      "_meta": {
+        "capability": "configure a custom typesetting preamble and fonts when rendering text through an external engine",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0395,
+        "kw_rank": 13,
+        "nl_rank": 20
+      }
+    },
+    {
+      "id": "r0104",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "query": "how big is text-sm vs default",
+      "keyword_query": "text-sm size default",
+      "gold": [
+        {
+          "source_url": "https://matplotlib.org/stable/users/explain/text/text_props.html",
+          "heading_path": "stable/users/explain/text/text_props / Text properties and layout[#](#text-properties-and-layout \"Link to this heading\") / Relative font sizes[#](#relative-font-sizes \"Link to this heading\")",
+          "content_hash": "sha256:a024af2420959f0a19c788bfa17d33b61ab0956cb7652c9ddf4923ee1c297928",
+          "anchor": "## Relative font sizes[#](#relative-font-sizes \"Link to this heading\") Font size"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the named relative font sizes and how they scale against the default size",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0455,
+        "kw_rank": 3,
+        "nl_rank": 29
+      }
+    },
+    {
+      "id": "r0105",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "write a CreateEnginePlugin that listens for connect events and registers via entry points",
@@ -1853,7 +2428,7 @@
       }
     },
     {
-      "id": "r0081",
+      "id": "r0106",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "which CursorResult attributes like inserted_primary_key only apply after insert or update",
@@ -1876,7 +2451,7 @@
       }
     },
     {
-      "id": "r0082",
+      "id": "r0107",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "use ddl_if to emit a constraint only for a specific dialect",
@@ -1899,7 +2474,7 @@
       }
     },
     {
-      "id": "r0083",
+      "id": "r0108",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "declare a ForeignKey column referencing another table's column",
@@ -1922,7 +2497,7 @@
       }
     },
     {
-      "id": "r0084",
+      "id": "r0109",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "define a column with a Sequence so the database autoincrements its value",
@@ -1945,7 +2520,7 @@
       }
     },
     {
-      "id": "r0085",
+      "id": "r0110",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "override the DBAPI connect process with creator or the do_connect event",
@@ -1968,7 +2543,7 @@
       }
     },
     {
-      "id": "r0086",
+      "id": "r0111",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "run code on the pool's connect event when a new connection is created",
@@ -1991,7 +2566,7 @@
       }
     },
     {
-      "id": "r0087",
+      "id": "r0112",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "before_cursor_execute and after_cursor_execute events to intercept statements",
@@ -2014,7 +2589,7 @@
       }
     },
     {
-      "id": "r0088",
+      "id": "r0113",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "CompileError and the error when a constraint references a missing column",
@@ -2037,7 +2612,7 @@
       }
     },
     {
-      "id": "r0089",
+      "id": "r0114",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "exceptions thrown while turning a statement into text or when a rule names an unknown field",
@@ -2060,7 +2635,7 @@
       }
     },
     {
-      "id": "r0090",
+      "id": "r0115",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "where is the SQL expression language API reference for select and column constructs",
@@ -2083,7 +2658,7 @@
       }
     },
     {
-      "id": "r0091",
+      "id": "r0116",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "the Dialect and ExecutionContext interfaces adapting DBAPI connections and compiled statements",
@@ -2106,7 +2681,7 @@
       }
     },
     {
-      "id": "r0092",
+      "id": "r0117",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "use Inspector has_sequence or has_schema to check existence",
@@ -2129,7 +2704,7 @@
       }
     },
     {
-      "id": "r0093",
+      "id": "r0118",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "compile a query with literal_binds to inline bound parameters into the SQL string",
@@ -2152,7 +2727,7 @@
       }
     },
     {
-      "id": "r0094",
+      "id": "r0119",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "use is_ and is_not to compare a column against None or true in expressions",
@@ -2175,7 +2750,7 @@
       }
     },
     {
-      "id": "r0095",
+      "id": "r0120",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "set pool reset_on_return to none to skip rollback on connection return",
@@ -2198,7 +2773,7 @@
       }
     },
     {
-      "id": "r0096",
+      "id": "r0121",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "why an Engine's connection pool must not be shared across os.fork child processes",
@@ -2221,7 +2796,7 @@
       }
     },
     {
-      "id": "r0097",
+      "id": "r0122",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "control CTE nesting placement and embed insert update delete inside a WITH clause",
@@ -2244,7 +2819,7 @@
       }
     },
     {
-      "id": "r0098",
+      "id": "r0123",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "sqlalchemy.ext.serializer to pickle query structures and reattach them to metadata",
@@ -2267,7 +2842,7 @@
       }
     },
     {
-      "id": "r0099",
+      "id": "r0124",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "use func to call any database function by name in an expression",
@@ -2290,7 +2865,7 @@
       }
     },
     {
-      "id": "r0100",
+      "id": "r0125",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "type_coerce to apply a type's python-side handling without rendering CAST",
@@ -2313,7 +2888,7 @@
       }
     },
     {
-      "id": "r0101",
+      "id": "r0126",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "the inherit_cache flag marking a custom construct safe for the compiled statement cache",
@@ -2336,7 +2911,7 @@
       }
     },
     {
-      "id": "r0102",
+      "id": "r0127",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "icontains with autoescape for case-insensitive LIKE matching that escapes wildcards",
@@ -2359,7 +2934,7 @@
       }
     },
     {
-      "id": "r0103",
+      "id": "r0128",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "the Concatenable mixin marking a type as supporting concatenation",
@@ -2382,7 +2957,7 @@
       }
     },
     {
-      "id": "r0104",
+      "id": "r0129",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "how sqlalchemy communicates with databases through dialects and DBAPI drivers",
@@ -2405,7 +2980,7 @@
       }
     },
     {
-      "id": "r0105",
+      "id": "r0130",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "mssql FLOAT REAL and ROWVERSION TIMESTAMP column types",
@@ -2428,7 +3003,7 @@
       }
     },
     {
-      "id": "r0106",
+      "id": "r0131",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "send long string parameters as VARCHAR(max) instead of deprecated TEXT and NTEXT",
@@ -2451,7 +3026,7 @@
       }
     },
     {
-      "id": "r0107",
+      "id": "r0132",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "mysql LONGTEXT and LONGBLOB column types for huge text and binary data",
@@ -2474,7 +3049,7 @@
       }
     },
     {
-      "id": "r0108",
+      "id": "r0133",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "connect to mysql with the pymysql pure python driver",
@@ -2497,7 +3072,7 @@
       }
     },
     {
-      "id": "r0109",
+      "id": "r0134",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "with_variant to give a Float different precision on one dialect",
@@ -2520,7 +3095,7 @@
       }
     },
     {
-      "id": "r0110",
+      "id": "r0135",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "postgresql INT4RANGE TSRANGE and DATERANGE range column types",
@@ -2543,7 +3118,7 @@
       }
     },
     {
-      "id": "r0111",
+      "id": "r0136",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "pass connect_args like isolation_level to create_engine for driver keywords",
@@ -2566,7 +3141,7 @@
       }
     },
     {
-      "id": "r0112",
+      "id": "r0137",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "the builtin pysqlite sqlite3 driver for connecting to sqlite",
@@ -2589,7 +3164,7 @@
       }
     },
     {
-      "id": "r0113",
+      "id": "r0138",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "the included module used to open a single file local data store",
@@ -2612,7 +3187,7 @@
       }
     },
     {
-      "id": "r0114",
+      "id": "r0139",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "sqlite savepoint and serializable isolation quirks with the pysqlite driver",
@@ -2635,7 +3210,7 @@
       }
     },
     {
-      "id": "r0115",
+      "id": "r0140",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "TimeoutError when the QueuePool max_overflow limit is reached and connections are checked out",
@@ -2658,7 +3233,7 @@
       }
     },
     {
-      "id": "r0116",
+      "id": "r0141",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "the warning requiring subquery() when using a select where a FROM table is expected",
@@ -2681,7 +3256,7 @@
       }
     },
     {
-      "id": "r0117",
+      "id": "r0142",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "pool_recycle to refresh idle connections before the server times them out",
@@ -2704,7 +3279,7 @@
       }
     },
     {
-      "id": "r0118",
+      "id": "r0143",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "handle DisconnectionError and retry statements after the connection is invalidated mid-transaction",
@@ -2727,7 +3302,7 @@
       }
     },
     {
-      "id": "r0119",
+      "id": "r0144",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "attribute_keyed_dict to map a relationship collection as a dict keyed by column",
@@ -2750,7 +3325,7 @@
       }
     },
     {
-      "id": "r0120",
+      "id": "r0145",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "composite() to map multiple columns onto a dataclass value object",
@@ -2773,7 +3348,7 @@
       }
     },
     {
-      "id": "r0121",
+      "id": "r0146",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "build a composite from separately declared mapped_column attributes",
@@ -2796,7 +3371,7 @@
       }
     },
     {
-      "id": "r0122",
+      "id": "r0147",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "how mapped_column derives its column type and nullability from the Mapped annotation",
@@ -2819,7 +3394,7 @@
       }
     },
     {
-      "id": "r0123",
+      "id": "r0148",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "declare a mapped class with __table__ from an existing Table object",
@@ -2842,7 +3417,7 @@
       }
     },
     {
-      "id": "r0124",
+      "id": "r0149",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "SessionEvents like after_begin and after_commit to run code on transaction lifecycle",
@@ -2865,7 +3440,7 @@
       }
     },
     {
-      "id": "r0125",
+      "id": "r0150",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "avoid implicit lazy loading IO with AsyncSession and asyncio",
@@ -2888,7 +3463,7 @@
       }
     },
     {
-      "id": "r0126",
+      "id": "r0151",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "when string arguments to relationship() are evaluated during mapper configuration",
@@ -2911,7 +3486,7 @@
       }
     },
     {
-      "id": "r0127",
+      "id": "r0152",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "what default container index_property creates when the underlying column value is missing",
@@ -2934,7 +3509,7 @@
       }
     },
     {
-      "id": "r0128",
+      "id": "r0153",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "subclass index_property to add casting or coercion on access",
@@ -2957,7 +3532,7 @@
       }
     },
     {
-      "id": "r0129",
+      "id": "r0154",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "how mypy infers Mapped attribute types from mapped_column definitions",
@@ -2980,7 +3555,7 @@
       }
     },
     {
-      "id": "r0130",
+      "id": "r0155",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "the descriptor plumbing that powers class level field expressions in the orm",
@@ -3003,7 +3578,7 @@
       }
     },
     {
-      "id": "r0131",
+      "id": "r0156",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "apply with_hint on a dynamic relationship's AppenderQuery",
@@ -3026,7 +3601,7 @@
       }
     },
     {
-      "id": "r0132",
+      "id": "r0157",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "send database specific optimizer directives through a lazily built collection lookup",
@@ -3049,7 +3624,7 @@
       }
     },
     {
-      "id": "r0133",
+      "id": "r0158",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "use the @validates decorator to validate or transform attribute values on assignment",
@@ -3072,7 +3647,7 @@
       }
     },
     {
-      "id": "r0134",
+      "id": "r0159",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "mapper eager_defaults to fetch server generated values right after insert and update",
@@ -3095,7 +3670,7 @@
       }
     },
     {
-      "id": "r0135",
+      "id": "r0160",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "route entities to different engines with a sharded Session or get_bind",
@@ -3118,7 +3693,7 @@
       }
     },
     {
-      "id": "r0136",
+      "id": "r0161",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "use load_only scoped to one entity when selecting multiple entities together",
@@ -3141,7 +3716,7 @@
       }
     },
     {
-      "id": "r0137",
+      "id": "r0162",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "when to pass multiple parameter sets to a single insert executemany versus separate execute calls",
@@ -3164,7 +3739,7 @@
       }
     },
     {
-      "id": "r0138",
+      "id": "r0163",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "choose unit of work deletes versus bulk delete statements for joined table inheritance",
@@ -3187,7 +3762,7 @@
       }
     },
     {
-      "id": "r0139",
+      "id": "r0164",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "legacy Query methods and their 2.0 style select Result equivalents",
@@ -3210,7 +3785,7 @@
       }
     },
     {
-      "id": "r0140",
+      "id": "r0165",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "how loader options like selectinload propagate to secondary lazy load queries",
@@ -3233,7 +3808,7 @@
       }
     },
     {
-      "id": "r0141",
+      "id": "r0166",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "use ON UPDATE CASCADE with passive_updates to propagate primary key changes",
@@ -3256,7 +3831,7 @@
       }
     },
     {
-      "id": "r0142",
+      "id": "r0167",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "when to create commit and close a Session during an application operation",
@@ -3279,7 +3854,7 @@
       }
     },
     {
-      "id": "r0143",
+      "id": "r0168",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "SessionEvents before_flush and after_flush fired during the flush process",
@@ -3302,7 +3877,7 @@
       }
     },
     {
-      "id": "r0144",
+      "id": "r0169",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "callbacks that trigger while pending object modifications are being written out to the database",
@@ -3325,7 +3900,7 @@
       }
     },
     {
-      "id": "r0145",
+      "id": "r0170",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "difference between Session.delete marking an object and the row actually being deleted at flush",
@@ -3348,7 +3923,7 @@
       }
     },
     {
-      "id": "r0146",
+      "id": "r0171",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "check the installed sqlalchemy version with __version__ before the tutorial",
@@ -3371,7 +3946,7 @@
       }
     },
     {
-      "id": "r0147",
+      "id": "r0172",
       "pack": "sqlalchemy",
       "difficulty": "direct",
       "query": "UPDATE with values from a correlated subquery referencing another table",
@@ -3394,7 +3969,7 @@
       }
     },
     {
-      "id": "r0148",
+      "id": "r0173",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "declarative mapping with Mapped and mapped_column type annotations driving column types",
@@ -3417,7 +3992,7 @@
       }
     },
     {
-      "id": "r0149",
+      "id": "r0174",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "Session.delete an object and when the DELETE is emitted at flush or commit",
@@ -3440,7 +4015,7 @@
       }
     },
     {
-      "id": "r0150",
+      "id": "r0175",
       "pack": "sqlalchemy",
       "difficulty": "paraphrase",
       "query": "copyright and attribution notice for the sqlalchemy documentation",
@@ -3463,7 +4038,444 @@
       }
     },
     {
-      "id": "r0151",
+      "id": "r0176",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to make a check constraint only apply to postgres in rails",
+      "keyword_query": "rails conditional check constraint postgres",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/core/constraints.html",
+          "heading_path": "en/20/core/constraints / Defining Constraints and Indexes / Constraints API",
+          "content_hash": "sha256:540e8df2efe076e8c4a188936c583b58c8e48a17062c106830c3acae7de2a890",
+          "anchor": "method [`sqlalchemy.schema.Constraint.`](#sqlalchemy.schema.Constraint)copy(*\\*\\"
+        }
+      ],
+      "_meta": {
+        "capability": "how to emit a table constraint conditionally for a specific backend or runtime condition",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0282,
+        "kw_rank": 20,
+        "nl_rank": 26
+      }
+    },
+    {
+      "id": "r0177",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to make an id field auto-increment like in rails",
+      "keyword_query": "rails auto increment id",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/core/defaults.html",
+          "heading_path": "en/20/core/defaults / Column INSERT/UPDATE Defaults / Identity Columns (GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY)",
+          "content_hash": "sha256:1a0f06209f36ced5a5485390b18a3775888ad35571aee2526405d008c52b98ad",
+          "anchor": "## Identity Columns (GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY) Added in ver"
+        }
+      ],
+      "_meta": {
+        "capability": "how to declare a column whose values the database generates from an automatic incrementing sequence",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0119,
+        "kw_rank": 33,
+        "nl_rank": 41
+      }
+    },
+    {
+      "id": "r0178",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "how to run a before_connect hook in rails active record",
+      "keyword_query": "rails active record before_connect hook",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/core/events.html",
+          "heading_path": "en/20/core/events / Core Events / Connection Pool Events",
+          "content_hash": "sha256:90051e22b28647a42029bae5e33521c8df6e3910ede882b72d2db4cbfca86871",
+          "anchor": "method [`sqlalchemy.events.PoolEvents.`](#sqlalchemy.events.PoolEvents)connect(*"
+        }
+      ],
+      "_meta": {
+        "capability": "how to run custom code the first time a pooled database connection is created",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0,
+        "kw_rank": 6,
+        "nl_rank": 13
+      }
+    },
+    {
+      "id": "r0179",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to check if col is null or bool",
+      "keyword_query": "check null bool",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/core/operators.html",
+          "heading_path": "en/20/core/operators / Operator Reference / Identity Comparisons",
+          "content_hash": "sha256:1774696d5c5c9c75e5b45af674466199b68bc29bdbbbca6c1a4167805094e49b",
+          "anchor": "## Identity Comparisons These operators involve testing for special SQL values s"
+        }
+      ],
+      "_meta": {
+        "capability": "how to compare a column against null or boolean constants in a query expression",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0135,
+        "kw_rank": 34,
+        "nl_rank": 49
+      }
+    },
+    {
+      "id": "r0180",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "how to disable transaction reset when returning db connection to pool in spring",
+      "keyword_query": "spring disable transaction reset on return",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/core/pooling.html",
+          "heading_path": "en/20/core/pooling / Connection Pooling / Reset On Return / Disabling Reset on Return for non-transactional connections",
+          "content_hash": "sha256:5fee3d1d79e02ee8f51ecf125de5e7324b751df813be770a8f9c2e24b223c1ce",
+          "anchor": "### Disabling Reset on Return for non-transactional connections For very specifi"
+        }
+      ],
+      "_meta": {
+        "capability": "configure a connection pool to skip the rollback normally issued when connections are returned",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0588,
+        "kw_rank": 4,
+        "nl_rank": 7
+      }
+    },
+    {
+      "id": "r0181",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "change float prec for one db",
+      "keyword_query": "float prec one db",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/dialects/postgresql.html",
+          "heading_path": "en/20/dialects/postgresql / PostgreSQL / PostgreSQL Data Types",
+          "content_hash": "sha256:c5e6b52161185f0bcade3a37934ece917c7dace03d233b4294b01cdb946ee536",
+          "anchor": "To create a database agnostic [`Float`](../core/type_basics.html#sqlalchemy.type"
+        }
+      ],
+      "_meta": {
+        "capability": "how to give a floating point column different precision settings for one specific backend",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0132,
+        "kw_rank": 25,
+        "nl_rank": 28
+      }
+    },
+    {
+      "id": "r0182",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to set read committed isolation level like in spring jdbc",
+      "keyword_query": "spring jdbc read committed isolation",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/dialects/postgresql.html",
+          "heading_path": "en/20/dialects/postgresql / PostgreSQL / psycopg2 / psycopg2 Connect Arguments",
+          "content_hash": "sha256:f9c44de9f294aa1a47bbbcde88ddc41ce0009982316c1b628b3a51a722c012dc",
+          "anchor": "### psycopg2 Connect Arguments Keyword arguments that are specific to the SQLAlc"
+        }
+      ],
+      "_meta": {
+        "capability": "configure driver-specific connection keyword arguments like default transaction isolation level",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0333,
+        "kw_rank": 39,
+        "nl_rank": 41
+      }
+    },
+    {
+      "id": "r0183",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "set default tx isolation",
+      "keyword_query": "db conn isolation level",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/dialects/postgresql.html",
+          "heading_path": "en/20/dialects/postgresql / PostgreSQL / psycopg2 / psycopg2 Connect Arguments",
+          "content_hash": "sha256:f9c44de9f294aa1a47bbbcde88ddc41ce0009982316c1b628b3a51a722c012dc",
+          "anchor": "### psycopg2 Connect Arguments Keyword arguments that are specific to the SQLAlc"
+        }
+      ],
+      "_meta": {
+        "capability": "configure driver-specific connection keyword arguments like default transaction isolation level",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0357,
+        "kw_rank": 40,
+        "nl_rank": 15
+      }
+    },
+    {
+      "id": "r0184",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "sqlite savepoint iso",
+      "keyword_query": "sqlite savepoint iso",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/dialects/sqlite.html",
+          "heading_path": "en/20/dialects/sqlite / SQLite / Pysqlite / Serializable isolation / Savepoints / Transactional DDL",
+          "content_hash": "sha256:01049d973284bbe40fdfda7269c0fd3fecce561f8fed4cdc2fb8d050d08ac811",
+          "anchor": "### Serializable isolation / Savepoints / Transactional DDL A newly revised vers"
+        }
+      ],
+      "_meta": {
+        "capability": "understand transaction quirks like savepoints and isolation when using an embedded file-based database",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0435,
+        "kw_rank": 36,
+        "nl_rank": 36
+      }
+    },
+    {
+      "id": "r0185",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "all db connections used up error",
+      "keyword_query": "db pool full error",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/errors.html",
+          "heading_path": "en/20/errors / Error Messages / Connections and Transactions / QueuePool limit of size <x> overflow <y> reached, connection timed out, timeout <z>",
+          "content_hash": "sha256:7b7139095f0bbb7eb15d597660d6f479f2562d0a72195bce942aa60464549ed5",
+          "anchor": "## Connections and Transactions ### QueuePool limit of size overflow reached, co"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the error raised when all pooled connections are checked out and the overflow limit is reached",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0348,
+        "kw_rank": 3,
+        "nl_rank": 9
+      }
+    },
+    {
+      "id": "r0186",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "how does the model schema infer database column types and null constraints from the class property decorators",
+      "keyword_query": "rails model column type inference from attribute decorators",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/orm/declarative_tables.html",
+          "heading_path": "en/20/orm/declarative_tables / Table Configuration with Declarative / ORM Annotated Declarative - Complete Guide / `mapped_column()` derives the datatype and nullability from the `Mapped` annotation",
+          "content_hash": "sha256:7bc20617def1b4875d22876522072340a77820d34f5d8b65e0a0461639b5c8ee",
+          "anchor": "### `mapped_column()` derives the datatype and nullability from the `Mapped` ann"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how a mapped column derives its datatype and nullability from the type annotation",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0375,
+        "kw_rank": 33,
+        "nl_rank": 11
+      }
+    },
+    {
+      "id": "r0187",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to hook into rails transaction callbacks for custom logic",
+      "keyword_query": "rails transaction callbacks custom logic",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/orm/events.html",
+          "heading_path": "en/20/orm/events / ORM Events / Session Events",
+          "content_hash": "sha256:a3950639d54b7d532531696a3741ae9367c32ad59e36c053c40a3bf1a3d4c4cf",
+          "anchor": "Parameters: : **session** – The target [`Session`](session_api.html#sqlalchemy.o"
+        }
+      ],
+      "_meta": {
+        "capability": "how to run custom code when a unit of work transaction commits or begins",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.02,
+        "kw_rank": 5,
+        "nl_rank": 23
+      }
+    },
+    {
+      "id": "r0188",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "cast value on get",
+      "keyword_query": "auto cast attr",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/orm/extensions/indexable.html",
+          "heading_path": "en/20/orm/extensions/indexable / Indexable / Subclassing",
+          "content_hash": "sha256:68742c7649766695227cd35574dc6952d7284b12a7a3b7331abcdd482bb8af3a",
+          "anchor": "## Subclassing [`index_property`](#sqlalchemy.ext.indexable.index_property \"sqla"
+        }
+      ],
+      "_meta": {
+        "capability": "how to subclass an indexed attribute to add casting or coercion when values are accessed",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0135,
+        "kw_rank": 1,
+        "nl_rank": 35
+      }
+    },
+    {
+      "id": "r0189",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "get db defaults after insert",
+      "keyword_query": "get db defaults after insert",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/orm/mapping_api.html",
+          "heading_path": "en/20/orm/mapping_api / Class Mapping API",
+          "content_hash": "sha256:786ecd59a0c5cdd119e3657cef5376aac99eb65a8f626956d4fc931cedfa0c20",
+          "anchor": "if True, the ORM will immediately fetch the value of server-generated default va"
+        }
+      ],
+      "_meta": {
+        "capability": "configure the mapper to fetch server-generated defaults immediately after inserts and updates",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.033,
+        "kw_rank": 6,
+        "nl_rank": 6
+      }
+    },
+    {
+      "id": "r0190",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "query": "lazy load config not working",
+      "keyword_query": "lazy load options",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html",
+          "heading_path": "en/20/orm/queryguide/relationships / Relationship Loading Techniques / Relationship Loader API",
+          "content_hash": "sha256:807c7b48fbfabb8ed65b63a9e95734bcc9276aebe91730103bcdb0ccd464970d",
+          "anchor": "Added in version 1.4.19. attribute [`sqlalchemy.orm.Load.`](#sqlalchemy.orm.Load"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how loader options propagate to the secondary queries issued by lazy loading",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0377,
+        "kw_rank": 15,
+        "nl_rank": 40
+      }
+    },
+    {
+      "id": "r0191",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "update fk when pk changes",
+      "keyword_query": "fk cascade update",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/orm/relationship_persistence.html",
+          "heading_path": "en/20/orm/relationship_persistence / Special Relationship Persistence Patterns / Mutable Primary Keys / Update Cascades",
+          "content_hash": "sha256:6b1c98bb6e03e9ddaab355b9f3bcd357ef5ceee64d462acb094e70d6ddab9b2f",
+          "anchor": "## Mutable Primary Keys / Update Cascades When the primary key of an entity chan"
+        }
+      ],
+      "_meta": {
+        "capability": "how to propagate primary key changes to referencing rows using database update cascades",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0297,
+        "kw_rank": 11,
+        "nl_rank": 11
+      }
+    },
+    {
+      "id": "r0192",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "why object not gone after delete",
+      "keyword_query": "delete not working",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/orm/session_events.html",
+          "heading_path": "en/20/orm/session_events / Tracking queries, object and Session Changes with Events / Object Lifecycle Events / Persistent to Deleted",
+          "content_hash": "sha256:2bcb8a8e22934c76f6a2f425d7d5ba699bd45038406b0d5d8303614165ccb68b",
+          "anchor": "### Persistent to Deleted The persistent object enters the [deleted](../glossary"
+        }
+      ],
+      "_meta": {
+        "capability": "understand the difference between marking an object for deletion and it actually being deleted",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0484,
+        "kw_rank": 41,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0193",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "check lib ver",
+      "keyword_query": "check version",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/tutorial/",
+          "heading_path": "en/20/tutorial/ / SQLAlchemy Unified Tutorial / Tutorial Overview / Version Check",
+          "content_hash": "sha256:9e64569b26d3892bd2a03ecb462fbe8811244e36527edf7513c7354556e523fe",
+          "anchor": "### Version Check This tutorial is written using a system called [doctest](https"
+        }
+      ],
+      "_meta": {
+        "capability": "how to verify the installed library version before following the tutorial examples",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0137,
+        "kw_rank": 1,
+        "nl_rank": 8
+      }
+    },
+    {
+      "id": "r0194",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "query": "update col from other tbl",
+      "keyword_query": "sql update join subquery",
+      "gold": [
+        {
+          "source_url": "https://docs.sqlalchemy.org/en/20/tutorial/data_update.html",
+          "heading_path": "en/20/tutorial/data_update / Using UPDATE and DELETE Statements / The update() SQL Expression Construct / Correlated Updates",
+          "content_hash": "sha256:42952db2400dce21e33f5817fec6f691389b56ee0b6d13b9b5d66421e779558c",
+          "anchor": "### Correlated Updates An UPDATE statement can make use of rows in other tables "
+        }
+      ],
+      "_meta": {
+        "capability": "how to update rows using values computed from a correlated subquery on another table",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0606,
+        "kw_rank": 11,
+        "nl_rank": 27
+      }
+    },
+    {
+      "id": "r0195",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "the automatic interactive swagger ui docs at /docs for testing endpoints",
@@ -3486,7 +4498,7 @@
       }
     },
     {
-      "id": "r0152",
+      "id": "r0196",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "use typing.Union to declare multiple possible types when the pipe operator isn't available",
@@ -3509,7 +4521,7 @@
       }
     },
     {
-      "id": "r0153",
+      "id": "r0197",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "write async test functions with httpx AsyncClient and anyio instead of TestClient",
@@ -3532,7 +4544,7 @@
       }
     },
     {
-      "id": "r0154",
+      "id": "r0198",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "trailing slash redirect uses http instead of https behind a TLS terminating proxy",
@@ -3555,7 +4567,7 @@
       }
     },
     {
-      "id": "r0155",
+      "id": "r0199",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "read the root_path from request.scope when behind a proxy",
@@ -3578,7 +4590,7 @@
       }
     },
     {
-      "id": "r0156",
+      "id": "r0200",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "see the url prefix a gateway strips off before my app receives each call",
@@ -3601,7 +4613,7 @@
       }
     },
     {
-      "id": "r0157",
+      "id": "r0201",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "FileResponse to send a file from disk with custom headers and filename",
@@ -3624,7 +4636,7 @@
       }
     },
     {
-      "id": "r0158",
+      "id": "r0202",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "use plain dataclasses for request and response models instead of pydantic BaseModel",
@@ -3647,7 +4659,7 @@
       }
     },
     {
-      "id": "r0159",
+      "id": "r0203",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "reference request body parts in an OpenAPI callback path expression",
@@ -3670,7 +4682,7 @@
       }
     },
     {
-      "id": "r0160",
+      "id": "r0204",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "set response.status_code inside the path operation using a Response parameter",
@@ -3693,7 +4705,7 @@
       }
     },
     {
-      "id": "r0161",
+      "id": "r0205",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "set_cookie on a JSONResponse when returning the response directly",
@@ -3716,7 +4728,7 @@
       }
     },
     {
-      "id": "r0162",
+      "id": "r0206",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "use secrets.compare_digest to compare basic auth username and password against timing attacks",
@@ -3739,7 +4751,7 @@
       }
     },
     {
-      "id": "r0163",
+      "id": "r0207",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "safely check submitted login credentials so string checking speed leaks nothing",
@@ -3762,7 +4774,7 @@
       }
     },
     {
-      "id": "r0164",
+      "id": "r0208",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "declare an OAuth2 security scheme with named scopes and their descriptions",
@@ -3785,7 +4797,7 @@
       }
     },
     {
-      "id": "r0165",
+      "id": "r0209",
       "pack": "fastapi",
       "difficulty": "vocabulary_mismatch",
       "query": "define an access control setup listing permission levels along with what each allows",
@@ -3808,7 +4820,7 @@
       }
     },
     {
-      "id": "r0166",
+      "id": "r0210",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "how declared OAuth2 scopes show up in the swagger authorize dialog",
@@ -3831,7 +4843,7 @@
       }
     },
     {
-      "id": "r0167",
+      "id": "r0211",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "how nested dependencies accumulate SecurityScopes from everything that requires them",
@@ -3854,7 +4866,7 @@
       }
     },
     {
-      "id": "r0168",
+      "id": "r0212",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "require OAuth2 scopes with Security in the decorator dependencies list without a parameter",
@@ -3877,7 +4889,7 @@
       }
     },
     {
-      "id": "r0169",
+      "id": "r0213",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "mount a flask WSGI app inside fastapi with WSGIMiddleware",
@@ -3900,7 +4912,7 @@
       }
     },
     {
-      "id": "r0170",
+      "id": "r0214",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "concurrency versus parallelism: async io bound versus cpu bound workloads",
@@ -3923,7 +4935,7 @@
       }
     },
     {
-      "id": "r0171",
+      "id": "r0215",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "how fastapi runs def endpoints in a threadpool but awaits async def coroutines",
@@ -3946,7 +4958,7 @@
       }
     },
     {
-      "id": "r0172",
+      "id": "r0216",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "run a single uvicorn worker per container instead of multiple workers when kubernetes handles replication",
@@ -3969,7 +4981,7 @@
       }
     },
     {
-      "id": "r0173",
+      "id": "r0217",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "deploy fastapi to any cloud provider following their guides",
@@ -3992,7 +5004,7 @@
       }
     },
     {
-      "id": "r0174",
+      "id": "r0218",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "pin the fastapi version and rely on test coverage to upgrade safely",
@@ -4015,7 +5027,7 @@
       }
     },
     {
-      "id": "r0175",
+      "id": "r0219",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "what environment variables are and reading them with os.getenv",
@@ -4038,7 +5050,7 @@
       }
     },
     {
-      "id": "r0176",
+      "id": "r0220",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "how the PATH environment variable tells the os where to find executables",
@@ -4061,7 +5073,7 @@
       }
     },
     {
-      "id": "r0177",
+      "id": "r0221",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "the FastAPI People page listing experts who answer the most questions on github",
@@ -4084,7 +5096,7 @@
       }
     },
     {
-      "id": "r0178",
+      "id": "r0222",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "find the community members who help the most users solve their issues",
@@ -4107,7 +5119,7 @@
       }
     },
     {
-      "id": "r0179",
+      "id": "r0223",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "the translation review team that approves docs translations per language",
@@ -4130,7 +5142,7 @@
       }
     },
     {
-      "id": "r0180",
+      "id": "r0224",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "help fastapi: star the repo, answer questions, and where to get support",
@@ -4153,7 +5165,7 @@
       }
     },
     {
-      "id": "r0181",
+      "id": "r0225",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "test that self hosted swagger ui static files load at /docs",
@@ -4176,7 +5188,7 @@
       }
     },
     {
-      "id": "r0182",
+      "id": "r0226",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "confirm a custom logo displays in the overridden swagger ui docs page",
@@ -4199,7 +5211,7 @@
       }
     },
     {
-      "id": "r0183",
+      "id": "r0227",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "set response_description for a path operation in the generated docs",
@@ -4222,7 +5234,7 @@
       }
     },
     {
-      "id": "r0184",
+      "id": "r0228",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "the code and reason attributes on WebSocketException when closing",
@@ -4245,7 +5257,7 @@
       }
     },
     {
-      "id": "r0185",
+      "id": "r0229",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "include_in_schema=False to hide endpoints from the openapi docs",
@@ -4268,7 +5280,7 @@
       }
     },
     {
-      "id": "r0186",
+      "id": "r0230",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "include an APIRouter from another module with app.include_router",
@@ -4291,7 +5303,7 @@
       }
     },
     {
-      "id": "r0187",
+      "id": "r0231",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "response_model_exclude_unset to drop default and None fields from responses",
@@ -4314,7 +5326,7 @@
       }
     },
     {
-      "id": "r0188",
+      "id": "r0232",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "deprecated startup and shutdown events replaced by the lifespan context manager",
@@ -4337,7 +5349,7 @@
       }
     },
     {
-      "id": "r0189",
+      "id": "r0233",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "the old begin and end hooks for an application and their newer alternative",
@@ -4360,7 +5372,7 @@
       }
     },
     {
-      "id": "r0190",
+      "id": "r0234",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "serve redoc docs with self hosted javascript and css assets",
@@ -4383,7 +5395,7 @@
       }
     },
     {
-      "id": "r0191",
+      "id": "r0235",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "generate the alternative reference viewer while keeping its script bundles on my own server",
@@ -4406,7 +5418,7 @@
       }
     },
     {
-      "id": "r0192",
+      "id": "r0236",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "allowed primitive data types in the openapi schema model like string integer boolean",
@@ -4429,7 +5441,7 @@
       }
     },
     {
-      "id": "r0193",
+      "id": "r0237",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "how the schema field is aliased with a trailing underscore in the openapi models",
@@ -4452,7 +5464,7 @@
       }
     },
     {
-      "id": "r0194",
+      "id": "r0238",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "the openapi Link object fields describing relations between operations",
@@ -4475,7 +5487,7 @@
       }
     },
     {
-      "id": "r0195",
+      "id": "r0239",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "the top level OpenAPI object fields like servers paths and info",
@@ -4498,7 +5510,7 @@
       }
     },
     {
-      "id": "r0196",
+      "id": "r0240",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "Path with ge and le to enforce numeric bounds on a path parameter",
@@ -4521,7 +5533,7 @@
       }
     },
     {
-      "id": "r0197",
+      "id": "r0241",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "access the starlette Request object directly in a path operation without validation",
@@ -4544,7 +5556,7 @@
       }
     },
     {
-      "id": "r0198",
+      "id": "r0242",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "serve a static directory with StaticFiles mounted on the app",
@@ -4567,7 +5579,7 @@
       }
     },
     {
-      "id": "r0199",
+      "id": "r0243",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "the HTTP_505_HTTP_VERSION_NOT_SUPPORTED status constant",
@@ -4590,7 +5602,7 @@
       }
     },
     {
-      "id": "r0200",
+      "id": "r0244",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "the anyio backend configuration TestClient uses internally",
@@ -4613,7 +5625,7 @@
       }
     },
     {
-      "id": "r0201",
+      "id": "r0245",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "how WebSocket.receive enforces valid connection state transitions",
@@ -4636,7 +5648,7 @@
       }
     },
     {
-      "id": "r0202",
+      "id": "r0246",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "pip install fastapi[standard] inside a virtual environment",
@@ -4659,7 +5671,7 @@
       }
     },
     {
-      "id": "r0203",
+      "id": "r0247",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "BackgroundTasks to run work after returning the response",
@@ -4682,7 +5694,7 @@
       }
     },
     {
-      "id": "r0204",
+      "id": "r0248",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "structure a bigger application with APIRouter submodules included in the main app",
@@ -4705,7 +5717,7 @@
       }
     },
     {
-      "id": "r0205",
+      "id": "r0249",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "replace an item with PUT using jsonable_encoder to convert data for storage",
@@ -4728,7 +5740,7 @@
       }
     },
     {
-      "id": "r0206",
+      "id": "r0250",
       "pack": "fastapi",
       "difficulty": "vocabulary_mismatch",
       "query": "overwrite a whole stored record from an update request, translating values into a savable form",
@@ -4751,7 +5763,7 @@
       }
     },
     {
-      "id": "r0207",
+      "id": "r0251",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "declare Cookie parameters with type annotations in a path operation",
@@ -4774,7 +5786,7 @@
       }
     },
     {
-      "id": "r0208",
+      "id": "r0252",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "declare a shared dependency function with Depends and inject its result",
@@ -4797,7 +5809,7 @@
       }
     },
     {
-      "id": "r0209",
+      "id": "r0253",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "write one common helper whose return value gets handed automatically to many endpoints",
@@ -4820,7 +5832,7 @@
       }
     },
     {
-      "id": "r0210",
+      "id": "r0254",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "dependencies in the path operation decorator raising HTTPException for header checks",
@@ -4843,7 +5855,7 @@
       }
     },
     {
-      "id": "r0211",
+      "id": "r0255",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "a sub-dependency with Depends is called once per request and cached",
@@ -4866,7 +5878,7 @@
       }
     },
     {
-      "id": "r0212",
+      "id": "r0256",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "fastapi dev main.py to point the dev server at a specific file and app object",
@@ -4889,7 +5901,7 @@
       }
     },
     {
-      "id": "r0213",
+      "id": "r0257",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "declare a Header parameter as a list to receive duplicate headers",
@@ -4912,7 +5924,7 @@
       }
     },
     {
-      "id": "r0214",
+      "id": "r0258",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "group path operations with openapi_tags metadata including tag descriptions",
@@ -4935,7 +5947,7 @@
       }
     },
     {
-      "id": "r0215",
+      "id": "r0259",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "write http middleware with app.middleware that wraps every request and edits the response",
@@ -4958,7 +5970,7 @@
       }
     },
     {
-      "id": "r0216",
+      "id": "r0260",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "declare a typed path parameter like item_id int with automatic conversion and validation",
@@ -4981,7 +5993,7 @@
       }
     },
     {
-      "id": "r0217",
+      "id": "r0261",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "add max_length validation to an optional query parameter with Query",
@@ -5004,7 +6016,7 @@
       }
     },
     {
-      "id": "r0218",
+      "id": "r0262",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "mark a query parameter deprecated=True while keeping it working",
@@ -5027,7 +6039,7 @@
       }
     },
     {
-      "id": "r0219",
+      "id": "r0263",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "optional query parameters with default values when omitted from the url",
@@ -5050,7 +6062,7 @@
       }
     },
     {
-      "id": "r0220",
+      "id": "r0264",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "boolean query parameters convert values like 1 true on",
@@ -5073,7 +6085,7 @@
       }
     },
     {
-      "id": "r0221",
+      "id": "r0265",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "annotate the return type with Response subclasses for editor support when it isn't a valid pydantic field",
@@ -5096,7 +6108,7 @@
       }
     },
     {
-      "id": "r0222",
+      "id": "r0266",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "response_model_include and response_model_exclude to pick model attributes without a new model",
@@ -5119,7 +6131,7 @@
       }
     },
     {
-      "id": "r0223",
+      "id": "r0267",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "declare multiple named examples in openapi_examples for the docs ui",
@@ -5142,7 +6154,7 @@
       }
     },
     {
-      "id": "r0224",
+      "id": "r0268",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "stream server-sent events with text/event-stream to browsers",
@@ -5165,7 +6177,7 @@
       }
     },
     {
-      "id": "r0225",
+      "id": "r0269",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "yield events from a generator with EventSourceResponse for SSE",
@@ -5188,7 +6200,7 @@
       }
     },
     {
-      "id": "r0226",
+      "id": "r0270",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "send preformatted plain text in server-sent events without json encoding",
@@ -5211,7 +6223,7 @@
       }
     },
     {
-      "id": "r0227",
+      "id": "r0271",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "use SQLModel table models with fastapi to work with a sql database",
@@ -5234,7 +6246,7 @@
       }
     },
     {
-      "id": "r0228",
+      "id": "r0272",
       "pack": "fastapi",
       "difficulty": "paraphrase",
       "query": "connect my api to a relational store using classes that double as schema and validation shapes",
@@ -5257,7 +6269,7 @@
       }
     },
     {
-      "id": "r0229",
+      "id": "r0273",
       "pack": "fastapi",
       "difficulty": "direct",
       "query": "deactivate the virtual environment when done working",
@@ -5277,6 +6289,627 @@
         "jaccard": 0.3529,
         "kw_rank": 1,
         "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0274",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to open swagger ui for api testing",
+      "keyword_query": "rails rdoc api explorer",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/",
+          "heading_path": "https://fastapi.tiangolo.com/ / FastAPI / Example / Interactive API docs",
+          "content_hash": "sha256:b1d394652964095a3b493deb717b52f693e22249e2efdd8d6e19ba2f915fb445",
+          "anchor": "### Interactive API docs Now go to . You will see the automatic interactive API "
+        }
+      ],
+      "_meta": {
+        "capability": "understand the automatically generated interactive documentation page for trying out endpoints",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0952,
+        "kw_rank": 7,
+        "nl_rank": 24
+      }
+    },
+    {
+      "id": "r0275",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "async test client broken",
+      "keyword_query": "async test broken",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/async-tests/",
+          "heading_path": "advanced/async-tests/ / Async Tests / HTTPX",
+          "content_hash": "sha256:97903835cd69bbe5ca36688875005eb0bd7fcefe6990430f3e8bb2fe6dbf30fe",
+          "anchor": "## HTTPX Even if your **FastAPI** application uses normal `def` functions instea"
+        }
+      ],
+      "_meta": {
+        "capability": "how to write asynchronous test functions when the standard synchronous test client no longer works",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0455,
+        "kw_rank": 7,
+        "nl_rank": 43
+      }
+    },
+    {
+      "id": "r0276",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "query": "why does my spring boot app redirect http to https when behind nginx",
+      "keyword_query": "spring boot trailing slash redirect http https",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/behind-a-proxy/",
+          "heading_path": "advanced/behind-a-proxy/ / Behind a Proxy / Proxy Forwarded Headers / Redirects with HTTPS",
+          "content_hash": "sha256:fd015ce4caf4d60cd4edd38ab2b46a17a33859e45699ae34676472f0a111fab2",
+          "anchor": "### Redirects with HTTPS For example, let's say you define a *path operation* `/"
+        }
+      ],
+      "_meta": {
+        "capability": "understand why trailing slash redirects can point to the wrong scheme behind a proxy",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0656,
+        "kw_rank": 5,
+        "nl_rank": 3
+      }
+    },
+    {
+      "id": "r0277",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to send a static asset as an attachment with disposition header",
+      "keyword_query": "rails send_file attachment disposition",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/custom-response/",
+          "heading_path": "advanced/custom-response/ / Custom Response - HTML, Stream, File, others / Available responses / `FileResponse`",
+          "content_hash": "sha256:1e12b6c819d5ac6cc2a981e1962854a988dfb9dd0749f1e2755f88b228918b13",
+          "anchor": "### `FileResponse` Asynchronously streams a file as the response. Takes a differ"
+        }
+      ],
+      "_meta": {
+        "capability": "how to stream a file from disk as a response with custom headers and filename",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0156,
+        "kw_rank": 2,
+        "nl_rank": 41
+      }
+    },
+    {
+      "id": "r0278",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "use dataclass for api payload",
+      "keyword_query": "dataclass req resp",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/dataclasses/",
+          "heading_path": "advanced/dataclasses/ / Using Dataclasses",
+          "content_hash": "sha256:311997ea76e9208ce49f8bfb11c39e200087d7ac4f88392f39d3ceb4e42aed07",
+          "anchor": "# Using Dataclasses FastAPI is built on top of **Pydantic**, and I have been sho"
+        }
+      ],
+      "_meta": {
+        "capability": "how to declare request and response shapes using plain dataclasses instead of model classes",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0341,
+        "kw_rank": 4,
+        "nl_rank": 6
+      }
+    },
+    {
+      "id": "r0279",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to get req params in route callback",
+      "keyword_query": "req params route callback",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/openapi-callbacks/",
+          "heading_path": "advanced/openapi-callbacks/ / OpenAPI Callbacks / Write the callback documentation code / The callback path expression",
+          "content_hash": "sha256:e2655430200e5ca98334b039cf456cbd94498dc14847cb255d0d3034b48e5834",
+          "anchor": "### The callback path expression The callback *path* can have an [OpenAPI 3 expr"
+        }
+      ],
+      "_meta": {
+        "capability": "how to reference parts of the original request in a documented callback path expression",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0286,
+        "kw_rank": 2,
+        "nl_rank": 9
+      }
+    },
+    {
+      "id": "r0280",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to set http response status code in controller action",
+      "keyword_query": "rails controller render status code",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/response-change-status-code/",
+          "heading_path": "advanced/response-change-status-code/ / Response - Change Status Code / Use a `Response` parameter",
+          "content_hash": "sha256:5495cb0a42ada5f067957d695348bc32975db5ccb013b872b24fd1b952eea9cd",
+          "anchor": "## Use a `Response` parameter You can declare a parameter of type `Response` in "
+        }
+      ],
+      "_meta": {
+        "capability": "how to change the status code of a response from inside the handler function",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0563,
+        "kw_rank": 24,
+        "nl_rank": 6
+      }
+    },
+    {
+      "id": "r0281",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to attach session data to the http response header in rails",
+      "keyword_query": "rails response headers session cookie",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/response-cookies/",
+          "heading_path": "advanced/response-cookies/ / Response Cookies / Return a `Response` directly",
+          "content_hash": "sha256:ad07dc9b78f9d6de09b616484305a8ddf0ebb4b671affc4e521aab32a27505ed",
+          "anchor": "## Return a `Response` directly You can also create cookies when returning a `Re"
+        }
+      ],
+      "_meta": {
+        "capability": "how to set cookies when building and returning a response object directly",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0545,
+        "kw_rank": 13,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0282",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "add cookie to resp",
+      "keyword_query": "set cookie resp",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/response-cookies/",
+          "heading_path": "advanced/response-cookies/ / Response Cookies / Return a `Response` directly",
+          "content_hash": "sha256:ad07dc9b78f9d6de09b616484305a8ddf0ebb4b671affc4e521aab32a27505ed",
+          "anchor": "## Return a `Response` directly You can also create cookies when returning a `Re"
+        }
+      ],
+      "_meta": {
+        "capability": "how to set cookies when building and returning a response object directly",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0192,
+        "kw_rank": 25,
+        "nl_rank": 42
+      }
+    },
+    {
+      "id": "r0283",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "check token perms in deps",
+      "keyword_query": "verify token scopes deps",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/",
+          "heading_path": "advanced/security/oauth2-scopes/ / OAuth2 scopes / Use `SecurityScopes`",
+          "content_hash": "sha256:7596c943456c0862a8bacce2e4d84bbc1fed6d3b891a77f6a1da33cc2fad2332",
+          "anchor": "🤓 Other versions and variants Python 3.10+ - non-Annotated Tip Prefer to use the"
+        }
+      ],
+      "_meta": {
+        "capability": "how to check token permission scopes inside dependencies using an alternative non-annotated style",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0114,
+        "kw_rank": 3,
+        "nl_rank": 37
+      }
+    },
+    {
+      "id": "r0284",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "should i disable puma clustering for docker deployments",
+      "keyword_query": "puma single threaded docker",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/deployment/docker/",
+          "heading_path": "deployment/docker/ / FastAPI in Containers - Docker / Replication - Number of Processes / One Process per Container",
+          "content_hash": "sha256:5c05c1be92487edf649cbd2aa2dcd4a37833eea68d8c53c26181295032b7998e",
+          "anchor": "### One Process per Container In this type of scenario, you probably would want "
+        }
+      ],
+      "_meta": {
+        "capability": "when to run a single server process per container instead of multiple workers",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0,
+        "kw_rank": 6,
+        "nl_rank": 50
+      }
+    },
+    {
+      "id": "r0285",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to push to cloud",
+      "keyword_query": "deploy cloud",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/deployment/fastapicloud/",
+          "heading_path": "deployment/fastapicloud/ / FastAPI Cloud / Deploy to other cloud providers",
+          "content_hash": "sha256:5824a31de45cba79ba611145907031e4cda3306033181b2f808341258c276e24",
+          "anchor": "## Deploy to other cloud providers FastAPI is open source and based on standards"
+        }
+      ],
+      "_meta": {
+        "capability": "how to deploy the application to any cloud provider using standard guides",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.05,
+        "kw_rank": 2,
+        "nl_rank": 6
+      }
+    },
+    {
+      "id": "r0286",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "upgrade framework version test",
+      "keyword_query": "upgrate version tests",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/deployment/versions/",
+          "heading_path": "deployment/versions/ / About FastAPI versions / Upgrading the FastAPI versions",
+          "content_hash": "sha256:4d296700dd225f6bddd89bb18f4826b3bde307b29684da02db8426d1111c5e50",
+          "anchor": "## Upgrading the FastAPI versions You should add tests for your app. With **Fast"
+        }
+      ],
+      "_meta": {
+        "capability": "how to safely upgrade the framework version by relying on a test suite",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0526,
+        "kw_rank": 1,
+        "nl_rank": 16
+      }
+    },
+    {
+      "id": "r0287",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to read env vars",
+      "keyword_query": "get env var",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/environment-variables/",
+          "heading_path": "environment-variables/ / Environment Variables",
+          "content_hash": "sha256:808bba43698b7edaf531251a19a17a13fc3d012d24fe5bdfd59a404cc8b7513a",
+          "anchor": "# Environment Variables Tip If you already know what \"environment variables\" are"
+        }
+      ],
+      "_meta": {
+        "capability": "understand what environment variables are and how programs read settings from them",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0833,
+        "kw_rank": 3,
+        "nl_rank": 11
+      }
+    },
+    {
+      "id": "r0288",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "query": "check if docs static files load",
+      "keyword_query": "verify static assets served",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/how-to/custom-docs-ui-assets/",
+          "heading_path": "how-to/custom-docs-ui-assets/ / Custom Docs UI Static Assets (Self-Hosting) / Self-hosting JavaScript and CSS for docs / Test the static files",
+          "content_hash": "sha256:cb1739dd9f0da5674ed9aa9ea5b0a7dada30a8ed21d4acc1bc6c3f8f04dd4046",
+          "anchor": "### Test the static files Start your application and go to . You should see a ve"
+        }
+      ],
+      "_meta": {
+        "capability": "how to verify that self-hosted static assets for the documentation page are being served",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.075,
+        "kw_rank": 9,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0289",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "query": "why logo not showing in docs",
+      "keyword_query": "logo missing docs",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/how-to/extending-openapi/",
+          "heading_path": "how-to/extending-openapi/ / Extending OpenAPI / Overriding the defaults / Check it",
+          "content_hash": "sha256:4745614916d58d87b8488580fc846548ad4ffc4a6dd41151e364282fdd5e1ae9",
+          "anchor": "### Check it Once you go to you will see that you are using your custom logo (in"
+        }
+      ],
+      "_meta": {
+        "capability": "how to confirm a custom logo shows in the overridden documentation page",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.05,
+        "kw_rank": 3,
+        "nl_rank": 5
+      }
+    },
+    {
+      "id": "r0290",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "query": "make field not required",
+      "keyword_query": "opt field doc",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/how-to/separate-openapi-schemas/",
+          "heading_path": "how-to/separate-openapi-schemas/ / Separate OpenAPI Schemas for Input and Output or Not / Pydantic Models for Input and Output / Input Model in Docs",
+          "content_hash": "sha256:e07a66f5f1efc55be7902f4d5aacf77fb7120c1efbaf556c86fe281719385e28",
+          "anchor": "### Input Model in Docs You can confirm that in the docs, the `description` fiel"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how optional input fields appear as not required in the generated documentation",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.1429,
+        "kw_rank": 43,
+        "nl_rank": 2
+      }
+    },
+    {
+      "id": "r0291",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "query": "how to hide certain controllers from the rails api docs",
+      "keyword_query": "hide controller from api docs",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/reference/fastapi/",
+          "heading_path": "reference/fastapi/ / `FastAPI` class / fastapi.FastAPI / Example",
+          "content_hash": "sha256:88445e2a66f9097f4f3da7a47716f179d29c41f955c1026292ac9097300c200f",
+          "anchor": "| `include_in_schema` | To include (or not) all the *path operations* in the gen"
+        }
+      ],
+      "_meta": {
+        "capability": "configure whether endpoints are included in the generated schema and documentation",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.028,
+        "kw_rank": 43,
+        "nl_rank": 1
+      }
+    },
+    {
+      "id": "r0292",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how to exclude null properties from json serialization like in django rest framework",
+      "keyword_query": "exclude nulls json serialization django rest",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/reference/fastapi/",
+          "heading_path": "reference/fastapi/ / `FastAPI` class / fastapi.FastAPI / patch / Example",
+          "content_hash": "sha256:000f792f5212b543a1d9dee205ec8489dbdc6181e6c5dc7dc382de8b59e6d6e8",
+          "anchor": "| `response_model_exclude_none` | Configuration passed to Pydantic to define if "
+        }
+      ],
+      "_meta": {
+        "capability": "configure the response model to drop fields whose values are unset or none",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0108,
+        "kw_rank": 24,
+        "nl_rank": 28
+      }
+    },
+    {
+      "id": "r0293",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "self host docs scripts",
+      "keyword_query": "local js assets",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/reference/openapi/docs/",
+          "heading_path": "reference/openapi/docs/ / OpenAPI `docs` / fastapi.openapi.docs.get\\_redoc\\_html",
+          "content_hash": "sha256:1a3a7cf9efb1a72d517212f523b5b2194e66aa0e3274d724698a9962e8d93d4a",
+          "anchor": "## fastapi.openapi.docs.get\\_redoc\\_html ``` get_redoc_html( *, openapi_url, tit"
+        }
+      ],
+      "_meta": {
+        "capability": "how to generate the alternative documentation page while self-hosting its script assets",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0253,
+        "kw_rank": 8,
+        "nl_rank": 44
+      }
+    },
+    {
+      "id": "r0294",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to get the original http request context in controller action",
+      "keyword_query": "raw request object django spring mvc",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/reference/request/",
+          "heading_path": "reference/request/ / `Request` class",
+          "content_hash": "sha256:8225adfb99180942180cab0e872831f624ebf487c6eca478204507fbb189a73e",
+          "anchor": "# `Request` class You can declare a parameter in a *path operation function* or "
+        }
+      ],
+      "_meta": {
+        "capability": "how to access the raw request object directly inside a handler without validation",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.04,
+        "kw_rank": 2,
+        "nl_rank": null
+      }
+    },
+    {
+      "id": "r0295",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "serve static folder",
+      "keyword_query": "serve dir",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/reference/staticfiles/",
+          "heading_path": "reference/staticfiles/ / Static Files - `StaticFiles` / fastapi.staticfiles.StaticFiles",
+          "content_hash": "sha256:cec63d2c86d27f69a44a3155c7bd29f72f416844dddef3b7bc41a7261fa27d46",
+          "anchor": "## fastapi.staticfiles.StaticFiles ``` StaticFiles( *, directory=None, packages="
+        }
+      ],
+      "_meta": {
+        "capability": "how to serve a directory of static files from the application",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0,
+        "kw_rank": 4,
+        "nl_rank": 39
+      }
+    },
+    {
+      "id": "r0296",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "install lib with extras in venv",
+      "keyword_query": "pip install optional deps",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/tutorial/",
+          "heading_path": "tutorial/ / Tutorial - User Guide / Install FastAPI",
+          "content_hash": "sha256:a6e49bc53a5734b295564f7e157d8e13773c0cc429f1097c6424fd940618e8bc",
+          "anchor": "## Install FastAPI The first step is to install FastAPI. Make sure you create a "
+        }
+      ],
+      "_meta": {
+        "capability": "how to install the framework with its recommended optional dependencies in a virtual environment",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0149,
+        "kw_rank": 2,
+        "nl_rank": 10
+      }
+    },
+    {
+      "id": "r0297",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "query": "run bg task after reply",
+      "keyword_query": "async task after response",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/tutorial/background-tasks/",
+          "heading_path": "tutorial/background-tasks/ / Background Tasks / Using `BackgroundTasks`",
+          "content_hash": "sha256:e869109b07734d882b26f137f4a1c41fc43f7a0713765dd621fff29b4f4c7c40",
+          "anchor": "## Using `BackgroundTasks` First, import `BackgroundTasks` and define a paramete"
+        }
+      ],
+      "_meta": {
+        "capability": "how to schedule work to run in the background after returning a response",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0,
+        "kw_rank": 36,
+        "nl_rank": 35
+      }
+    },
+    {
+      "id": "r0298",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to mount a rails engine inside the main application",
+      "keyword_query": "mount engine routes rails",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/tutorial/bigger-applications/",
+          "heading_path": "tutorial/bigger-applications/ / Bigger Applications - Multiple Files / The main `FastAPI` / Include the `APIRouter`s for `users` and `items`",
+          "content_hash": "sha256:14c51d7b4fd4a36cf636f8794fa0c5d67caf2809ba417017587b6d57b3bfc07b",
+          "anchor": "### Include the `APIRouter`s for `users` and `items` Now, let's include the `rou"
+        }
+      ],
+      "_meta": {
+        "capability": "how to include route groups from submodules into the main application of a larger project",
+        "model": "35b",
+        "persona": "vocab_mismatch",
+        "jaccard": 0.0395,
+        "kw_rank": 34,
+        "nl_rank": 11
+      }
+    },
+    {
+      "id": "r0299",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "run dev server on specific file",
+      "keyword_query": "dev server target file",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/tutorial/first-steps/",
+          "heading_path": "tutorial/first-steps/ / First Steps / `fastapi dev` with path or with `--entrypoint` CLI option",
+          "content_hash": "sha256:e93a1cb246e108d821801064b48a410326654969ae6038c3c109c88c3ac7be54",
+          "anchor": "### `fastapi dev` with path or with `--entrypoint` CLI option You can also pass "
+        }
+      ],
+      "_meta": {
+        "capability": "how to point the development server command at a specific file or application object",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.0444,
+        "kw_rank": 3,
+        "nl_rank": 12
+      }
+    },
+    {
+      "id": "r0300",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "query": "how to set default for missing url param",
+      "keyword_query": "default url param value",
+      "gold": [
+        {
+          "source_url": "https://fastapi.tiangolo.com/tutorial/query-params/",
+          "heading_path": "tutorial/query-params/ / Query Parameters / Defaults",
+          "content_hash": "sha256:bf1b03a7f580b6bd83f2eb850ed127a5a0fe888494cbb637781c8eac095c2817",
+          "anchor": "## Defaults As query parameters are not a fixed part of a path, they can be opti"
+        }
+      ],
+      "_meta": {
+        "capability": "understand how optional query parameters get default values when omitted from the url",
+        "model": "35b",
+        "persona": "hurried",
+        "jaccard": 0.1,
+        "kw_rank": 5,
+        "nl_rank": 32
       }
     }
   ]
