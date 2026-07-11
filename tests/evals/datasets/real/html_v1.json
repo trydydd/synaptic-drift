@@ -1845,7 +1845,7 @@
       ],
       "_meta": {
         "capability": "how to reverse the direction of a plot axis or control its display limits",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0952,
         "kw_rank": 30,
@@ -1868,7 +1868,7 @@
       ],
       "_meta": {
         "capability": "how to find examples of plotting data with error bars in different styles",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0408,
         "kw_rank": 39,
@@ -1891,7 +1891,7 @@
       ],
       "_meta": {
         "capability": "how to find examples of three-dimensional plots like scatter, arrows, and rotating views",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0217,
         "kw_rank": 3,
@@ -1914,7 +1914,7 @@
       ],
       "_meta": {
         "capability": "how to place images at exact positions in a figure while preserving relative sizes",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0104,
         "kw_rank": 3,
@@ -1937,7 +1937,7 @@
       ],
       "_meta": {
         "capability": "how to compute and visualize the gradient field of data on a triangular mesh",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0,
         "kw_rank": 6,
@@ -1960,7 +1960,7 @@
       ],
       "_meta": {
         "capability": "how to find examples of rotating, scaling, and combining three-dimensional plots",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0,
         "kw_rank": 29,
@@ -1983,7 +1983,7 @@
       ],
       "_meta": {
         "capability": "how to plot a three-dimensional surface built from a triangular mesh",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0175,
         "kw_rank": 3,
@@ -2006,7 +2006,7 @@
       ],
       "_meta": {
         "capability": "how to plot a two-dimensional histogram with hexagonal bins colored by point density",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0278,
         "kw_rank": 12,
@@ -2029,7 +2029,7 @@
       ],
       "_meta": {
         "capability": "how to render mathematical expressions and symbols in labels and titles",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0233,
         "kw_rank": 16,
@@ -2052,7 +2052,7 @@
       ],
       "_meta": {
         "capability": "how to control where date ticks appear on a time axis at yearly, monthly, or hourly intervals",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0196,
         "kw_rank": 36,
@@ -2075,7 +2075,7 @@
       ],
       "_meta": {
         "capability": "how to add automatic minor tick marks between major tick intervals",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0303,
         "kw_rank": 9,
@@ -2098,7 +2098,7 @@
       ],
       "_meta": {
         "capability": "how to install the plotting library using a standard package installer on a desktop operating system",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0213,
         "kw_rank": 18,
@@ -2121,7 +2121,7 @@
       ],
       "_meta": {
         "capability": "how to find the directory where an installed package lives on disk",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0,
         "kw_rank": 2,
@@ -2144,7 +2144,7 @@
       ],
       "_meta": {
         "capability": "how to find the directory where an installed package lives on disk",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.04,
         "kw_rank": 17,
@@ -2167,7 +2167,7 @@
       ],
       "_meta": {
         "capability": "how to report abusive or unacceptable behavior to the project's community leaders",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0294,
         "kw_rank": 1,
@@ -2190,7 +2190,7 @@
       ],
       "_meta": {
         "capability": "how to display a numeric data array as an image in a plot",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0811,
         "kw_rank": 1,
@@ -2213,7 +2213,7 @@
       ],
       "_meta": {
         "capability": "how to set the aspect ratio of a plot in data coordinates",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.05,
         "kw_rank": 3,
@@ -2236,7 +2236,7 @@
       ],
       "_meta": {
         "capability": "how to map data symmetric around a center value onto a diverging color scale",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0345,
         "kw_rank": 20,
@@ -2259,7 +2259,7 @@
       ],
       "_meta": {
         "capability": "how to manually flush pending window events and request redraws in a custom event loop",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0319,
         "kw_rank": 2,
@@ -2282,7 +2282,7 @@
       ],
       "_meta": {
         "capability": "how to manually flush pending window events and request redraws in a custom event loop",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.011,
         "kw_rank": 3,
@@ -2305,7 +2305,7 @@
       ],
       "_meta": {
         "capability": "choose between the explicit object-oriented style and the implicit convenience style for building plots",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.023,
         "kw_rank": 2,
@@ -2328,7 +2328,7 @@
       ],
       "_meta": {
         "capability": "how to represent a third data dimension using colors in a two-dimensional plot",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0408,
         "kw_rank": 5,
@@ -2351,7 +2351,7 @@
       ],
       "_meta": {
         "capability": "how to annotate a data point with text and an arrow pointing to it",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.011,
         "kw_rank": 30,
@@ -2374,7 +2374,7 @@
       ],
       "_meta": {
         "capability": "configure a custom typesetting preamble and fonts when rendering text through an external engine",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0395,
         "kw_rank": 13,
@@ -2397,7 +2397,7 @@
       ],
       "_meta": {
         "capability": "understand the named relative font sizes and how they scale against the default size",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0455,
         "kw_rank": 3,
@@ -4053,7 +4053,7 @@
       ],
       "_meta": {
         "capability": "how to emit a table constraint conditionally for a specific backend or runtime condition",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0282,
         "kw_rank": 20,
@@ -4076,7 +4076,7 @@
       ],
       "_meta": {
         "capability": "how to declare a column whose values the database generates from an automatic incrementing sequence",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0119,
         "kw_rank": 33,
@@ -4099,7 +4099,7 @@
       ],
       "_meta": {
         "capability": "how to run custom code the first time a pooled database connection is created",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0,
         "kw_rank": 6,
@@ -4122,7 +4122,7 @@
       ],
       "_meta": {
         "capability": "how to compare a column against null or boolean constants in a query expression",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0135,
         "kw_rank": 34,
@@ -4145,7 +4145,7 @@
       ],
       "_meta": {
         "capability": "configure a connection pool to skip the rollback normally issued when connections are returned",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0588,
         "kw_rank": 4,
@@ -4168,7 +4168,7 @@
       ],
       "_meta": {
         "capability": "how to give a floating point column different precision settings for one specific backend",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0132,
         "kw_rank": 25,
@@ -4191,7 +4191,7 @@
       ],
       "_meta": {
         "capability": "configure driver-specific connection keyword arguments like default transaction isolation level",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0333,
         "kw_rank": 39,
@@ -4214,7 +4214,7 @@
       ],
       "_meta": {
         "capability": "configure driver-specific connection keyword arguments like default transaction isolation level",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0357,
         "kw_rank": 40,
@@ -4237,7 +4237,7 @@
       ],
       "_meta": {
         "capability": "understand transaction quirks like savepoints and isolation when using an embedded file-based database",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0435,
         "kw_rank": 36,
@@ -4260,7 +4260,7 @@
       ],
       "_meta": {
         "capability": "understand the error raised when all pooled connections are checked out and the overflow limit is reached",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0348,
         "kw_rank": 3,
@@ -4283,7 +4283,7 @@
       ],
       "_meta": {
         "capability": "understand how a mapped column derives its datatype and nullability from the type annotation",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0375,
         "kw_rank": 33,
@@ -4306,7 +4306,7 @@
       ],
       "_meta": {
         "capability": "how to run custom code when a unit of work transaction commits or begins",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.02,
         "kw_rank": 5,
@@ -4329,7 +4329,7 @@
       ],
       "_meta": {
         "capability": "how to subclass an indexed attribute to add casting or coercion when values are accessed",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0135,
         "kw_rank": 1,
@@ -4352,7 +4352,7 @@
       ],
       "_meta": {
         "capability": "configure the mapper to fetch server-generated defaults immediately after inserts and updates",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.033,
         "kw_rank": 6,
@@ -4375,7 +4375,7 @@
       ],
       "_meta": {
         "capability": "understand how loader options propagate to the secondary queries issued by lazy loading",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0377,
         "kw_rank": 15,
@@ -4398,7 +4398,7 @@
       ],
       "_meta": {
         "capability": "how to propagate primary key changes to referencing rows using database update cascades",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0297,
         "kw_rank": 11,
@@ -4421,7 +4421,7 @@
       ],
       "_meta": {
         "capability": "understand the difference between marking an object for deletion and it actually being deleted",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0484,
         "kw_rank": 41,
@@ -4444,7 +4444,7 @@
       ],
       "_meta": {
         "capability": "how to verify the installed library version before following the tutorial examples",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0137,
         "kw_rank": 1,
@@ -4467,7 +4467,7 @@
       ],
       "_meta": {
         "capability": "how to update rows using values computed from a correlated subquery on another table",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0606,
         "kw_rank": 11,
@@ -6307,7 +6307,7 @@
       ],
       "_meta": {
         "capability": "understand the automatically generated interactive documentation page for trying out endpoints",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0952,
         "kw_rank": 7,
@@ -6330,7 +6330,7 @@
       ],
       "_meta": {
         "capability": "how to write asynchronous test functions when the standard synchronous test client no longer works",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0455,
         "kw_rank": 7,
@@ -6353,7 +6353,7 @@
       ],
       "_meta": {
         "capability": "understand why trailing slash redirects can point to the wrong scheme behind a proxy",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0656,
         "kw_rank": 5,
@@ -6376,7 +6376,7 @@
       ],
       "_meta": {
         "capability": "how to stream a file from disk as a response with custom headers and filename",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0156,
         "kw_rank": 2,
@@ -6399,7 +6399,7 @@
       ],
       "_meta": {
         "capability": "how to declare request and response shapes using plain dataclasses instead of model classes",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0341,
         "kw_rank": 4,
@@ -6422,7 +6422,7 @@
       ],
       "_meta": {
         "capability": "how to reference parts of the original request in a documented callback path expression",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0286,
         "kw_rank": 2,
@@ -6445,7 +6445,7 @@
       ],
       "_meta": {
         "capability": "how to change the status code of a response from inside the handler function",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0563,
         "kw_rank": 24,
@@ -6468,7 +6468,7 @@
       ],
       "_meta": {
         "capability": "how to set cookies when building and returning a response object directly",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0545,
         "kw_rank": 13,
@@ -6491,7 +6491,7 @@
       ],
       "_meta": {
         "capability": "how to set cookies when building and returning a response object directly",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0192,
         "kw_rank": 25,
@@ -6514,7 +6514,7 @@
       ],
       "_meta": {
         "capability": "how to check token permission scopes inside dependencies using an alternative non-annotated style",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0114,
         "kw_rank": 3,
@@ -6537,7 +6537,7 @@
       ],
       "_meta": {
         "capability": "when to run a single server process per container instead of multiple workers",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0,
         "kw_rank": 6,
@@ -6560,7 +6560,7 @@
       ],
       "_meta": {
         "capability": "how to deploy the application to any cloud provider using standard guides",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.05,
         "kw_rank": 2,
@@ -6583,7 +6583,7 @@
       ],
       "_meta": {
         "capability": "how to safely upgrade the framework version by relying on a test suite",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0526,
         "kw_rank": 1,
@@ -6606,7 +6606,7 @@
       ],
       "_meta": {
         "capability": "understand what environment variables are and how programs read settings from them",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0833,
         "kw_rank": 3,
@@ -6629,7 +6629,7 @@
       ],
       "_meta": {
         "capability": "how to verify that self-hosted static assets for the documentation page are being served",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.075,
         "kw_rank": 9,
@@ -6652,7 +6652,7 @@
       ],
       "_meta": {
         "capability": "how to confirm a custom logo shows in the overridden documentation page",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.05,
         "kw_rank": 3,
@@ -6675,7 +6675,7 @@
       ],
       "_meta": {
         "capability": "understand how optional input fields appear as not required in the generated documentation",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.1429,
         "kw_rank": 43,
@@ -6698,7 +6698,7 @@
       ],
       "_meta": {
         "capability": "configure whether endpoints are included in the generated schema and documentation",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.028,
         "kw_rank": 43,
@@ -6721,7 +6721,7 @@
       ],
       "_meta": {
         "capability": "configure the response model to drop fields whose values are unset or none",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0108,
         "kw_rank": 24,
@@ -6744,7 +6744,7 @@
       ],
       "_meta": {
         "capability": "how to generate the alternative documentation page while self-hosting its script assets",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0253,
         "kw_rank": 8,
@@ -6767,7 +6767,7 @@
       ],
       "_meta": {
         "capability": "how to access the raw request object directly inside a handler without validation",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.04,
         "kw_rank": 2,
@@ -6790,7 +6790,7 @@
       ],
       "_meta": {
         "capability": "how to serve a directory of static files from the application",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0,
         "kw_rank": 4,
@@ -6813,7 +6813,7 @@
       ],
       "_meta": {
         "capability": "how to install the framework with its recommended optional dependencies in a virtual environment",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0149,
         "kw_rank": 2,
@@ -6836,7 +6836,7 @@
       ],
       "_meta": {
         "capability": "how to schedule work to run in the background after returning a response",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0,
         "kw_rank": 36,
@@ -6859,7 +6859,7 @@
       ],
       "_meta": {
         "capability": "how to include route groups from submodules into the main application of a larger project",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "vocab_mismatch",
         "jaccard": 0.0395,
         "kw_rank": 34,
@@ -6882,7 +6882,7 @@
       ],
       "_meta": {
         "capability": "how to point the development server command at a specific file or application object",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.0444,
         "kw_rank": 3,
@@ -6905,7 +6905,7 @@
       ],
       "_meta": {
         "capability": "understand how optional query parameters get default values when omitted from the url",
-        "model": "35b",
+        "model": "qwen3.6-27b-fp8",
         "persona": "hurried",
         "jaccard": 0.1,
         "kw_rank": 5,
