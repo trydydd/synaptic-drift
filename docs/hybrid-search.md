@@ -2,24 +2,61 @@
 
 ## Why
 
-Synaptic Drift's current FTS5/BM25 search is keyword-based. Queries must share vocabulary with the
-indexed document or return nothing. The natural language query
-`"how do I configure a stdio implementation in fastmcp"` returns 0 results from FTS5
-because "configure" and "implementation" do not appear in the source document. An LLM
-agent bridges this gap by translating the NL query into FTS5 terms before calling
-`search` — but that translation step can fail, and when it does the agent falls back
-to WebFetch at full page cost.
+Synaptic Drift's current FTS5/BM25 search is lexical: a query term contributes
+nothing unless the same token (no stemming, no synonyms) appears in the chunk.
+An LLM agent bridges vocabulary gaps by reformulating queries before calling
+`search` — but that compensation is small and cannot be relied on (measured
+below).
 
-Hybrid search (BM25 + vector similarity) eliminates the vocabulary mismatch problem.
-Semantic similarity matching would find `"STDIO is the default transport"` and
-`"run() with no arguments uses STDIO"` from the NL query directly, without requiring
-exact term overlap.
+**The failure shape (corrected 2026-07-11).** This document originally framed
+the problem as 0-result failures ("returns nothing → agent falls back to
+WebFetch at full page cost"). That framing predates the OR-semantics search
+(`search_relaxed`, D-era of the v0.3.0 branch): with terms OR-joined and
+BM25-ranked, a query almost never returns *zero* results. The measured failure
+is instead a **ranking-precision failure inside a non-empty result set** — the
+gold chunk is absent from the top-k while plausible-looking wrong chunks fill
+it. The cost is not a WebFetch fallback but worse: the agent confidently
+fetches and uses the wrong documentation (observed directly in the L2 run —
+e.g. html_v1 r0088, where the model fetched the `text.usetex` page when the
+gold answer was the adjacent Mathtext page).
 
-**This is a reliability improvement, not a token efficiency improvement.** When FTS5
-finds relevant chunks, an agent reading summaries and selecting the right one already
-achieves ~84% token savings vs WebFetch. Better ranking within a working result set
-yields marginal gains. The real value of hybrid search is reducing the frequency of
-0-result failures — turning misses into hits.
+**This is a reliability improvement, not a token efficiency improvement.**
+When FTS5 ranks the right chunk into the top-k, an agent reading summaries and
+selecting the right one already achieves ~84% token savings vs WebFetch.
+The value of hybrid search is turning buried/missing gold chunks into
+top-k hits on vocabulary-mismatched queries.
+
+## Evidence (html_v1 + pilot_v1 gold corpora, 2026-07)
+
+The preconditions in "Deferred until" (below) have been evaluated against real
+measurements — see `tests/evals/results/html_l1_baseline.json` and
+`html_l2_reachability.json`, and decisions.md D25/D29/D30:
+
+- **L1 (engine ceiling, no model)**: `vocabulary_mismatch` tier recall@1–20 =
+  **0.000 at n=26**; `paraphrase` recall@5 = 0.000 at n=98. Reproduced across
+  two independently generated corpora (llms.txt pilot and crawled HTML).
+- **L2 (Qwen3.6-27B authoring its own queries via search/fetch tools)**:
+  recovers only recall@5 = 0.082 (vocab-mismatch) / 0.143 (paraphrase). The
+  model does retry (avg 2.2 searches/question) but retries fail the same
+  lexical way. A 27B model is the *largest* in the intended sweep — smaller
+  target models are expected to compensate less, not more.
+- **Noise audit of the vocab-mismatch tier** (all 26 NL queries checked
+  against the full corpus vocabulary): zero generation artifacts; the tier is
+  measuring what it claims. Composition, with the fix each class actually
+  needs:
+
+  | class | n | mean L2 recall@5 | fixable by |
+  |---|---|---|---|
+  | pure word-choice (all tokens exist in corpus, wrong ones for the gold chunk) | 14 | 0.071 | semantic matching — embeddings' core case |
+  | cross-ecosystem analogy (rails/gem/jdbc/puma, persona by design) | 6 | 0.167 | embeddings *maybe* — conceptual analogy is harder than synonymy for a small ONNX model |
+  | morphology (formulas/formula, savable — unicode61 does no stemming) | 4 | 0.000 | **porter stemmer**: zero-dependency FTS5 tokenizer change |
+  | typo/abbreviation (surfce, perms) | 2 | 0.060 | fuzzy matching / spellfix — no embeddings needed |
+
+The decomposition sets expectations honestly: hybrid search should recover
+much of the word-choice majority (~54% of the tier), some of the
+cross-ecosystem class, and is the wrong tool for the ~23% that cheap lexical
+fixes address. Sequencing decision recorded in decisions.md **D30** (stemmer
+first, then embeddings sized against the post-stemmer re-measure).
 
 ## Architecture
 
@@ -85,14 +122,24 @@ Reciprocal Rank Fusion (RRF) is the standard approach: each result is scored as
 `1 / (k + rank)` from each retriever independently, then the scores are summed. This
 requires no tuning and is robust to score scale differences.
 
-## Deferred until
+## Deferred until — status
 
-Hybrid search is explicitly deferred past MVP. CLAUDE.md states:
+Hybrid search was explicitly deferred past MVP. CLAUDE.md states:
 `"SQLite FTS5 is the only search backend for MVP. No embedding dependencies."`
 
-Preconditions for revisiting:
-- Evidence from a real multi-document corpus that 0-result FTS5 failures are frequent
-  enough to justify the added build complexity and `.ctx` size increase.
-- The `search-docs` / `fetch-docs` endpoint split (see `docs/decisions.md` D12) is
-  the higher-priority search improvement — it enforces the two-step pattern
-  architecturally and eliminates the single-step footgun without adding any dependencies.
+Preconditions for revisiting, and their status as of 2026-07-11:
+
+- ✅ **The `search-docs` / `fetch-docs` endpoint split (D12)** shipped in
+  v0.2.0 — it was the higher-priority search improvement and required no new
+  dependencies.
+- ✅ (**restated**) **Evidence from a real multi-document corpus.** The
+  original wording asked for evidence of frequent *0-result* failures; the
+  measured failure shape is ranking-precision misses in non-empty results
+  (see "Why" above), which carries a worse cost (wrong docs used
+  confidently, not a visible fallback). Both gold corpora provide the
+  evidence at trustworthy sample sizes — see "Evidence" above.
+
+Sequencing before implementation is recorded in decisions.md **D30**: the
+porter-stemmer tokenizer change ships and is re-measured first (it is
+near-free and addresses the tier's morphology class plus general recall),
+then the embedding investment is sized against what remains.

@@ -594,3 +594,29 @@ The between-block overflow split was also generalized from paragraph boundaries 
 **D29 revisit closed (2026-07-10)**: the crawled-HTML gold corpus now exists — `tests/evals/datasets/real/html_v1.json`, 300 questions over matplotlib/sqlalchemy/fastapi packs built with the D29 chunker and boilerplate stripping, full tier mix including the weak-half personas (direct 176, paraphrase 98, vocabulary_mismatch 26). L1 baseline (`tests/evals/results/html_l1_baseline.json`): `direct` NL recall@5 = 0.955 — the chunker/stripping changes hold up cleanly on the corpus type where they fire, no regression from the llms.txt pilot's `direct` tier (0.865 at n=42, smaller sample). The intra-block splitting and boilerplate stripping are validated; D29 stands as written.
 
 **New finding — feeds D25's revisit trigger**: `vocabulary_mismatch` scored recall@1 through recall@20 = **0.000 at n=26** (real sample size, not the pilot's n=2). `paraphrase` recall@5 = 0.000 at n=98. Both reproduce the pilot's FTS5-ceiling finding, now at a sample size large enough to trust — a fully bare zero across all four cutoffs on 26 real vocabulary-mismatch queries against real crawled docs is not noise. D25's revisit condition ("real evidence of vocabulary-mismatch failures that tuned FTS5 cannot address") is met by this result; see `docs/hybrid-search.md` for the next step.
+
+---
+
+## D30: Vocabulary-Mismatch Mitigation — Stemmer First, Then Hybrid Search; D25's Revisit Clause Resolved
+
+**Decision**: address the measured vocabulary-mismatch retrieval failure as a two-step ladder, in this order:
+
+1. **Porter stemmer for `chunks_fts`** — change the FTS5 tokenizer from default `unicode61` to `porter` (a zero-dependency SQLite-native config change; requires an FTS5 index rebuild on schema bump, accepted in advance by D11's schema commitment note). This un-defers the "custom tokenizer" item D11 left as "low-priority for technical docs where exact terms dominate" — the html_v1 evidence revised that judgment: 4 of 26 vocabulary_mismatch questions fail purely on morphology (`formulas` vs `formula`, `savable`), and stemming also improves recall generally.
+2. **Hybrid search (BM25 + vectors, RRF fusion)** per `docs/hybrid-search.md`'s existing architecture (fastembed + all-MiniLM-class ONNX at build time, sqlite-vec at query time) — sized against a **post-stemmer re-measure** of L1 on both gold corpora, so the embedding investment is justified by what the cheap fix does not recover, not by numbers that conflate the two.
+
+**Evidence chain** (full detail in `docs/hybrid-search.md` §Evidence):
+
+- L1 (engine ceiling): `vocabulary_mismatch` recall@1–20 = 0.000 at n=26; `paraphrase` recall@5 = 0.000 at n=98 (`html_l1_baseline.json`), reproducing the pilot corpus finding at real sample size on a second, independently generated corpus.
+- L2 (Qwen3.6-27B authoring its own queries through the real search/fetch tools, `tests/evals/l2_reachability.py`): recall@5 = 0.082 / 0.143 on those tiers. The agent-compensation hypothesis — "the calling model bridges vocabulary gaps by reformulating" — is measured, real (negative reachability_gap), and **insufficient**: the model retries (avg 2.2 searches/question) but retries fail the same lexical way. 27B is the largest model in the intended sweep; the VRAM-constrained target models are expected to compensate less.
+- Noise audit: zero generation artifacts in the tier; composition is 14 pure word-choice / 6 cross-ecosystem-by-design / 4 morphology / 2 typo. The tier measures what it claims.
+
+**Failure-shape correction**: `docs/hybrid-search.md`'s original justification (0-result failures → WebFetch fallback) predates OR-semantics search and is stale. The measured failure is ranking-precision misses within non-empty results — the agent fetches plausible wrong chunks instead of falling back visibly (html_v1 r0088 observed directly in the L2 run). This is a worse failure mode and strengthens the case.
+
+**D25 (synonym expansion) stays closed**: its revisit clause ("real evidence of vocabulary-mismatch failures that tuned FTS5 cannot address") is now satisfied, and per D25's own reasoning the answer is hybrid search, not a synonym dictionary — embeddings generalize where a hand-curated table cannot.
+
+**Alternatives considered**:
+- **Embeddings immediately, skip the stemmer** — rejected: ~23% of the measured tier (morphology + typos) is addressable with zero dependencies, and shipping the stemmer first gives the embedding decision a clean baseline instead of crediting vector search for what stemming fixed.
+- **Rely on agent-side query reformulation (status quo)** — rejected by measurement: L2 recovers less than a sixth of the gap with a 27B model.
+- **Synonym dictionary** — remains rejected per D25.
+
+**Revisit when**: the post-stemmer L1 re-measure lands (decide step 2's final go/no-go and embedding model choice there); or the L2/L3 model-size sweep shows smaller models benefit disproportionately more/less from retrieval quality, which would change the priority of step 2 relative to other roadmap work.
