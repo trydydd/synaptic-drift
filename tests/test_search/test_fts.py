@@ -665,3 +665,71 @@ def test_search_relaxed_malformed_operator_raises() -> None:
     db = _make_relaxed_db()
     with pytest.raises(SearchError):
         search_relaxed(db, "foo AND")
+
+
+# -- porter stemming (D30 step 1) --
+
+
+def _make_stemming_db() -> Database:
+    """One pack, one chunk whose content uses only singular/base word forms."""
+    db = _make_db()
+    pack = Pack(
+        name="mathdocs",
+        version="1.0.0",
+        lifecycle_state="approved",
+        doc_version_status="stable",
+        indexed_at="2026-01-01T00:00:00Z",
+    )
+    pages = [Page(id=1, package="mathdocs", version="1.0.0", url="mathtext.md")]
+    chunks = [
+        Chunk(
+            id=1,
+            package="mathdocs",
+            version="1.0.0",
+            page_id=1,
+            heading_path="Mathtext",
+            summary="Render a mathematical formula in a label",
+            content=(
+                "Use the internal parser to render a mathematical formula "
+                "inside an axis label or title. The annotation is drawn with "
+                "the layout engine."
+            ),
+            source_url="mathtext.md",
+        ),
+    ]
+    _import_pack(db, pack, pages, chunks)
+    return db
+
+
+def test_search_bridges_plural_query_to_singular_content() -> None:
+    """'formulas' must match a chunk that only ever says 'formula'.
+
+    The html_v1 vocabulary_mismatch tier showed 4/26 questions failing purely
+    on morphology (unicode61 does no stemming) — see decisions.md D30.
+    """
+    db = _make_stemming_db()
+    results = search(db, "formulas")
+    assert len(results) == 1
+    assert results[0].heading_path == "Mathtext"
+
+
+def test_search_bridges_singular_query_to_plural_content() -> None:
+    """The reverse direction: 'label' content, 'labels' query."""
+    db = _make_stemming_db()
+    results = search(db, "labels")
+    assert len(results) == 1
+
+
+def test_search_bridges_inflected_verb_forms() -> None:
+    """'rendering annotations' must match 'render ... annotation'."""
+    db = _make_stemming_db()
+    results = search(db, "rendering annotations")
+    assert len(results) == 1
+
+
+def test_search_relaxed_also_stems() -> None:
+    """search_relaxed shares the FTS index, so stemming applies there too."""
+    db = _make_stemming_db()
+    results, effective = search_relaxed(db, "formulas titles")
+    assert len(results) == 1
+    assert effective == "formulas OR titles"
