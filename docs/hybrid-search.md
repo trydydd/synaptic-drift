@@ -143,3 +143,26 @@ Sequencing before implementation is recorded in decisions.md **D30**: the
 porter-stemmer tokenizer change ships and is re-measured first (it is
 near-free and addresses the tier's morphology class plus general recall),
 then the embedding investment is sized against what remains.
+
+## Prototype results and the query-embedding gap (2026-07-12)
+
+A working RRF prototype exists (`tests/evals/l1_rrf_matrix.py`: BM25 via the
+shipped `search_docs` path + brute-force cosine over precomputed
+all-MiniLM-L6-v2 chunk embeddings, RRF k=60, fusion depth 100). Measured
+across {unicode61, porter} × {BM25, RRF} on both gold corpora — full numbers
+in `tests/evals/results/*_l1_rrf_matrix.json` and decisions.md D30's matrix
+addendum. Headlines: RRF beats BM25-only overall on both corpora and takes
+the paraphrase tier from 0.000 to ~0.39 recall@5, but pays a direct-tier
+recall@5 tax (html 0.955 → ~0.85); with RRF active, porter-vs-unicode61
+becomes nearly irrelevant.
+
+**Query-embedding gap (design correction).** The architecture above moves
+chunk embedding to build time, but a query arriving at search time still
+needs an encoder before the vector leg can run. There is no model-free way
+to produce the query vector. The resolution is a hard product requirement
+(D30): **the model-free workflow is preserved** — the vector leg activates
+only when (a) the pack shipped embeddings and (b) a local encoder is
+available at query time; in every other case `search` runs today's
+BM25-only path unchanged. The encoder is an optional extra (e.g.
+`synaptic-drift[semantic]` pulling fastembed), never a base dependency, and
+never a network call.
