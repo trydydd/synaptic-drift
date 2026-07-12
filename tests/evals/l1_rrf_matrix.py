@@ -142,12 +142,17 @@ def _load_query_vecs(npz_path: Path) -> dict[str, np.ndarray]:
     return {str(qid): vec for qid, vec in zip(data["ids"], data["vecs"])}
 
 
-def run_matrix(corpus: str) -> dict[str, Any]:
+def run_matrix(corpus: str, artifact_suffix: str = "") -> dict[str, Any]:
+    """artifact_suffix selects indexed-side artifact variants (e.g.
+    '_enriched' for the LLM-summary corpus twins built by
+    build_enriched_artifacts.py). Query embeddings and the gold dataset are
+    always the originals — only the indexed side varies."""
     dataset = json.loads(_DATASETS[corpus].read_text(encoding="utf-8"))
 
-    db_porter = Database(_WORK / f"{corpus}.db")
-    db_unicode = Database(_WORK / f"{corpus}_unicode61.db")
-    vindex = _VectorIndex(_WORK / f"{corpus}_chunk_embeddings.npz")
+    base = f"{corpus}{artifact_suffix}"
+    db_porter = Database(_WORK / f"{base}.db")
+    db_unicode = Database(_WORK / f"{base}_unicode61.db")
+    vindex = _VectorIndex(_WORK / f"{base}_chunk_embeddings.npz")
     query_vecs = _load_query_vecs(_WORK / f"{corpus}_query_embeddings.npz")
 
     # Fusion mixes ranked id lists from both DBs plus the vector index, so
@@ -241,6 +246,7 @@ def run_matrix(corpus: str) -> dict[str, Any]:
 
     return {
         "corpus": corpus,
+        "artifact_suffix": artifact_suffix,
         "dataset": str(_DATASETS[corpus]),
         "fusion_depth": _FUSION_DEPTH,
         "rrf_k": _RRF_K,
@@ -294,9 +300,15 @@ def main() -> None:
     )
     parser.add_argument("corpus", choices=("html", "pilot"))
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--artifact-suffix",
+        default="",
+        help="Indexed-side artifact variant, e.g. '_enriched' (see "
+        "build_enriched_artifacts.py). Queries and gold stay the originals.",
+    )
     args = parser.parse_args()
 
-    result = run_matrix(args.corpus)
+    result = run_matrix(args.corpus, artifact_suffix=args.artifact_suffix)
     _print_summary(result)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
