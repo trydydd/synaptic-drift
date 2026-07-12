@@ -45,3 +45,21 @@ class TestRrfFuse:
         # and membership count dominates
         fused = rrf_fuse([[1, 2, 3], [3]], k=10_000)
         assert fused[0] == 3
+
+
+class TestWeightedRrfFuse:
+    def test_default_weights_match_unweighted(self) -> None:
+        lists = [[1, 2, 3], [3, 1]]
+        assert rrf_fuse(lists) == rrf_fuse(lists, weights=[1.0, 1.0])
+
+    def test_heavy_first_list_preserves_its_order(self) -> None:
+        # With enough weight on list A, list B cannot displace A's ranking:
+        # doc 9 tops B but w_a * 1/(k+2) > w_a/(k+100) + 1/(k+1) for w_a=3
+        fused = rrf_fuse([[1, 2], [9]], weights=[3.0, 1.0])
+        assert fused[:2] == [1, 2]
+
+    def test_weight_zero_ignores_list(self) -> None:
+        fused = rrf_fuse([[1, 2], [9, 8]], weights=[1.0, 0.0])
+        assert fused[:2] == [1, 2]
+        # zero-weight docs still present (score 0) but ranked last
+        assert set(fused) == {1, 2, 9, 8}

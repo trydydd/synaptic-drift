@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from synd.search.fts import SearchError  # noqa: E402
+from synd.search.fts import search as fts_search  # noqa: E402
 from synd.server import search_docs  # noqa: E402
 from synd.storage.db import Database  # noqa: E402
 from tests.evals.retrieval_scoring import (  # noqa: E402
@@ -67,17 +68,24 @@ _FUSION_DEPTH = 100  # per-list depth fed into RRF
 _RRF_K = 60  # standard RRF constant
 
 
-def rrf_fuse(lists: list[list[int]], k: int = _RRF_K) -> list[int]:
-    """Reciprocal Rank Fusion: score(d) = sum over lists of 1/(k + rank(d)).
+def rrf_fuse(
+    lists: list[list[int]],
+    k: int = _RRF_K,
+    weights: list[float] | None = None,
+) -> list[int]:
+    """Reciprocal Rank Fusion: score(d) = sum over lists of w_i/(k + rank(d)).
 
     rank is 1-based; a document absent from a list contributes nothing for
-    that list. Ties broken by (first list's rank, then id) for determinism.
+    that list. weights defaults to 1.0 per list (classic unweighted RRF).
+    Ties broken by (first list's rank, then id) for determinism.
     """
+    if weights is None:
+        weights = [1.0] * len(lists)
     scores: dict[int, float] = {}
     first_rank: dict[int, int] = {}
-    for lst in lists:
+    for weight, lst in zip(weights, lists):
         for rank, doc_id in enumerate(lst, start=1):
-            scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (k + rank)
+            scores[doc_id] = scores.get(doc_id, 0.0) + weight / (k + rank)
             if doc_id not in first_rank:
                 first_rank[doc_id] = rank
     return sorted(scores, key=lambda d: (-scores[d], first_rank[d], d))
@@ -93,6 +101,22 @@ def _bm25_ranked(db: Database, query_text: str, limit: int) -> list[int]:
     if not isinstance(results, list):
         return []
     return [int(r["chunk_id"]) for r in results]
+
+
+def _and_matches(db: Database, query_text: str) -> bool:
+    """True when strict implicit-AND matching finds at least one chunk.
+
+    This is the model-free confidence gate: an AND hit means every
+    (preprocessed) query term co-occurs in one chunk — the query speaks the
+    corpus's vocabulary, which is precisely the regime where plain BM25 is
+    near-perfect (direct tier 0.955 recall@5) and fusion only adds noise.
+    Uses the same public search() the product ships; stemming applies on the
+    porter DB, so the gate is tokenizer-consistent with the list it gates.
+    """
+    try:
+        return bool(fts_search(db, query_text, limit=1))
+    except SearchError:
+        return False
 
 
 class _VectorIndex:
@@ -144,10 +168,20 @@ def run_matrix(corpus: str) -> dict[str, Any]:
         "bm25-porter",
         "rrf-unicode61",
         "rrf-porter",
+        "rrf-w2-unicode61",
+        "rrf-w2-porter",
+        "rrf-w3-unicode61",
+        "rrf-w3-porter",
+        "andgate-unicode61",
+        "andgate-porter",
         "vector-only",
     )
     rows: list[dict[str, Any]] = []
     unresolved: list[str] = []
+    gate_stats = {
+        "unicode61": {"gated": 0, "fused": 0},
+        "porter": {"gated": 0, "fused": 0},
+    }
 
     for question in dataset.get("questions", []):
         gold_ids = resolve_gold_ids(question, hash_to_ids)
@@ -165,11 +199,23 @@ def run_matrix(corpus: str) -> dict[str, Any]:
             bm25_p = _bm25_ranked(db_porter, query_text, _FUSION_DEPTH)
             vec = vindex.top_k(qvec, _FUSION_DEPTH)
 
+            # Confidence gate: strict AND success -> pure BM25; else fuse.
+            and_u = _and_matches(db_unicode, query_text)
+            and_p = _and_matches(db_porter, query_text)
+            gate_stats["unicode61"]["gated" if and_u else "fused"] += 1
+            gate_stats["porter"]["gated" if and_p else "fused"] += 1
+
             ranked = {
                 "bm25-unicode61": bm25_u,
                 "bm25-porter": bm25_p,
                 "rrf-unicode61": rrf_fuse([bm25_u, vec]),
                 "rrf-porter": rrf_fuse([bm25_p, vec]),
+                "rrf-w2-unicode61": rrf_fuse([bm25_u, vec], weights=[2.0, 1.0]),
+                "rrf-w2-porter": rrf_fuse([bm25_p, vec], weights=[2.0, 1.0]),
+                "rrf-w3-unicode61": rrf_fuse([bm25_u, vec], weights=[3.0, 1.0]),
+                "rrf-w3-porter": rrf_fuse([bm25_p, vec], weights=[3.0, 1.0]),
+                "andgate-unicode61": bm25_u if and_u else rrf_fuse([bm25_u, vec]),
+                "andgate-porter": bm25_p if and_p else rrf_fuse([bm25_p, vec]),
                 "vector-only": vec,
             }
             for cond in conditions:
@@ -212,6 +258,7 @@ def run_matrix(corpus: str) -> dict[str, Any]:
             }
             for cond in conditions
         },
+        "gate_stats": gate_stats,
         "questions": rows,
     }
 
