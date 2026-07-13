@@ -18,13 +18,17 @@ Nothing below depends on the vector leg.
 
 ## 1. Measurements to complete
 
-- [ ] **Replicate on the pilot corpus** *(in progress, 2026-07-13)*. Generate
-  27B summaries for `pilot.db`, build `pilot_enriched*` artifacts, run
-  `l1_rrf_matrix.py pilot --artifact-suffix _enriched`, compare against the
-  committed `pilot_l1_rrf_matrix.json` baseline. The D30 ladder's evidence bar
-  is reproduction across both independently generated corpora. Claims to
-  confirm: direct tier preserved-or-better on bm25-unicode61 and rrf-w3;
-  paraphrase/vocab-mismatch up on every strategy.
+- [x] **Replicate on the pilot corpus** *(done 2026-07-13, see D30 pilot
+  addendum + `pilot_l1_rrf_matrix_enriched.json`)*. Headline replicates:
+  every strategy improves on every overall NL metric; paraphrase up across
+  the board. Caveat: BM25-only direct recall@5/@20 dipped on 5 terse
+  abbreviated queries (washes out under rrf-w3) — spawned the append-vs-
+  replace variant below.
+- [ ] **Measure append-vs-replace summaries** *(new, from pilot caveat)*.
+  Variant: append the LLM sentence to the heuristic first-sentence summary
+  instead of replacing it, keeping the gold chunk's own opening tokens as
+  exact-match capital for terse queries. Same harness, one more
+  `--artifact-suffix` run per corpus; decides the production summary format.
 - [ ] **One L2 confirmation run against the enriched html DB.** L1 says the
   engine ceiling rose; the product claim is that the *agent* benefits. A
   single `l2_reachability.py` pass on the enriched artifacts closes the loop
