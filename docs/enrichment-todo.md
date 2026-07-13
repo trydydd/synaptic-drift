@@ -24,11 +24,14 @@ Nothing below depends on the vector leg.
   the board. Caveat: BM25-only direct recall@5/@20 dipped on 5 terse
   abbreviated queries (washes out under rrf-w3) — spawned the append-vs-
   replace variant below.
-- [ ] **Measure append-vs-replace summaries** *(new, from pilot caveat)*.
-  Variant: append the LLM sentence to the heuristic first-sentence summary
-  instead of replacing it, keeping the gold chunk's own opening tokens as
-  exact-match capital for terse queries. Same harness, one more
-  `--artifact-suffix` run per corpus; decides the production summary format.
+- [x] **Measure append-vs-replace summaries** *(done 2026-07-13, see D30
+  addendum + `*_l1_rrf_matrix_enriched_append.json`)*. **Append is the
+  production summary format**: BM25-only append ≥ replace on both corpora
+  (html direct recall@5 0.972 vs 0.955; repairs the pilot terse-query
+  regression) while keeping the hard-tier gains. The embedding leg prefers
+  the clean LLM sentence (html vector-only 0.818 vs 0.744) — when D30
+  step 2 ships, embed the LLM sentence, index/display the append form; the
+  choices are independent.
 - [ ] **One L2 confirmation run against the enriched html DB.** L1 says the
   engine ceiling rose; the product claim is that the *agent* benefits. A
   single `l2_reachability.py` pass on the enriched artifacts closes the loop

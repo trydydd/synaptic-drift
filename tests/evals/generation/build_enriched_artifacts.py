@@ -35,16 +35,27 @@ _WORK = Path(__file__).parent / "work"
 _EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 
-def _apply_summaries(db_path: Path, by_hash: dict[str, str]) -> tuple[int, int]:
+def _apply_summaries(
+    db_path: Path, by_hash: dict[str, str], mode: str
+) -> tuple[int, int]:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     updated = 0
     missing = 0
-    for row in conn.execute("SELECT id, content_hash FROM chunks").fetchall():
-        summary = by_hash.get(row["content_hash"])
-        if summary is None:
+    rows = conn.execute("SELECT id, content_hash, summary FROM chunks").fetchall()
+    for row in rows:
+        llm_summary = by_hash.get(row["content_hash"])
+        if llm_summary is None:
             missing += 1
             continue
+        if mode == "append":
+            # Keep the heuristic first-sentence summary (the gold chunk's own
+            # opening tokens — exact-match capital for terse queries, see the
+            # D30 pilot-replication caveat) and append the LLM sentence.
+            heuristic = (row["summary"] or "").strip()
+            summary = f"{heuristic} {llm_summary}".strip()
+        else:
+            summary = llm_summary
         conn.execute("UPDATE chunks SET summary = ? WHERE id = ?", (summary, row["id"]))
         updated += 1
     conn.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')")
@@ -57,7 +68,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", choices=("html", "pilot"), required=True)
     parser.add_argument("--summaries", type=Path, required=True)
+    parser.add_argument(
+        "--mode",
+        choices=("replace", "append"),
+        default="replace",
+        help="replace: LLM summary supplants the heuristic one (suffix "
+        "'_enriched'); append: heuristic sentence + LLM sentence (suffix "
+        "'_enriched_append')",
+    )
     args = parser.parse_args()
+    suffix = "_enriched" if args.mode == "replace" else "_enriched_append"
 
     by_hash: dict[str, str] = {}
     with args.summaries.open(encoding="utf-8") as fh:
@@ -70,13 +90,13 @@ def main() -> None:
 
     for variant in ("", "_unicode61"):
         src = _WORK / f"{args.corpus}{variant}.db"
-        dst = _WORK / f"{args.corpus}_enriched{variant}.db"
+        dst = _WORK / f"{args.corpus}{suffix}{variant}.db"
         shutil.copy(src, dst)
-        updated, missing = _apply_summaries(dst, by_hash)
+        updated, missing = _apply_summaries(dst, by_hash, args.mode)
         print(f"{dst.name}: {updated} summaries applied, {missing} chunks without")
 
     # Re-embed from the enriched porter twin (id space identical to baseline).
-    conn = sqlite3.connect(_WORK / f"{args.corpus}_enriched.db")
+    conn = sqlite3.connect(_WORK / f"{args.corpus}{suffix}.db")
     conn.row_factory = sqlite3.Row
     rows = conn.execute(
         "SELECT id, heading_path, summary, content FROM chunks ORDER BY id"
@@ -90,7 +110,7 @@ def main() -> None:
     model = TextEmbedding(_EMBEDDING_MODEL)
     vecs = np.array(list(model.embed(texts)), dtype=np.float32)
     vecs /= np.linalg.norm(vecs, axis=1, keepdims=True)
-    out = _WORK / f"{args.corpus}_enriched_chunk_embeddings.npz"
+    out = _WORK / f"{args.corpus}{suffix}_chunk_embeddings.npz"
     np.savez(out, ids=ids, vecs=vecs)
     print(f"embedded {len(ids)} chunks -> {out.name}")
 
