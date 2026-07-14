@@ -79,19 +79,20 @@ Each of these needs a `decisions.md` entry when settled.
   and prompt version in `manifest.json` so consumers can see summaries are
   LLM-generated and by what. The prompt text must be versioned — editing it
   regenerates every summary and churns every pack digest, so a prompt change
-  must be deliberate and visible. *Candidate **v3** on file (A/B'd live,
-  2026-07-14, superseding a v2 draft)*: replaces the vague "what a developer
-  can do or learn" with "the specific capability, API behavior, or fact this
-  excerpt documents", adds "do not attribute an action to a tool or class
-  unless the excerpt itself does" and "if the excerpt is an index of links,
-  a navigation list, or bare attribute stubs, describe it as exactly that
-  and name what it lists". On the 3 spot-check misses + 5 controls: fixes
-  the index-page and attribute-stub classes with vocabulary retained (stubs
-  now emit full dotted paths); the salient-term conflation class (#4614)
-  remains — bounded by chunking, not prompting. Controls stay accurate and
-  denser in technical terms, but v3 drops v1's uniform "Developers can…"
-  framing, so its net retrieval effect is unmeasured. Ship gates on a full
-  matrix run with regenerated summaries.
+  must be deliberate and visible. *Candidate **v4** on file (A/B'd live,
+  2026-07-14, superseding v2/v3 drafts)*: keeps v1's "what a developer can
+  do or learn" opening and adds two targeted rules — "do not attribute an
+  action to a tool or class unless the excerpt itself does" and "if the
+  excerpt is an index of links, a navigation list, or bare attribute stubs,
+  describe it as exactly that and name what it lists". On the 3 spot-check
+  misses + 5 controls: fixes the index-page and attribute-stub classes
+  (stubs emit full dotted paths); the salient-term conflation class (#4614)
+  remains — bounded by chunking, not prompting. Unlike v3 (which reframed
+  every summary's voice), v4 leaves substantive chunks essentially at v1 —
+  two controls byte-identical, the rest keep the "Developers can…" framing —
+  so the targeted rules fire only on pathological chunk types and the
+  retrieval risk of adoption is low. Still gates on a full matrix run with
+  regenerated summaries before shipping as the versioned prompt.
 - [ ] **Stemmer keep/revert (entangled — decide before prod).**
   `tokenize='porter unicode61'` + `_migrate_fts_tokenizer()` is live in
   `src/synd/storage/db.py` today and migrates user DBs whether or not a
