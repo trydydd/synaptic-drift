@@ -79,14 +79,19 @@ Each of these needs a `decisions.md` entry when settled.
   and prompt version in `manifest.json` so consumers can see summaries are
   LLM-generated and by what. The prompt text must be versioned — editing it
   regenerates every summary and churns every pack digest, so a prompt change
-  must be deliberate and visible. *Candidate v2 edit on file (A/B'd live,
-  2026-07-14)*: a grounding sentence ("State only what the excerpt itself
-  shows… describe link lists or attribute stubs as such") fixes the
-  index-page invention class, overcorrects reference stubs into
-  meta-description (retrieval effect unknown — FastAPI has thousands of
-  stub chunks), and cannot fix salient-term conflation (#4614 class, bounded
-  by chunking). Ship v1 (the measured prompt); if v2 is adopted, it gates on
-  its own full matrix run.
+  must be deliberate and visible. *Candidate **v3** on file (A/B'd live,
+  2026-07-14, superseding a v2 draft)*: replaces the vague "what a developer
+  can do or learn" with "the specific capability, API behavior, or fact this
+  excerpt documents", adds "do not attribute an action to a tool or class
+  unless the excerpt itself does" and "if the excerpt is an index of links,
+  a navigation list, or bare attribute stubs, describe it as exactly that
+  and name what it lists". On the 3 spot-check misses + 5 controls: fixes
+  the index-page and attribute-stub classes with vocabulary retained (stubs
+  now emit full dotted paths); the salient-term conflation class (#4614)
+  remains — bounded by chunking, not prompting. Controls stay accurate and
+  denser in technical terms, but v3 drops v1's uniform "Developers can…"
+  framing, so its net retrieval effect is unmeasured. Ship gates on a full
+  matrix run with regenerated summaries.
 - [ ] **Stemmer keep/revert (entangled — decide before prod).**
   `tokenize='porter unicode61'` + `_migrate_fts_tokenizer()` is live in
   `src/synd/storage/db.py` today and migrates user DBs whether or not a
