@@ -79,7 +79,14 @@ Each of these needs a `decisions.md` entry when settled.
   and prompt version in `manifest.json` so consumers can see summaries are
   LLM-generated and by what. The prompt text must be versioned — editing it
   regenerates every summary and churns every pack digest, so a prompt change
-  must be deliberate and visible.
+  must be deliberate and visible. *Candidate v2 edit on file (A/B'd live,
+  2026-07-14)*: a grounding sentence ("State only what the excerpt itself
+  shows… describe link lists or attribute stubs as such") fixes the
+  index-page invention class, overcorrects reference stubs into
+  meta-description (retrieval effect unknown — FastAPI has thousands of
+  stub chunks), and cannot fix salient-term conflation (#4614 class, bounded
+  by chunking). Ship v1 (the measured prompt); if v2 is adopted, it gates on
+  its own full matrix run.
 - [ ] **Stemmer keep/revert (entangled — decide before prod).**
   `tokenize='porter unicode61'` + `_migrate_fts_tokenizer()` is live in
   `src/synd/storage/db.py` today and migrates user DBs whether or not a
