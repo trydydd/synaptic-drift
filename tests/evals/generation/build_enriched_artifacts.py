@@ -76,8 +76,17 @@ def main() -> None:
         "'_enriched'); append: heuristic sentence + LLM sentence (suffix "
         "'_enriched_append')",
     )
+    parser.add_argument(
+        "--suffix",
+        default=None,
+        help="Override the artifact suffix (e.g. '_enriched_v4_append' for a "
+        "prompt-version variant). Defaults to the mode-derived suffix.",
+    )
     args = parser.parse_args()
-    suffix = "_enriched" if args.mode == "replace" else "_enriched_append"
+    if args.suffix is not None:
+        suffix = args.suffix
+    else:
+        suffix = "_enriched" if args.mode == "replace" else "_enriched_append"
 
     by_hash: dict[str, str] = {}
     with args.summaries.open(encoding="utf-8") as fh:

@@ -39,7 +39,11 @@ _MAX_TOKENS = 90
 _CONTENT_CHARS = 3000  # prompt budget; MiniLM/BM25 both favor the lead anyway
 _CONCURRENCY = 16  # vLLM continuous batching absorbs this comfortably
 
-_PROMPT = """\
+# Prompt versions (see docs/enrichment-todo.md, provenance/prompt-versioning
+# item). v1 is the measured baseline; v4 adds two targeted grounding rules
+# and leaves substantive chunks essentially at v1.
+_PROMPTS = {
+    "v1": """\
 Write ONE sentence (max 30 words) describing what a developer can do or learn \
 from this documentation excerpt. Use plain developer vocabulary AND the \
 library's own terms for the key concepts, so both phrasings are present. \
@@ -49,7 +53,21 @@ Section: {heading_path}
 
 Excerpt:
 {content}
-"""
+""",
+    "v4": """\
+Write ONE sentence (max 30 words) describing what a developer can do or learn
+from this documentation excerpt. Use plain developer vocabulary AND the
+library's own terms for the key concepts, so both phrasings are present. Do not attribute an action to a tool or class unless
+the excerpt itself does. If the excerpt is an index of links, a navigation
+list, or bare attribute stubs, describe it as exactly that and name what it
+lists. No preamble, no markdown, just the sentence.
+
+Section: {heading_path}
+
+Excerpt:
+{content}
+""",
+}
 
 
 def _call_vllm(prompt_text: str, base_url: str, model: str, api_key: str) -> str:
@@ -102,7 +120,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db", type=Path, required=True, help="Corpus DB (chunks)")
     parser.add_argument("--output", type=Path, required=True, help="Summaries JSONL")
+    parser.add_argument(
+        "--prompt-version",
+        choices=sorted(_PROMPTS),
+        default="v1",
+        help="Prompt version (v1 = measured baseline). Use a separate "
+        "--output per version — the resume-by-content_hash logic cannot "
+        "tell versions apart within one file.",
+    )
     args = parser.parse_args()
+    prompt_template = _PROMPTS[args.prompt_version]
 
     base_url = os.environ.get("SYND_GEN_VLLM_URL", "")
     model = os.environ.get("SYND_GEN_VLLM_MODEL", "")
@@ -127,7 +154,7 @@ def main() -> None:
     failures = 0
 
     def _one(row: sqlite3.Row) -> dict[str, object]:
-        prompt = _PROMPT.format(
+        prompt = prompt_template.format(
             heading_path=row["heading_path"] or "",
             content=row["content"][:_CONTENT_CHARS],
         )
