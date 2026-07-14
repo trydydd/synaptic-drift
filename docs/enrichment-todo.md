@@ -32,12 +32,15 @@ Nothing below depends on the vector leg.
   the clean LLM sentence (html vector-only 0.818 vs 0.744) — when D30
   step 2 ships, embed the LLM sentence, index/display the append form; the
   choices are independent.
-- [ ] **One L2 confirmation run against the enriched html DB.** L1 says the
-  engine ceiling rose; the product claim is that the *agent* benefits. A
-  single `l2_reachability.py` pass on the enriched artifacts closes the loop
-  and shows whether the recall@1 lift (0.473 → 0.568 BM25-only) reduces
-  wrong-fetch behavior of the kind observed in the L2 baseline (e.g. html_v1
-  r0088).
+- [x] **One L2 confirmation run against the enriched html DB** *(done
+  2026-07-14 on the enriched-append DB, see D30 L2 addendum +
+  `html_l2_reachability_enriched_append.json`)*. Gains survive the model in
+  the loop: overall MRR 0.437 → 0.494, paraphrase recall@5 0.143 → 0.214,
+  vocab recall@20 0.351 → 0.538. Caveats: direct recall@5 softened under
+  model-authored queries (0.926 → 0.881, redistribution — recall@1/@20/MRR
+  all up); the model's gold-*fetch* rate barely moved (direct flat at
+  0.818) — the residual failure is the model's selection among surfaced
+  results, not retrieval ranking, and lands with the L3 endtask A/B.
 - [ ] **Semantic spot-check of generated summaries.** The 6,469-summary html
   run had zero API failures, but nobody has audited whether summaries
   *accurately describe their chunks*. Sample ~30 across the three packs and
