@@ -79,20 +79,16 @@ Each of these needs a `decisions.md` entry when settled.
   and prompt version in `manifest.json` so consumers can see summaries are
   LLM-generated and by what. The prompt text must be versioned — editing it
   regenerates every summary and churns every pack digest, so a prompt change
-  must be deliberate and visible. *Candidate **v4** on file (A/B'd live,
-  2026-07-14, superseding v2/v3 drafts)*: keeps v1's "what a developer can
-  do or learn" opening and adds two targeted rules — "do not attribute an
-  action to a tool or class unless the excerpt itself does" and "if the
-  excerpt is an index of links, a navigation list, or bare attribute stubs,
-  describe it as exactly that and name what it lists". On the 3 spot-check
-  misses + 5 controls: fixes the index-page and attribute-stub classes
-  (stubs emit full dotted paths); the salient-term conflation class (#4614)
-  remains — bounded by chunking, not prompting. Unlike v3 (which reframed
-  every summary's voice), v4 leaves substantive chunks essentially at v1 —
-  two controls byte-identical, the rest keep the "Developers can…" framing —
-  so the targeted rules fire only on pathological chunk types and the
-  retrieval risk of adoption is low. Still gates on a full matrix run with
-  regenerated summaries before shipping as the versioned prompt.
+  must be deliberate and visible. **Prompt decision made by measurement
+  (2026-07-14): v1 ships.** The v4 candidate (v1 opening + grounding +
+  index/stub rules) fixed 2 of 3 spot-check error classes in the 8-chunk
+  A/B but **failed the full matrix gate** (see D30 v4-gate addendum):
+  BM25-only paraphrase recall@5 dropped 0.153 → 0.102, flips +2/−10.
+  Root cause: attribution risk and vocabulary-normalization benefit are the
+  same model behavior — grounding rules suppress both. v1 (the measured
+  prompt) is the production prompt for the BM25-first shipping step; v4 may
+  be re-evaluated for hybrid-only packs when step 2 ships (under fusion, v4
+  wins: rrf vocab recall@20 0.572 → 0.692).
 - [ ] **Stemmer keep/revert (entangled — decide before prod).**
   `tokenize='porter unicode61'` + `_migrate_fts_tokenizer()` is live in
   `src/synd/storage/db.py` today and migrates user DBs whether or not a
