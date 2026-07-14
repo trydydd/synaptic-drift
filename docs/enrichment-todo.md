@@ -41,12 +41,14 @@ Nothing below depends on the vector leg.
   all up); the model's gold-*fetch* rate barely moved (direct flat at
   0.818) — the residual failure is the model's selection among surfaced
   results, not retrieval ranking, and lands with the L3 endtask A/B.
-- [ ] **Semantic spot-check of generated summaries.** The 6,469-summary html
-  run had zero API failures, but nobody has audited whether summaries
-  *accurately describe their chunks*. Sample ~30 across the three packs and
-  check for misdescription, hallucinated capabilities, and refusal/preamble
-  leakage. An LLM summary that misdescribes its chunk is indexed at 1.5×
-  BM25 weight — errors here actively mislead retrieval.
+- [x] **Semantic spot-check of generated summaries** *(done 2026-07-14, see
+  D30 spot-check addendum)*. Automated screen of all 6,469 + manual audit of
+  30 (seed 42, 10/pack): 27/30 fully accurate, zero hallucinated
+  capabilities, zero refusals/preambles/empties; 3 minor attribution
+  imprecisions (~10%, low severity). Side-finding: 38 chunks are residual
+  nav/footer boilerplate the model correctly labels content-free —
+  a Phase-2 stripping candidate, and the self-labeling helpfully ranks
+  them down. Generation quality is not a blocker at 27B/greedy.
 
 ## 2. Design decisions to make
 
