@@ -1,17 +1,34 @@
 # Synaptic Drift — Semver Roadmap
 
-## Current Focus — v0.2.0
+## Current Focus — Evaluation-Driven Search Quality (v1.1 promoted from contingency)
 
-v0.1.1 is complete. Active development is on v0.2.0 (402 tests passing).
+v0.1.1, v0.2.0, and the v0.3.0 crawler are complete. 629 tests passing. The
+active stream is the **v1.1 "Smarter Search"** program, which is no longer a
+contingency: the trigger fired. A crawled-HTML gold corpus (`html_v1`, 300 Qs)
+plus the llms.txt pilot reproduced real, large-sample vocabulary-mismatch and
+paraphrase failures that tuned FTS5 cannot address (recall@1–20 = 0.000 at
+n=26 on the vocab tier), satisfying D25/D29/D30's evidence bar. See
+`docs/decisions.md` D29–D31 and `docs/hybrid-search.md`.
 
-**Chunker quality stream complete** — all S1–S10 spikes resolved:
-- Custom `markdown-it-py` chunker (all heading levels, fence atomicity, `heading_path` by construction)
-- Heading-aware summary heuristic; MDX/Tab de-indentation and pipeline order fix; Tab heading disambiguation
-- `synd build --source <url>` (llms-full.txt and llms.txt); URL noise filtering
-- `--max/min/warn-chunk-tokens` CLI params; default max raised 500 → 800; oversized-chunk warnings
-- Minimum-token stub suppression (heading boundaries + trailing sections)
+**Shipped in this stream:**
+- **D29** — targeted intra-block chunk splitting + HTML boilerplate stripping.
+- **D30** — the hybrid-search evidence ladder: L1/L2/L3 eval harness, two gold
+  corpora, the RRF matrix prototype, and the measured sequencing (enrichment
+  first, weighted RRF second, porter stemmer rejected as a wash).
+- **D31** — `synd build --summarizer llm`: build-time LLM summary enrichment
+  (append format, v1 prompt, content-hash summary lockfile for
+  reproducibility, fail-hard semantics, manifest provenance). Porter stemmer
+  reverted to unicode61 in the same change. **This is v1.1 step 1, shipped.**
 
-**Next up:** PyPI release. The publish step is written but unreachable on the automated path (see the Release section below for the exact trigger gap and fix); FTS5 query preprocessing is done.
+**Next up** (see "v1.1" below and `docs/spikes.yaml` S14/S15): land the
+`feature/top-20` branch, run the model-size sweep (the eval program's headline
+deliverable), then decide weighted-RRF step 2 / reranking / BGE-M3 on the sweep
+evidence.
+
+**Still open from v0.2.0/v0.3.0** (deferred, not blocking the search stream):
+PyPI release — the publish step is written but unreachable on the automated
+path (see the Release section for the trigger gap and fix); pre-built top-20
+packs and the pack registry.
 
 ---
 
@@ -223,13 +240,66 @@ v0.1.1 is complete. Active development is on v0.2.0 (402 tests passing).
 
 ---
 
-## v1.1 — "Smarter Search" *(contingency)*
+## v1.1 — "Smarter Search" *(active — trigger fired)*
 
-**Theme**: Hybrid search if FTS5 tuning proves insufficient. Gate on evidence, not schedule.
+**Theme**: Improve retrieval on vocabulary-mismatch and paraphrase queries that
+tuned FTS5 cannot reach. Gate every rung on measurement, not schedule.
 
-**Trigger**: Real user feedback shows vocabulary-mismatch failures on semantic queries that tuned FTS5 cannot address.
+**Trigger (met, 2026-07)**: the `html_v1` and `pilot_v1` gold corpora reproduced
+vocabulary-mismatch recall@1–20 = 0.000 (n=26) and paraphrase recall@5 = 0.000
+(n=98) against real crawled docs — evidence tuned FTS5 cannot address. See
+`docs/decisions.md` D25/D29/D30, `docs/hybrid-search.md`.
 
-- [ ] **Import-side embeddings** — BGE-M3 dense + sparse vectors computed at `synd add` time, stored in `index.db`. Pack format unchanged — no embedding vectors in `.ctx` files.
-- [ ] Hybrid search: dense cosine + BGE-M3 sparse + FTS5, fused with Reciprocal Rank Fusion (RRF)
-- [ ] `synaptic-drift[embeddings]` optional dependency group (`pip install synaptic-drift[embeddings]`)
-- [ ] Re-embedding on model change (stored chunk text → new vectors, no re-pull required)
+**Design correction (2026-07)**: this section originally proposed BGE-M3
+dense+sparse vectors computed at `synd add` time as *the* design. The measured
+program landed differently — build-time enrichment first, then a weighted-RRF
+vector leg using a tiny pure-ONNX encoder (all-MiniLM-L6-v2, no PyTorch),
+embeddings shipped inside the `.ctx` at build time (not recomputed at add
+time). BGE-M3 is now an open evaluation question, not an assumption (see S15).
+
+### Shipped
+
+- [x] **Step 1 — build-time LLM summary enrichment** (D31). `synd build
+  --summarizer llm`: append-format summaries, v1 prompt, content-hash summary
+  lockfile for reproducible republishing, fail-hard semantics, manifest
+  provenance. Strict improvement on both gold corpora; zero query-time
+  dependency. Porter stemmer evaluated and reverted (a wash under enrichment).
+  See D30/D31, `docs/document-processing.md`.
+
+### Next
+
+- [ ] **Land `feature/top-20`** — the branch carrying D29/D30/D31, the eval
+  harness, and both gold corpora. A large, tested, documented unit; cut the PR
+  to `main` before opening new work.
+- [ ] **Model-size sweep** — the eval program's headline deliverable. Run
+  L2/L3 (agent competence + endtask A/B) across the target model sizes
+  (Qwen3 {0.6B, 4B, 8B, 14B, 30B-A3B} + the served 27B) with enrichment on, to
+  answer how small a calling model can still use `synd` effectively. The L2
+  finding that the residual failure is the model's *selection* among surfaced
+  results — not retrieval — makes this the input that gates the remaining
+  decisions. Harness: `docs/eval-harness-design.md` e14/e15.
+- [ ] **Step 2 — weighted RRF + `sqlite-vec`** — the vector leg, prototyped and
+  measured in `tests/evals/l1_rrf_matrix.py` (enriched rrf-w3: html direct
+  recall@5 0.964, paraphrase off the floor). Ship as `synaptic-drift[semantic]`:
+  build-time MiniLM embeddings bundled in the `.ctx`, `sqlite-vec` ANN at query
+  time, RRF fusion. Model-free BM25-only remains the byte-for-byte fallback
+  when no encoder is present. Gate the go/no-go on sweep results.
+- [ ] **[S14] Query-time reranking — feasibility** — whether a local optional
+  ONNX cross-encoder closes the rank-1 gap Context7 holds, or whether the
+  D12 summary-scan workflow already suffices (esp. for small sweep models).
+  Ship / defer-until-sweep / reject with numbers. See `docs/spikes.yaml` S14.
+- [ ] **[S15] BGE-M3 dense+sparse evaluation** — does BGE-M3 (dense +
+  learned-sparse, if a PyTorch-free ONNX path exists) beat the current
+  unicode61-BM25 + MiniLM-dense stack enough to justify its weight? The
+  learned-sparse leg is the interesting case for the vocab-mismatch tier.
+  Feeds which encoder step 2 ships with. See `docs/spikes.yaml` S15.
+
+### Deferred cleanup (fold into step 2)
+
+- [ ] Retire the eval-side prototype scripts (`tests/evals/generation/
+  enrich_summaries.py`, `build_enriched_artifacts.py`) and re-point the matrix
+  at packs built by the real `--summarizer llm` flag (never bypass the public
+  API). Open because step-2 measurements still consume the prototype artifacts.
+- [ ] Pilot-corpus enrichment ship-readiness — the pilot result is measured
+  (D30 pilot addendum) but building real pilot packs via the shipped flag is
+  untested end to end.

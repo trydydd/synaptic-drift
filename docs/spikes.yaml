@@ -752,3 +752,91 @@ spikes:
       - docs/hybrid-search.md
       - docs/decisions.md
     blocked_by: []
+
+  - id: S15
+    title: BGE-M3 dense+sparse vs the current unicode61-BM25 + MiniLM stack
+    status: open
+    outcome: null
+    context: |
+      The roadmap's old v1.1 "Smarter Search" entry proposed BGE-M3 dense +
+      sparse vectors as THE hybrid-search design, computed at `synd add` time.
+      The design that was actually built and measured instead (D30/D31) is:
+      FTS5 unicode61 BM25 (lexical, no stemming) + build-time LLM summary
+      enrichment (shipped, D31) + a prototyped-but-unshipped weighted-RRF
+      vector leg using fastembed all-MiniLM-L6-v2 (384-dim dense, ~90MB ONNX,
+      no PyTorch — D30 step 2). This spike closes the gap between the roadmap's
+      original assumption and the measured reality: is BGE-M3 actually better
+      than what we have, enough to justify its weight?
+
+      Why BGE-M3 is plausibly better: it produces dense, learned-sparse
+      (SPLADE-style lexical), AND multi-vector (ColBERT) representations from
+      one model with an 8192-token context. The learned-sparse leg is the
+      interesting one for us — it is lexical like BM25 but term-weighted by a
+      model, so it could recover the vocabulary_mismatch tier (where plain
+      BM25 scores ~0 and MiniLM-dense recovers only part) without the
+      query-time encoder cost of a pure dense leg.
+
+      Why it is not a free win — the constraint that must anchor the spike:
+      the current dense model is deliberately tiny (all-MiniLM-L6-v2, ~90MB,
+      pure-ONNX via fastembed, no PyTorch — see docs/hybrid-search.md
+      "Dependencies"). BGE-M3 is ~2.3GB in its reference PyTorch form.
+      fastembed DOES ship an ONNX BGE-M3 (dense + sparse), so a PyTorch-free
+      path may exist — confirming that is step 1, because a design that pulls
+      PyTorch is dead on arrival against the "no heavy deps" rule. Even the
+      ONNX form is far larger and slower than MiniLM; the spike must price
+      that against the recall it buys.
+
+      Model-free-workflow constraint (D30, unchanged): any vector/sparse leg
+      is strictly additive and query-time-optional. BM25-only must remain the
+      byte-for-byte fallback when no encoder is present. BGE-M3 does not change
+      this — it would just be a heavier, better [semantic] extra if it wins.
+    task: |
+      Measure whether BGE-M3 beats the current stack on the two gold corpora,
+      reusing the existing harness so results are directly comparable:
+
+      1. Feasibility gate (do first, cheap): confirm a PyTorch-free path.
+         Can fastembed (or plain onnxruntime) produce BGE-M3 dense AND sparse
+         vectors without pulling torch? Record the actual install footprint
+         (wheel + model download size) and compare to the ~90MB MiniLM
+         baseline. If the only path pulls PyTorch, stop and record that as the
+         blocking finding — the rest is moot under the dependency rule.
+      2. Index the gold corpora: embed html_v1 and pilot_v1 chunks with
+         BGE-M3 dense and BGE-M3 sparse, alongside the existing MiniLM dense
+         artifacts in tests/evals/generation/work/. Use the enriched-append
+         summaries as the indexed text (the shipped D31 format), so BGE-M3 is
+         compared on equal footing with the current enriched pipeline.
+      3. Score with the existing matrix harness (tests/evals/l1_rrf_matrix.py):
+         add conditions for BGE-M3-dense-only, BGE-M3-sparse-only, and their
+         RRF fusion with unicode61 BM25 — mirroring the existing
+         bm25/rrf/rrf-w{2,3} conditions. The rrf_fuse() and scoring functions
+         already exist; the work is producing the BGE-M3 ranked lists.
+         Key comparisons, per difficulty tier:
+           - Does BGE-M3-sparse beat unicode61 BM25 on vocabulary_mismatch and
+             paraphrase without a direct-tier tax? (The core hypothesis.)
+           - Does BGE-M3-dense beat MiniLM-dense enough to matter?
+           - Does a BGE-M3 dense+sparse+BM25 fusion beat the current best
+             measured condition (enriched rrf-w3, html direct recall@5 0.964 /
+             the D30 numbers) on the shipping-relevant tiers?
+      4. Latency: measure query-encode time for BGE-M3 (dense+sparse) vs
+         MiniLM on CPU. A heavier encoder that adds hundreds of ms per query
+         changes the product even if recall improves.
+      5. Recommend: adopt BGE-M3 as the [semantic] leg, keep MiniLM, or
+         reject BGE-M3 on the weight/latency-vs-recall tradeoff. Record the
+         numbers in decisions.md and correct docs/hybrid-search.md's
+         Dependencies section (which currently names only MiniLM). If BGE-M3
+         wins, this also feeds the D30 step-2 implementation (which model the
+         vector leg ships with) and interacts with S14 (a good sparse leg may
+         reduce the need for a query-time reranker).
+    success: |
+      A PyTorch-free feasibility verdict with measured install/model size; a
+      per-tier recall/MRR comparison of BGE-M3 dense, BGE-M3 sparse, and their
+      fusion against the current unicode61-BM25 + MiniLM-dense conditions on
+      both gold corpora; CPU query-encode latency for both encoders; and an
+      adopt/keep/reject recommendation recorded in decisions.md with
+      docs/hybrid-search.md's Dependencies section corrected.
+    files:
+      - tests/evals/l1_rrf_matrix.py
+      - tests/evals/generation/build_enriched_artifacts.py
+      - docs/hybrid-search.md
+      - docs/decisions.md
+    blocked_by: []
