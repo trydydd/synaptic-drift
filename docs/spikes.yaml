@@ -685,3 +685,70 @@ spikes:
       - scripts/build_top20_packs.py
       - docs/decisions.md
     blocked_by: []
+
+  - id: S14
+    title: Query-time reranking — feasibility under the model-free constraint
+    status: open
+    outcome: null
+    context: |
+      The Context7 head-to-head on the html_v1 vocabulary_mismatch tier
+      (docs/hybrid-search.md, 2026-07-14) localized the remaining competitive
+      gap precisely: at page-recall@5 the enriched + RRF hybrid prototype is
+      at parity (17/26 vs Context7's 16/26), but Context7 leads at
+      page-recall@1 (10/26 vs 6/26). Their architecture reranks fused results
+      with a server-side model at query time — the one layer synd deliberately
+      lacks. The L2 confirmation run (D30 addendum, 2026-07-14) found the same
+      layer from the other direction: after enrichment, retrieval surfaces the
+      gold far more often but the agent's gold-FETCH rate barely moved (direct
+      flat at 0.818) — the residual failure is selection among surfaced
+      results, which is exactly what a reranker addresses.
+
+      Hard constraints any design must respect (D30, hybrid-search.md):
+      the base query path stays model-free, offline, and dependency-light;
+      anything model-shaped can only activate as an optional extra (the
+      fastembed encoder precedent: synaptic-drift[semantic]) and must degrade
+      byte-for-byte to the unranked path when absent. No network at query
+      time, ever.
+    task: |
+      Research whether a local, optional query-time reranker can close the
+      rank-1 gap, and whether it is worth having at all given the workflow:
+
+      1. Candidate models: ONNX cross-encoders runnable via fastembed or
+         onnxruntime without PyTorch — e.g. ms-marco-MiniLM-L-6-v2 (~90MB),
+         bge-reranker-base, mxbai-rerank-xsmall. For each: size, license,
+         CPU latency to rerank top-20 chunks (measure, don't estimate — a
+         search that takes 2s is a different product), and quality lift on
+         the existing gold sets (rerank the matrix harness's fused top-20 and
+         re-score; the harness and embeddings already exist in
+         tests/evals/l1_rrf_matrix.py + work/ artifacts).
+      2. The agent-as-reranker alternative: D12's summary-scan workflow
+         already delegates reranking to the calling model at zero synd-side
+         cost. Quantify what a reranker adds OVER that: L2 showed the 27B's
+         selection is the bottleneck — would reranked ordering actually change
+         what the agent fetches, or does the agent read all top-5 summaries
+         anyway? Consider measuring L2 with reranked result order vs fused
+         order (the l2_reachability.py harness accepts any DB/ranking).
+      3. Packaging: does the reranker belong in the same [semantic] extra as
+         the query encoder (they share the vector-leg preconditions), or a
+         separate extra? Startup cost of loading a second ONNX model in the
+         MCP server process; memory footprint alongside the encoder.
+      4. Scope check against the sweep: smaller target models select worse
+         (L2 finding) — a reranker helps them most. But the model-size sweep
+         (the project's headline deliverable) may show the summary-scan
+         workflow suffices even for small models. Recommend sequencing:
+         should this wait for sweep results?
+      5. If the answer is "not worth it": document the rank-1 gap as an
+         accepted architectural tradeoff in decisions.md with the head-to-head
+         numbers as the evidence, and close.
+    success: |
+      Measured CPU latency and recall/MRR lift for at least one ONNX
+      cross-encoder on both gold corpora, an explicit comparison against the
+      agent-as-reranker baseline, a packaging recommendation honoring the
+      model-free constraint, and a ship / defer-until-sweep / reject
+      recommendation recorded in decisions.md.
+    files:
+      - tests/evals/l1_rrf_matrix.py
+      - tests/evals/l2_reachability.py
+      - docs/hybrid-search.md
+      - docs/decisions.md
+    blocked_by: []
