@@ -166,3 +166,40 @@ available at query time; in every other case `search` runs today's
 BM25-only path unchanged. The encoder is an optional extra (e.g.
 `synaptic-drift[semantic]` pulling fastembed), never a base dependency, and
 never a network call.
+
+## Context7 head-to-head, vocab-mismatch tier (2026-07-14)
+
+All 26 html_v1 `vocabulary_mismatch` NL queries were sent verbatim to
+Context7's live `query-docs` (website-scraped library variants matching our
+crawled corpora: `/websites/matplotlib_stable`, `/websites/sqlalchemy_en_20`,
+`/websites/fastapi_tiangolo`) and to synd's enriched-append artifacts.
+Scoring is **page-level** for both sides (their chunking differs; gold page =
+the gold chunk's `source_url`, with same-content path normalization, e.g.
+`_downloads/*.ipynb` ↔ its gallery page). synd ranks come from deduped
+page order of the ranked chunk list.
+
+| system | page-recall@1 | page-recall@5 |
+|---|---|---|
+| Context7 (enrich + hybrid + reranker, server-side) | **10/26** | 16/26 |
+| synd hybrid prototype (enriched-append, unweighted RRF) | 6/26 | **17/26** |
+| synd shipping path (enriched-append, BM25-only) | 5/26 | 12/26 |
+
+Readings, with the caveat that n=26 and this is one manual-judged run:
+
+- **At k=5 the hybrid prototype matches Context7** (17 vs 16, different
+  misses). The "0.038 recall@5" chunk-level number that looks catastrophic
+  is a strict-single-chunk artifact; at the granularity an agent actually
+  works at (land on the right page, then read), synd's step-2 architecture
+  is already at parity on the adversarial tier.
+- **Context7 keeps a clear rank-1 edge** (10 vs 6). That is their query-time
+  reranker earning its keep — the one architectural layer synd deliberately
+  does not have (no model at query time). Under D12's workflow the agent
+  reads top-k summaries rather than trusting rank 1, which is exactly the
+  mitigation for lacking a reranker.
+- **The BM25-only shipping path trails but is serviceable** (12/26 vs 16/26
+  on the tier engineered to defeat lexical search) — and it needs zero
+  query-time dependencies, works offline, and is what enrichment alone buys.
+- Context7's index has its own enrichment noise (one snippet attributes
+  arrow-annotation content to matplotlib's `dfrac_demo` fractions page), and
+  several of its strict misses were functionally-correct alternative pages —
+  single-gold strictness cuts against both systems equally.
