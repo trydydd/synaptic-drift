@@ -667,7 +667,7 @@ def test_search_relaxed_malformed_operator_raises() -> None:
         search_relaxed(db, "foo AND")
 
 
-# -- porter stemming (D30 step 1) --
+# -- exact (unstemmed) matching contract (D30 closure: porter reverted) --
 
 
 def _make_stemming_db() -> Database:
@@ -701,35 +701,39 @@ def _make_stemming_db() -> Database:
     return db
 
 
-def test_search_bridges_plural_query_to_singular_content() -> None:
-    """'formulas' must match a chunk that only ever says 'formula'.
-
-    The html_v1 vocabulary_mismatch tier showed 4/26 questions failing purely
-    on morphology (unicode61 does no stemming) — see decisions.md D30.
-    """
+def test_search_matches_exact_word_form() -> None:
+    """The base form present in the content must match."""
     db = _make_stemming_db()
-    results = search(db, "formulas")
+    results = search(db, "formula")
     assert len(results) == 1
     assert results[0].heading_path == "Mathtext"
 
 
-def test_search_bridges_singular_query_to_plural_content() -> None:
-    """The reverse direction: 'label' content, 'labels' query."""
+def test_search_does_not_stem_plural_to_singular() -> None:
+    """'formulas' must NOT match a chunk that only ever says 'formula'.
+
+    Porter stemming shipped briefly (D30 step 1) and was reverted after the
+    matrix measure: a wash under summary enrichment and RRF, while standalone
+    it flipped 9 direct-tier questions 1.00 → 0.00. Exact unicode61 matching
+    is the deliberate contract; morphology gaps are covered by build-time
+    summary enrichment (D30 closure in decisions.md).
+    """
     db = _make_stemming_db()
-    results = search(db, "labels")
-    assert len(results) == 1
+    results = search(db, "formulas")
+    assert results == []
 
 
-def test_search_bridges_inflected_verb_forms() -> None:
-    """'rendering annotations' must match 'render ... annotation'."""
+def test_search_does_not_stem_inflected_verbs() -> None:
+    """'rendering annotations' must not match 'render ... annotation'."""
     db = _make_stemming_db()
     results = search(db, "rendering annotations")
-    assert len(results) == 1
+    assert results == []
 
 
-def test_search_relaxed_also_stems() -> None:
-    """search_relaxed shares the FTS index, so stemming applies there too."""
+def test_search_relaxed_does_not_stem_either() -> None:
+    """search_relaxed shares the FTS index: OR-joined terms stay unstemmed —
+    neither inflected term matches the base-form content."""
     db = _make_stemming_db()
     results, effective = search_relaxed(db, "formulas titles")
-    assert len(results) == 1
+    assert results == []
     assert effective == "formulas OR titles"

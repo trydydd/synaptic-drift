@@ -40,6 +40,18 @@ class CrawlError(BuildError):
     """
 
 
+class SummarizerError(BuildError):
+    """LLM summary enrichment failed: endpoint unreachable, a chunk's
+    generation failed after the run completed, degenerate model output, or
+    an incompatible summary lockfile.
+
+    Builds fail hard rather than silently shipping a pack that mixes LLM and
+    heuristic summaries (D31). Successful generations are persisted to the
+    lockfile before the error is raised, so re-running the build retries only
+    the failed chunks.
+    """
+
+
 class SearchError(SyndError):
     """Database or query error during search."""
 

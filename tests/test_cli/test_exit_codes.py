@@ -31,6 +31,7 @@ from synd.errors import (
     PolicyError,
     SchemaValidationError,
     SearchError,
+    SummarizerError,
     SyndError,
     VerificationError,
 )
@@ -47,6 +48,7 @@ _FIXTURE_DOCS = Path(__file__).parent.parent / "fixtures" / "sample_docs"
         (SchemaValidationError("x"), EXIT_VERIFICATION),
         (ManifestError("x"), EXIT_VERIFICATION),
         (BuildError("x"), EXIT_BUILD),
+        (SummarizerError("x"), EXIT_BUILD),
         (FetchError("x"), EXIT_BUILD),
         (LockfileError("x"), EXIT_BUILD),
         (SearchError("x"), EXIT_ERROR),

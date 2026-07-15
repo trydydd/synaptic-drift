@@ -255,10 +255,10 @@ def test_synd_directory_created_if_missing(tmp_path: Path) -> None:
     db.close()
 
 
-# -- porter tokenizer migration (D30 step 1) --
+# -- porter tokenizer revert migration (D30 closure) --
 
 
-_LEGACY_FTS_SCHEMA = """\
+_PORTER_FTS_SCHEMA = """\
 CREATE TABLE packages (name TEXT NOT NULL, version TEXT NOT NULL,
     lifecycle_state TEXT NOT NULL DEFAULT 'draft', policy_profile TEXT,
     pack_digest TEXT, normalized_content_hash TEXT, doc_version_status TEXT,
@@ -272,7 +272,8 @@ CREATE TABLE chunks (id INTEGER PRIMARY KEY AUTOINCREMENT, package TEXT NOT NULL
     heading_path TEXT, summary TEXT, content TEXT NOT NULL, token_count INTEGER,
     source_url TEXT, source_commit TEXT, content_hash TEXT);
 CREATE VIRTUAL TABLE chunks_fts USING fts5(
-    heading_path, summary, content, content='chunks', content_rowid='id');
+    heading_path, summary, content, content='chunks', content_rowid='id',
+    tokenize='porter unicode61');
 CREATE TRIGGER chunks_ai AFTER INSERT ON chunks BEGIN
     INSERT INTO chunks_fts(rowid, heading_path, summary, content)
     VALUES (new.id, new.heading_path, new.summary, new.content);
@@ -284,11 +285,11 @@ END;
 """
 
 
-def _make_legacy_db(db_path: Path) -> None:
-    """Create a pre-porter database (unicode61 chunks_fts) with one row."""
+def _make_porter_db(db_path: Path) -> None:
+    """Create a database from the porter window (D30 step 1) with one row."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
-    conn.executescript(_LEGACY_FTS_SCHEMA)
+    conn.executescript(_PORTER_FTS_SCHEMA)
     conn.execute(
         "INSERT INTO packages (name, version, indexed_at) VALUES ('lib', '1.0.0', ?)",
         (_now(),),
@@ -305,10 +306,10 @@ def _make_legacy_db(db_path: Path) -> None:
     conn.close()
 
 
-def test_create_schema_migrates_legacy_fts_to_porter(db_path: Path) -> None:
-    """Opening a pre-porter DB and calling create_schema() must rebuild
-    chunks_fts with the porter tokenizer, preserving indexed content."""
-    _make_legacy_db(db_path)
+def test_create_schema_reverts_porter_fts_to_unicode61(db_path: Path) -> None:
+    """Opening a porter-window DB and calling create_schema() must rebuild
+    chunks_fts with plain unicode61, preserving indexed content."""
+    _make_porter_db(db_path)
 
     database = Database(db_path)
     database.create_schema()
@@ -316,35 +317,58 @@ def test_create_schema_migrates_legacy_fts_to_porter(db_path: Path) -> None:
         ddl = database.conn.execute(
             "SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'"
         ).fetchone()["sql"]
-        assert "porter" in ddl
+        assert "porter" not in ddl
 
-        # Stemmed matching works against the pre-existing row
+        # Exact matching works against the pre-existing row...
+        row = database.conn.execute(
+            "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH 'formula'"
+        ).fetchone()
+        assert row is not None
+        # ...and stemmed matching no longer applies (D30 closure).
         row = database.conn.execute(
             "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH 'formulas'"
         ).fetchone()
-        assert row is not None
+        assert row is None
     finally:
         database.close()
 
 
 def test_create_schema_migration_is_idempotent(db_path: Path) -> None:
     """A second create_schema() call must not rebuild again or fail."""
-    _make_legacy_db(db_path)
+    _make_porter_db(db_path)
     database = Database(db_path)
     database.create_schema()
     database.create_schema()
     try:
         row = database.conn.execute(
-            "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH 'formulas'"
+            "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH 'formula'"
         ).fetchone()
         assert row is not None
     finally:
         database.close()
 
 
+def test_create_schema_leaves_unicode61_db_untouched(db_path: Path) -> None:
+    """A DB already on unicode61 (pre-porter or post-revert) passes through
+    the migration unchanged — no rebuild, content still searchable."""
+    database = Database(db_path)
+    database.create_schema()
+    database.close()
+
+    database = Database(db_path)
+    database.create_schema()
+    try:
+        ddl = database.conn.execute(
+            "SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'"
+        ).fetchone()["sql"]
+        assert "porter" not in ddl
+    finally:
+        database.close()
+
+
 def test_triggers_still_index_new_rows_after_migration(db_path: Path) -> None:
     """The AFTER INSERT trigger must keep populating the rebuilt FTS table."""
-    _make_legacy_db(db_path)
+    _make_porter_db(db_path)
     database = Database(db_path)
     database.create_schema()
     try:
@@ -355,7 +379,7 @@ def test_triggers_still_index_new_rows_after_migration(db_path: Path) -> None:
         )
         database.conn.commit()
         row = database.conn.execute(
-            "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH 'annotated'"
+            "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH 'annotation'"
         ).fetchone()
         assert row is not None
     finally:

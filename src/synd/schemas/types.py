@@ -63,6 +63,9 @@ class ManifestDict(TypedDict):
     crawl_pages_fetched: NotRequired[int]
     crawl_truncated: NotRequired[bool]
     crawl_max_pages: NotRequired[int]
+    summarizer: NotRequired[str]
+    summarizer_model: NotRequired[str]
+    summarizer_prompt_version: NotRequired[str]
 
 
 class ChunkRecord(TypedDict):

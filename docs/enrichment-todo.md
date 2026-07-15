@@ -16,6 +16,13 @@ query-time dependencies.
 after enrichment, tracked in `hybrid-search.md`), and the model-size sweep.
 Nothing below depends on the vector leg.
 
+**STATUS (2026-07-15): shipped.** All three measurement items (§1) and all five
+design decisions (§2) are settled, and the engineering (§3) landed as
+`synd build --summarizer llm` — see **decisions.md D31**. The design rationale
+now lives in D31; the boxes below are kept as the audit trail of how each was
+resolved. Remaining downstream work (D30 step 2, S14 reranking) is out of scope
+here.
+
 ## 1. Measurements to complete
 
 - [x] **Replicate on the pilot corpus** *(done 2026-07-13, see D30 pilot
@@ -69,13 +76,14 @@ Each of these needs a `decisions.md` entry when settled.
   - (b) Weaken D5 to "reproducible given identical model + engine + config"
     for LLM-summarized packs. Honest but a weaker guarantee and hard to
     verify.
-- [ ] **Failure semantics.** Endpoint unreachable, or a single chunk fails
-  after retries: hard-fail the build, or fall back to the heuristic summary
-  for that chunk? A silent mixed pack ships inconsistent quality invisibly.
-  Lean: fail-by-default; partial fallback only via an explicit opt-in flag.
-  Includes degenerate-output guards — length cap, empty check (the prototype
-  only checks empty), refusal/preamble detection.
-- [ ] **Provenance in the manifest.** Record summarizer strategy, model id,
+- [x] **D5 reproducibility — SETTLED: summary lockfile** (D31 §3). Implemented
+  as `synd.builder.summarize.read_lockfile`/`generate_summaries`; warm rebuild
+  proven to make zero endpoint calls and emit byte-identical `chunks.jsonl`.
+- [x] **Failure semantics — SETTLED: fail hard** (D31 §4). `SummarizerError`
+  (→ exit 6) on unreachable endpoint, empty output, or >600-char degenerate
+  output; successes flushed to the lockfile first so retry is cheap. No
+  partial/mixed pack is ever written.
+- [x] **Provenance in the manifest — SETTLED** (D31 §5). Records summarizer strategy, model id,
   and prompt version in `manifest.json` so consumers can see summaries are
   LLM-generated and by what. The prompt text must be versioned — editing it
   regenerates every summary and churns every pack digest, so a prompt change
@@ -89,48 +97,39 @@ Each of these needs a `decisions.md` entry when settled.
   prompt) is the production prompt for the BM25-first shipping step; v4 may
   be re-evaluated for hybrid-only packs when step 2 ships (under fusion, v4
   wins: rrf vocab recall@20 0.572 → 0.692).
-- [ ] **Stemmer keep/revert (entangled — decide before prod).**
-  `tokenize='porter unicode61'` + `_migrate_fts_tokenizer()` is live in
-  `src/synd/storage/db.py` today and migrates user DBs whether or not a
-  decision is recorded. The matrix says porter is a wash under enrichment
-  (and under RRF), and standalone it carries the 9-question direct-tier
-  regression. Decide explicitly: revert to unicode61 (simplest, matches the
-  evidence) or keep. Leaving it undecided means shipping a tokenizer
-  migration by accident.
-- [ ] **Config surface and the locality promise.** Endpoint/model/key via env
-  vars (as the prototype does) vs CLI flags. Document explicitly that
-  build-time LLM calls go to a *publisher-controlled* endpoint: this does not
-  violate "no outbound network calls at query time," but corpus content does
-  leave the build process for whatever endpoint the publisher configures —
-  the docs must say so since "all data stays local" is a headline promise.
+- [x] **Stemmer keep/revert — SETTLED: reverted to unicode61** (D31, D30
+  closure). `tokenize='unicode61'` restored in `src/synd/storage/db.py`;
+  `_migrate_fts_tokenizer()` now rebuilds *away from* porter for any DB from
+  the porter window.
+- [x] **Config surface and the locality promise — SETTLED** (D31 §5).
+  `--summarizer-url/-model/-api-key` with `SYND_SUMMARIZER_*` env fallbacks;
+  locality disclosure in the build docs (see below and D31).
 
-## 3. Engineering work
+## 3. Engineering work — DONE (D31)
 
-Follows mechanically once §2 is settled; blocked primarily on the
-reproducibility decision.
+All landed in `src/synd/builder/summarize.py`, wired through
+`src/synd/builder/build.py` and `src/synd/cli/build.py`.
 
-- [ ] **Move generation into `synd.builder` behind `--summarizer llm`.**
-  Port `enrich_summaries.py` (prompt, greedy decoding, concurrency,
-  `chat_template_kwargs: {"enable_thinking": false}`) into the builder,
-  honoring the deterministic sorted-walk chunk ordering. Default remains the
-  heuristic summarizer — `llm` is opt-in.
-- [ ] **Summary lockfile/cache implementation** (assuming §2 option (a)):
-  location, format, invalidation on prompt-version change, interaction with
-  the builder's write-then-rewrite `pack_digest` flow.
-- [ ] **Tests** (project bar: valid input, invalid input, boundaries, failure
-  modes):
-  - endpoint unreachable / HTTP error / malformed response
-  - empty and oversized summary handling
-  - lockfile cache hit / miss / prompt-version invalidation
-  - digest stability across two builds with a warm cache
-  - fixture pack asserting heuristic remains the default with no flag
-  - dedicated exception subclasses (`SyndError` family) + CLI exit-code
-    mapping for summarizer failures
-- [ ] **Docs**: D3 revisit-clause closure entry in `decisions.md`; build docs
-  for the flag; cost expectations (~70 min cold for a 6.5k-chunk corpus on a
-  local 27B at concurrency 16, seconds warm from the lockfile); locality
-  disclosure from §2.
-- [ ] **Cleanup**: retire or clearly mark the eval-side prototype scripts as
-  superseded once the builder path exists; the eval matrix should then be
-  runnable against packs built by the real `--summarizer llm` flag (never
-  bypass the public API).
+- [x] **Generation behind `--summarizer llm`** — heuristic remains default.
+- [x] **Summary lockfile/cache** — `content_hash`-keyed JSONL with a pinned
+  `prompt_version`/`model` header; prompt-version and model mismatches raise;
+  interaction with the write-then-rewrite `pack_digest` flow verified (warm
+  rebuild → byte-identical chunks).
+- [x] **Tests** — `tests/test_builder/test_summarize.py` (15 tests, real local
+  HTTP server as the fake endpoint) covering: endpoint unreachable / HTTP
+  error / malformed response; empty and oversized-summary guards; lockfile
+  cache hit / miss / prompt-version + model invalidation / malformed line;
+  byte-identical chunks across a warm rebuild; heuristic-default build has no
+  summarizer fields; CLI surface (missing endpoint → exit 2, env config,
+  unreachable → exit 6). Exit-code mapping added to
+  `tests/test_cli/test_exit_codes.py`.
+- [x] **Docs**: D3 revisit-clause closure + D31 in `decisions.md`; build-flag
+  docs and locality disclosure in `docs/document-processing.md`; cost
+  expectations recorded (~70 min cold for a 6.5k-chunk corpus on a local 27B
+  at concurrency 16, seconds warm from the lockfile).
+- [ ] **Cleanup (deferred)**: retire or mark the eval-side prototype scripts
+  (`tests/evals/generation/enrich_summaries.py`, `build_enriched_artifacts.py`)
+  as superseded, and re-point the eval matrix at packs built by the real
+  `--summarizer llm` flag (never bypass the public API). Left open because the
+  D30 step-2 measurements still consume the prototype artifacts; fold this in
+  when step 2 lands.

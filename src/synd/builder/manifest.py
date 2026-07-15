@@ -33,6 +33,9 @@ def build_manifest(
     crawl_pages_fetched: int | None = None,
     crawl_truncated: bool | None = None,
     crawl_max_pages: int | None = None,
+    summarizer: str | None = None,
+    summarizer_model: str | None = None,
+    summarizer_prompt_version: str | None = None,
 ) -> ManifestDict:
     """Build the manifest dictionary from build parameters.
 
@@ -44,6 +47,10 @@ def build_manifest(
     crawl_truncated=true is incomplete — the crawl stopped at crawl_max_pages
     with pages still in the frontier. Directory and llms.txt builds leave
     them unset.
+
+    The summarizer_* fields are provenance for LLM-summarized builds only
+    (D31): consumers can see that summaries are model-generated, by which
+    model, and under which prompt version. Heuristic builds leave them unset.
     """
     manifest: ManifestDict = {
         "schema_version": 2,
@@ -72,6 +79,12 @@ def build_manifest(
         manifest["crawl_truncated"] = crawl_truncated
     if crawl_max_pages is not None:
         manifest["crawl_max_pages"] = crawl_max_pages
+    if summarizer is not None:
+        manifest["summarizer"] = summarizer
+    if summarizer_model is not None:
+        manifest["summarizer_model"] = summarizer_model
+    if summarizer_prompt_version is not None:
+        manifest["summarizer_prompt_version"] = summarizer_prompt_version
     return manifest
 
 
