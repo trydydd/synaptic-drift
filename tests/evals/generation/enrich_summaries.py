@@ -54,6 +54,20 @@ Section: {heading_path}
 Excerpt:
 {content}
 """,
+    "v3": """\
+Write ONE sentence (max 30 words) stating the specific capability, API \
+behavior, or fact this documentation excerpt documents. Use plain developer \
+vocabulary AND the library's own terms for the key concepts, so both \
+phrasings are present. Do not attribute an action to a tool or class unless \
+the excerpt itself does. If the excerpt is an index of links, a navigation \
+list, or bare attribute stubs, describe it as exactly that and name what it \
+lists. No preamble, no markdown, just the sentence.
+
+Section: {heading_path}
+
+Excerpt:
+{content}
+""",
     "v4": """\
 Write ONE sentence (max 30 words) describing what a developer can do or learn
 from this documentation excerpt. Use plain developer vocabulary AND the
