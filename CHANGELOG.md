@@ -7,17 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_Work targeting the next release lands on `develop` (crawler, D29 search rework,
+evaluation harness)._
+
+## [0.2.0] - 2026-07-16
+
+**Theme**: effortless start — new command verbs, URL-based builds, a rebuilt
+chunker, and a machine-checkable pack contract.
+
 ### Added
-- `auto-release.yml` — triggers on push to `main` when `pyproject.toml` changes; compares the version against the previous commit and, if it bumped, runs the full check+build pipeline and creates the GitHub release via the API (no PAT or branch-protection bypass needed)
-- `synd sync` — reads `synd.lock`, skips already-imported packs (idempotent), runs a digest pre-check against the lockfile before the 8-step verifier (supply-chain guard), imports any missing packs. Enables `git clone && synd sync` to reproduce the local index on a fresh checkout. HTTPS `source_url` fetch prints an actionable error until the URL fetcher module lands. `--frozen` flag blocks any pack that would require network access.
-- `synd remove <pkg@ver>` — removes a pack from `index.db` and rewrites `synd.lock`. Completes the verb set; previously required hand-editing the lockfile.
+- `synd serve` — launches the MCP stdio server, discoverable from `synd --help`; replaces the undiscoverable `python -m synd.server` invocation.
+- `synd sync` — reads `synd.lock`, skips already-imported packs (idempotent), runs a digest pre-check against the lockfile before the 8-step verifier (supply-chain guard), and imports any missing packs. Enables `git clone && synd sync` on a fresh checkout. `--frozen` blocks any pack that would require network access.
+- `synd remove <pkg@ver>` — removes a pack from `index.db` and rewrites `synd.lock`, completing the verb set (previously required hand-editing the lockfile).
+- `synd build --source <url>` for `llms-full.txt` and `llms.txt` sources — fetches a documentation URL, preprocesses it (MDX/JSX stripping, per-page splitting), then chunks and builds a `.ctx` pack. Basic rate limiting and `User-Agent`. (S6/S8, D21)
+- URL noise filtering for URL builds — excludes changelog/release/news pages via segment-level path matching; `--exclude-url-pattern` (repeatable) and `--no-url-filter`.
+- Chunk-size controls on `synd build`: `--max-chunk-tokens` (default 800), `--min-chunk-tokens` (default 20), and `--warn-chunk-tokens` (D24); plus `scripts/validate_chunk_sizes.py` for real-data validation.
+- `schemas/manifest.v2.schema.json` — machine-readable JSON Schema as the single source of truth for manifest fields; the verifier validates against it.
+- Schema-validated MCP tool-response contract and a differentiated CLI exit-code taxonomy — `outputSchema` on the MCP tools and a dedicated exit code per error class (D27).
+- `SearchError` raised on all invalid / all-stopword FTS5 queries instead of silently returning `[]` (S12, D27).
+- FTS5 ranking: `heading_path` added as the first `chunks_fts` column, weighted 2.5×; BM25 weights tuned (heading 2.5 > summary 1.5 > content 1.0). Query sanitization strips special characters (no more crashes on `mcp.tool`-style queries); stopword filtering / term normalization in `_preprocess_query()`.
+- `synd.lock` written by `synd add` and committed to version control (analogous to `Cargo.lock`); `src/synd/cli/_lockfile.py` provides shared `read_lockfile()` / `write_lockfile()` used by `add`, `sync`, and `remove`. Lockfile `source_url` prefers the manifest's canonical HTTPS URL over the local import path.
 - `LockfileError`, `FetchError`, `PackNotFoundError` exception classes in `synd.errors`.
-- `src/synd/cli/_lockfile.py` — shared `read_lockfile()` / `write_lockfile()` module; single source of truth for lockfile I/O used by `add`, `sync`, and `remove`. Lockfile `source_url` now prefers the manifest's canonical HTTPS URL over the local import path, so `synd sync` can resolve official packs correctly.
-- Decision log entry D19: `add`/`sync`/`remove` command set rationale, deferred `synd.toml`, `add` vs `sync` kept separate.
+- Query-latency benchmark against a 100K-chunk real documentation index (`tests/benchmarks/test_query_latency.py`, `docs/search-benchmarks.md`).
+- `auto-release.yml` — GitHub-release automation triggered by a version bump on `main` (runs the full check+build pipeline and creates the release via the API).
+- Decision-log entries D13–D27 and research spikes S5–S12 documenting the above.
 
 ### Changed
-- `cut-release.yml` — repurposed: now pushes a `release/vX.Y.Z` branch and opens a PR instead of pushing directly to `main`; fixes a latent bug where `GITHUB_TOKEN`-authenticated tag pushes silently failed to trigger `release.yml` due to GitHub's loop-prevention policy
-- `synd pull` renamed to `synd add` — "pull" implied a remote fetch (`git pull`, `docker pull`) but the command only imported local files. `synd add` is consistent with `cargo add`, `uv add`, `npm install <pkg>` and will extend naturally to HTTPS URLs and registry specs. `synd pull` is retained as a hidden deprecated alias (prints a deprecation warning, delegates to `synd add`).
+- **MCP interface (breaking):** the single `query-docs` tool (with a `detail` parameter) is replaced by two tools — `search` (summaries + chunk IDs) and `fetch` (full content by ID) — structurally enforcing the two-step retrieval pattern.
+- **CLI (breaking):** `synd pull` renamed to `synd add`, consistent with `cargo add` / `uv add` / `npm install <pkg>` ("pull" wrongly implied a remote fetch; the command only imports local files).
+- Chunker: a custom `markdown-it-py` chunker replaces chunkana — splits at all heading levels (`#`–`######`), keeps code fences atomic, and builds `heading_path` accurately by construction, removing the `##`-only limitation that produced multi-section chunks (D14).
+- Summaries: heading-aware heuristic prefixes each chunk summary with its leaf heading (D13).
+- MDX/Mintlify handling: pipeline-order and `<Tab>` de-indentation fixes that previously produced 15k–22k-token "monster" chunks; `<Tab title=…>` is injected as a heading with a depth shift so language tabs get distinct `heading_path` values (D21, D22).
+- Cross-platform path handling: paths normalized to forward slashes; backslashes/UNC rejected in the validator.
+- `pack_digest` computation hashes each ZIP entry's content directly in filename-sorted order, eliminating the full in-memory ZIP reconstruction (previously allocated 500MB+ near the archive limit).
+- Packaging: build dependencies moved into the core install, with `[all]`/`[dev]` extras for contributors; `python -m synd` guarded against a missing `serve` extra.
+- Error messages audited so every error path emits an actionable message.
+- `cut-release.yml` repurposed to push a `release/vX.Y.Z` branch and open a PR instead of pushing a tag directly, fixing a latent bug where a `GITHUB_TOKEN`-authenticated tag push failed to trigger the release workflow (GitHub loop-prevention).
+- Docs: `benchmarks.md` renamed to `search-benchmarks.md`, with numbers updated to the 2500-rep baseline.
+- Project-wide rename: remaining `tank` references swept to `synd` / Synaptic Drift.
+
+### Fixed
+- Local-directory builds convert HTML to markdown before chunking (previously chunked raw HTML).
+- Minimum-token merge suppresses heading-only stub chunks inside the chunker (~249 stubs eliminated from the MCP pack without a post-processing pass) (D23).
+- Deduplicate `Source:` URLs in `split_llms_full_txt`.
+
+### Removed
+- `synd pull` command and `pull.py` — the brief deprecated alias for `synd add` is gone; use `synd add`.
 
 ## [0.1.1] - 2026-05-23
 
