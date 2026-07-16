@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "synaptic-drift"
-version = "0.1.1"
+version = "0.2.0"
 requires-python = ">=3.12"
 dependencies = [
     "click",
@@ -51,7 +51,7 @@ markers = [
 target-version = "py312"
 
 [tool.bumpversion]
-current_version = "0.1.1"
+current_version = "0.2.0"
 commit = true
 tag = true
 tag_name = "v{new_version}"
