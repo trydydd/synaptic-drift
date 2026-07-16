@@ -16,8 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Decision log entry D19: `add`/`sync`/`remove` command set rationale, deferred `synd.toml`, `add` vs `sync` kept separate.
 
 ### Changed
-- `cut-release.yml` — repurposed: now pushes a `release/vX.Y.Z` branch and opens a PR instead of pushing directly to `main`; fixes a latent bug where `GITHUB_TOKEN`-authenticated tag pushes silently failed to trigger `release.yml` due to GitHub's loop-prevention policy
+- Release flow reworked around the `develop → main` branching model. `cut-release.yml` now runs on `develop`: it bumps the version, rolls `CHANGELOG` `[Unreleased]` into a dated version section, and opens a PR **into develop** (previously it PR'd the bump into `main`, which forked `main` off `develop` on every release). `promote.yml` (new) then auto-opens the `develop → main` promotion PR when a version bump lands on develop; merging it triggers `auto-release.yml`, the single tag-and-release engine. `main` stays a clean ancestor of `develop`.
+- `bump-my-version` now also rewrites `src/synd/__init__.py` `__version__`, which previously went stale on every automated bump.
+- `auto-release.yml` fails loudly if the CHANGELOG has no section for the version being released (no more empty release notes), and treats the fastmcp pack build as best-effort so a docs-site outage can't block a release.
 - `synd pull` renamed to `synd add` — "pull" implied a remote fetch (`git pull`, `docker pull`) but the command only imported local files. `synd add` is consistent with `cargo add`, `uv add`, `npm install <pkg>` and will extend naturally to HTTPS URLs and registry specs. `synd pull` is retained as a hidden deprecated alias (prints a deprecation warning, delegates to `synd add`).
+
+### Removed
+- `release.yml` — dead on the automated path (a `GITHUB_TOKEN`-created tag does not fire `on: push: tags`) and a duplicate of `auto-release.yml`. `auto-release.yml` is now the only release engine.
+- `scripts/release.sh` — a divergent third release path (pushed tags directly to `main`, referenced a nonexistent `.venv312`). Superseded by the Cut Release → promote → Auto Release flow.
 
 ## [0.1.1] - 2026-05-23
 
