@@ -1,0 +1,55 @@
+name: Promote to main
+
+# Second stage of the release flow. Fires when a version bump lands on develop
+# (i.e. the release/vX.Y.Z PR from Cut Release was merged) and opens — or
+# refreshes — the develop -> main promotion PR. Merging that PR is the release
+# act: it lands the bump on main and triggers auto-release.yml.
+#
+# Gated on the version field actually changing, so ordinary feature merges that
+# touch pyproject.toml (e.g. a dependency bump) never open a promotion PR.
+
+on:
+  push:
+    branches: [develop]
+    paths: [pyproject.toml]
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2        # need HEAD and HEAD~1 to compare versions
+
+      - name: Check if version changed
+        id: version
+        run: |
+          OLD=$(git show HEAD~1:pyproject.toml \
+                | python3 -c "import sys,tomllib; \
+                              print(tomllib.load(sys.stdin.buffer)['project']['version'])")
+          NEW=$(python3 -c "import tomllib; \
+                            print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "new=$NEW" | tee -a "$GITHUB_OUTPUT"
+          [ "$OLD" != "$NEW" ] \
+            && echo "changed=true"  >> "$GITHUB_OUTPUT" \
+            || echo "changed=false" >> "$GITHUB_OUTPUT"
+
+      - name: Open or refresh the promotion PR
+        if: steps.version.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW: ${{ steps.version.outputs.new }}
+        run: |
+          TITLE="Release v${NEW}"
+          BODY="Promotes develop to main for the v${NEW} release. Merging triggers Auto Release: it tags v${NEW} and publishes the GitHub release with wheel, sdist, and packs."
+          EXISTING=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
+            echo "Refreshed existing promotion PR #$EXISTING"
+          else
+            gh pr create --base main --head develop --title "$TITLE" --body "$BODY"
+          fi
