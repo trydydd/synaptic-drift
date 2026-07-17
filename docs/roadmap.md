@@ -1,14 +1,13 @@
 # Synaptic Drift — Semver Roadmap
 
-## Current Focus — "Smarter Search" (the milestone after 0.3.0)
+## Current Focus — v0.4.0 "Smarter Search"
 
-v0.1.1 and v0.2.0 are shipped (tagged); **v0.3.0 — the general web crawler — is
-cutting now** (`synd build --source <url>` for sites without `llms.txt`, the
-OR+BM25 search rework, and the evaluation harness; see the `[0.3.0]` CHANGELOG
-section). This branch carries the **next milestone, "Smarter Search"**: the D30
-evidence ladder and the D31 build-time LLM summary enrichment it justified.
+v0.1.1, v0.2.0, and **v0.3.0 (the general web crawler) are shipped** (tagged).
+This branch is **v0.4.0 "Smarter Search"** (a minor bump — new `--summarizer llm`
+CLI option and new manifest fields): the D30 evidence ladder and the D31
+build-time LLM summary enrichment it justified.
 
-**On this branch (the next release):**
+**In this release:**
 - **D30** — the hybrid-search evidence ladder: L1/L2/L3 eval harness, two gold
   corpora (`html_v1`, `pilot_v1`), the RRF matrix prototype, and the measured
   sequencing (enrichment first, weighted RRF second, porter stemmer rejected as
@@ -18,13 +17,13 @@ evidence ladder and the D31 build-time LLM summary enrichment it justified.
   fail-hard semantics, manifest provenance). Porter stemmer reverted to
   unicode61 in the same change.
 
-**Next up** (see "v1.1" below and `docs/spikes.yaml` S14/S15): run the model-size
+**Next up** (see "v0.4.0" below and `docs/spikes.yaml` S14/S15): run the model-size
 sweep (the eval program's headline deliverable), then decide weighted-RRF step 2 /
 reranking / BGE-M3 on the sweep evidence.
 
 **Deferred:**
-- **Pre-built packs + the pack registry → v0.3.1 "Distribution"** (below). 0.3.0
-  ships the crawler that *builds* the packs; publishing/resolving them follows.
+- **Pre-built packs + the pack registry → v0.4.1 "Distribution"** (below). The
+  crawler that *builds* the packs shipped in 0.3.0; publishing/resolving follows.
 - **PyPI release** — the publish step is written but unreachable on the automated
   path (see the Release section below for the trigger gap and fix).
 
@@ -210,7 +209,7 @@ reranking / BGE-M3 on the sweep evidence.
   - `src/synd/builder/crawler.py` — BFS link-following seeded by sitemaps (robots `Sitemap:` directives → `<root>/sitemap.xml` → `<host>/sitemap.xml`, sitemapindex recursion; sitemaps seed but never replace link-following — RTD sitemaps list only version roots), host+path-prefix scoping, canonical-URL dedup, per-host robots cache honoring `Crawl-delay`
   - `src/synd/builder/fetch.py` — `extract_links()`, `fetch_html()` (Content-Type + redirect-aware), User-Agent threading
   - Crawled pages sorted by canonical URL before chunk-ID assignment (deterministic builds); crawl provenance (`crawl_pages_fetched`/`crawl_truncated`/`crawl_max_pages`) recorded in the manifest
-- Pre-built packs and the pack registry are deferred to **v0.3.1 — "Distribution"** (below). 0.3.0 ships the crawler; distribution follows once there is something to distribute.
+- Pre-built packs and the pack registry are deferred to **v0.4.1 — "Distribution"** (below). 0.3.0 ships the crawler; distribution follows once there is something to distribute.
 - [ ] **CI/CD templates** — GitHub Actions, GitLab CI, CircleCI: build packs on release, verify in PRs, publish to static registry
 - [ ] **Pre-built packs for top 100 libraries** — scale up pack-building CI pipeline
 - [ ] **Token budget intelligence** — `max_tokens` on `search`/`fetch` controls response size, balancing breadth vs. depth within the budget
@@ -220,7 +219,72 @@ reranking / BGE-M3 on the sweep evidence.
 
 ---
 
-## v0.3.1 — "Distribution"
+## v0.4.0 — "Smarter Search"
+
+**Theme**: Improve retrieval on vocabulary-mismatch and paraphrase queries that
+tuned FTS5 cannot reach. Gate every rung on measurement, not schedule.
+
+**Trigger (met, 2026-07)**: the `html_v1` and `pilot_v1` gold corpora reproduced
+vocabulary-mismatch recall@1–20 = 0.000 (n=26) and paraphrase recall@5 = 0.000
+(n=98) against real crawled docs — evidence tuned FTS5 cannot address. See
+`docs/decisions.md` D25/D29/D30, `docs/hybrid-search.md`.
+
+**Design note**: an earlier draft proposed BGE-M3 dense+sparse vectors computed
+at `synd add` time as *the* design. The measured program landed differently —
+build-time enrichment first, then a weighted-RRF vector leg using a tiny
+pure-ONNX encoder (all-MiniLM-L6-v2, no PyTorch), embeddings shipped inside the
+`.ctx` at build time. BGE-M3 is now an open evaluation question, not an
+assumption (see S15).
+
+### Shipped in 0.4.0
+
+- [x] **Build-time LLM summary enrichment** (D31). `synd build --summarizer llm`:
+  append-format summaries, v1 prompt, content-hash summary lockfile for
+  reproducible republishing, fail-hard semantics, manifest provenance. Strict
+  improvement on both gold corpora; zero query-time dependency. Porter stemmer
+  evaluated and reverted (a wash under enrichment). See D30/D31,
+  `docs/document-processing.md`.
+- [x] **Evaluation harness** — the D30 L1/L2/L3 evidence ladder, `html_v1` +
+  `pilot_v1` gold corpora, and the RRF matrix prototype under `tests/evals/`.
+
+### Next (post-0.4.0)
+
+- [ ] **Model-size sweep** — the eval program's headline deliverable. Run
+  L2/L3 (agent competence + endtask A/B) across the target model sizes
+  (Qwen3 {0.6B, 4B, 8B, 14B, 30B-A3B} + the served 27B) with enrichment on, to
+  answer how small a calling model can still use `synd` effectively. The L2
+  finding that the residual failure is the model's *selection* among surfaced
+  results — not retrieval — makes this the input that gates the remaining
+  decisions. Harness: `docs/eval-harness-design.md` e14/e15.
+- [ ] **Weighted RRF + `sqlite-vec`** — the vector leg, prototyped and measured
+  in `tests/evals/l1_rrf_matrix.py` (enriched rrf-w3: html direct recall@5 0.964,
+  paraphrase off the floor). Ship as `synaptic-drift[semantic]`: build-time
+  MiniLM embeddings bundled in the `.ctx`, `sqlite-vec` ANN at query time, RRF
+  fusion. Model-free BM25-only remains the byte-for-byte fallback when no encoder
+  is present. Gate the go/no-go on sweep results.
+- [ ] **[S14] Query-time reranking — feasibility** — whether a local optional
+  ONNX cross-encoder closes the rank-1 gap Context7 holds, or whether the D12
+  summary-scan workflow already suffices (esp. for small sweep models). Ship /
+  defer-until-sweep / reject with numbers. See `docs/spikes.yaml` S14.
+- [ ] **[S15] BGE-M3 dense+sparse evaluation** — does BGE-M3 (dense +
+  learned-sparse, if a PyTorch-free ONNX path exists) beat the current
+  unicode61-BM25 + MiniLM-dense stack enough to justify its weight? The
+  learned-sparse leg is the interesting case for the vocab-mismatch tier. Feeds
+  which encoder the vector leg ships with. See `docs/spikes.yaml` S15.
+
+### Deferred cleanup
+
+- [ ] Retire the eval-side prototype scripts (`tests/evals/generation/
+  enrich_summaries.py`, `build_enriched_artifacts.py`) and re-point the matrix
+  at packs built by the real `--summarizer llm` flag (never bypass the public
+  API).
+- [ ] Pilot-corpus enrichment ship-readiness — the pilot result is measured
+  (D30 pilot addendum) but building real pilot packs via the shipped flag is
+  untested end to end.
+
+---
+
+## v0.4.1 — "Distribution"
 
 **Theme**: Publish and resolve pre-built packs, now that the crawler can produce them.
 
@@ -243,69 +307,3 @@ reranking / BGE-M3 on the sweep evidence.
 - [ ] **Audit logging** — who imported what, when, from where. New `audit_log` table in `index.db`
 - [ ] **Backup and recovery** — `synd rebuild --from-lockfile`
 - [ ] **Comprehensive documentation** — man pages, API reference, enterprise deployment guide
-
----
-
-## v1.1 — "Smarter Search" *(active — trigger fired)*
-
-**Theme**: Improve retrieval on vocabulary-mismatch and paraphrase queries that
-tuned FTS5 cannot reach. Gate every rung on measurement, not schedule.
-
-**Trigger (met, 2026-07)**: the `html_v1` and `pilot_v1` gold corpora reproduced
-vocabulary-mismatch recall@1–20 = 0.000 (n=26) and paraphrase recall@5 = 0.000
-(n=98) against real crawled docs — evidence tuned FTS5 cannot address. See
-`docs/decisions.md` D25/D29/D30, `docs/hybrid-search.md`.
-
-**Design correction (2026-07)**: this section originally proposed BGE-M3
-dense+sparse vectors computed at `synd add` time as *the* design. The measured
-program landed differently — build-time enrichment first, then a weighted-RRF
-vector leg using a tiny pure-ONNX encoder (all-MiniLM-L6-v2, no PyTorch),
-embeddings shipped inside the `.ctx` at build time (not recomputed at add
-time). BGE-M3 is now an open evaluation question, not an assumption (see S15).
-
-### Shipped
-
-- [x] **Step 1 — build-time LLM summary enrichment** (D31). `synd build
-  --summarizer llm`: append-format summaries, v1 prompt, content-hash summary
-  lockfile for reproducible republishing, fail-hard semantics, manifest
-  provenance. Strict improvement on both gold corpora; zero query-time
-  dependency. Porter stemmer evaluated and reverted (a wash under enrichment).
-  See D30/D31, `docs/document-processing.md`.
-
-### Next
-
-- [ ] **Land `feature/top-20`** — the branch carrying D29/D30/D31, the eval
-  harness, and both gold corpora. A large, tested, documented unit; cut the PR
-  to `main` before opening new work.
-- [ ] **Model-size sweep** — the eval program's headline deliverable. Run
-  L2/L3 (agent competence + endtask A/B) across the target model sizes
-  (Qwen3 {0.6B, 4B, 8B, 14B, 30B-A3B} + the served 27B) with enrichment on, to
-  answer how small a calling model can still use `synd` effectively. The L2
-  finding that the residual failure is the model's *selection* among surfaced
-  results — not retrieval — makes this the input that gates the remaining
-  decisions. Harness: `docs/eval-harness-design.md` e14/e15.
-- [ ] **Step 2 — weighted RRF + `sqlite-vec`** — the vector leg, prototyped and
-  measured in `tests/evals/l1_rrf_matrix.py` (enriched rrf-w3: html direct
-  recall@5 0.964, paraphrase off the floor). Ship as `synaptic-drift[semantic]`:
-  build-time MiniLM embeddings bundled in the `.ctx`, `sqlite-vec` ANN at query
-  time, RRF fusion. Model-free BM25-only remains the byte-for-byte fallback
-  when no encoder is present. Gate the go/no-go on sweep results.
-- [ ] **[S14] Query-time reranking — feasibility** — whether a local optional
-  ONNX cross-encoder closes the rank-1 gap Context7 holds, or whether the
-  D12 summary-scan workflow already suffices (esp. for small sweep models).
-  Ship / defer-until-sweep / reject with numbers. See `docs/spikes.yaml` S14.
-- [ ] **[S15] BGE-M3 dense+sparse evaluation** — does BGE-M3 (dense +
-  learned-sparse, if a PyTorch-free ONNX path exists) beat the current
-  unicode61-BM25 + MiniLM-dense stack enough to justify its weight? The
-  learned-sparse leg is the interesting case for the vocab-mismatch tier.
-  Feeds which encoder step 2 ships with. See `docs/spikes.yaml` S15.
-
-### Deferred cleanup (fold into step 2)
-
-- [ ] Retire the eval-side prototype scripts (`tests/evals/generation/
-  enrich_summaries.py`, `build_enriched_artifacts.py`) and re-point the matrix
-  at packs built by the real `--summarizer llm` flag (never bypass the public
-  API). Open because step-2 measurements still consume the prototype artifacts.
-- [ ] Pilot-corpus enrichment ship-readiness — the pilot result is measured
-  (D30 pilot addendum) but building real pilot packs via the shipped flag is
-  untested end to end.
