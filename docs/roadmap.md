@@ -1,17 +1,17 @@
 # Synaptic Drift — Semver Roadmap
 
-## Current Focus — v0.2.0
+## Current Focus — v0.3.0 "Growth"
 
-v0.1.1 is complete. Active development is on v0.2.0 (402 tests passing).
+v0.1.1 and **v0.2.0 are shipped** (tagged). Active work is **v0.3.0 — the general
+web crawler**, cut from `develop`: `synd build --source <url>` for docs sites
+without `llms.txt`/`llms-full.txt`, plus the OR+BM25 search rework (D29) and the
+evaluation harness. See the `[Unreleased]` section of `CHANGELOG.md`.
 
-**Chunker quality stream complete** — all S1–S10 spikes resolved:
-- Custom `markdown-it-py` chunker (all heading levels, fence atomicity, `heading_path` by construction)
-- Heading-aware summary heuristic; MDX/Tab de-indentation and pipeline order fix; Tab heading disambiguation
-- `synd build --source <url>` (llms-full.txt and llms.txt); URL noise filtering
-- `--max/min/warn-chunk-tokens` CLI params; default max raised 500 → 800; oversized-chunk warnings
-- Minimum-token stub suppression (heading boundaries + trailing sections)
-
-**Next up:** PyPI release. The publish step is written but unreachable on the automated path (see the Release section below for the exact trigger gap and fix); FTS5 query preprocessing is done.
+**Deferred from 0.3.0:**
+- **Pre-built packs + the pack registry → v0.3.1 "Distribution"** (below). 0.3.0
+  ships the crawler that *builds* the packs; publishing/resolving them follows.
+- **PyPI release** — the publish step is written but unreachable on the automated
+  path (see the Release section below for the trigger gap and fix).
 
 ---
 
@@ -195,16 +195,24 @@ v0.1.1 is complete. Active development is on v0.2.0 (402 tests passing).
   - `src/synd/builder/crawler.py` — BFS link-following seeded by sitemaps (robots `Sitemap:` directives → `<root>/sitemap.xml` → `<host>/sitemap.xml`, sitemapindex recursion; sitemaps seed but never replace link-following — RTD sitemaps list only version roots), host+path-prefix scoping, canonical-URL dedup, per-host robots cache honoring `Crawl-delay`
   - `src/synd/builder/fetch.py` — `extract_links()`, `fetch_html()` (Content-Type + redirect-aware), User-Agent threading
   - Crawled pages sorted by canonical URL before chunk-ID assignment (deterministic builds); crawl provenance (`crawl_pages_fetched`/`crawl_truncated`/`crawl_max_pages`) recorded in the manifest
-- [ ] **Pre-built packs for top 20 libraries** — the crawler now covers the 19 packages without `llms.txt` (pydantic builds from its llms.txt; boto3 is out of acceptance scope — subtree recipe documented instead). Acceptance harness: `scripts/build_top20_packs.py`. See `docs/top20-python-packages.md`. Publish as GitHub Releases.
-- [ ] **Pack registry (static hosting)** — `synd add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
-  - New module: `src/synd/registry/` (client only; server is a static file host)
-  - `synd add` accepts `package@version` in addition to file paths
+- Pre-built packs and the pack registry are deferred to **v0.3.1 — "Distribution"** (below). 0.3.0 ships the crawler; distribution follows once there is something to distribute.
 - [ ] **CI/CD templates** — GitHub Actions, GitLab CI, CircleCI: build packs on release, verify in PRs, publish to static registry
 - [ ] **Pre-built packs for top 100 libraries** — scale up pack-building CI pipeline
 - [ ] **Token budget intelligence** — `max_tokens` on `search`/`fetch` controls response size, balancing breadth vs. depth within the budget
 - [ ] **`index-deps` MCP tool** — scans project deps, reports which have packs available, which are indexed, which are stale
 - [ ] **Staleness detection** — compare indexed pack versions against project lockfiles. Surface warnings via `index-deps` MCP tool
 - [ ] **Structured logging** — JSON logging at key checkpoints. `python logging` with configurable verbosity
+
+---
+
+## v0.3.1 — "Distribution"
+
+**Theme**: Publish and resolve pre-built packs, now that the crawler can produce them.
+
+- [ ] **Pre-built packs for top 20 libraries** — the crawler covers the 19 packages without `llms.txt` (pydantic builds from its llms.txt; boto3 is out of acceptance scope — subtree recipe documented instead). Acceptance harness: `scripts/build_top20_packs.py`. See `docs/top20-python-packages.md`. Publish as GitHub Releases.
+- [ ] **Pack registry (static hosting)** — `synd add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
+  - New module: `src/synd/registry/` (client only; server is a static file host)
+  - `synd add` accepts `package@version` in addition to file paths
 
 ---
 
