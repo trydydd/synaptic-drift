@@ -59,6 +59,21 @@ jobs:
       - name: pytest
         run: pytest tests/
 
+      # ── guard: the three version strings must agree before bumping ───────
+      # bump-my-version rewrites each by literal match, so a drifted
+      # src/synd/__init__.py (or config) aborts the bump mid-flight. Fail here
+      # with an actionable message instead.
+      - name: Check version consistency
+        run: |
+          PYPROJECT=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          BUMPCFG=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['tool']['bumpversion']['current_version'])")
+          INIT=$(grep -oP '__version__ = "\K[^"]+' src/synd/__init__.py)
+          echo "pyproject=$PYPROJECT  bumpversion.current_version=$BUMPCFG  __init__=$INIT"
+          if [ "$PYPROJECT" != "$BUMPCFG" ] || [ "$PYPROJECT" != "$INIT" ]; then
+            echo "::error::Version strings are out of sync (pyproject=$PYPROJECT, bumpversion.current_version=$BUMPCFG, __init__=$INIT). Make all three match before cutting a release."
+            exit 1
+          fi
+
       # ── bump version (files only; commit happens on the release branch) ──
       - name: Bump version
         run: bump-my-version bump ${{ inputs.bump }} --no-commit --no-tag
@@ -105,9 +120,20 @@ jobs:
           git checkout -b "$BRANCH"
           git add pyproject.toml src/synd/__init__.py CHANGELOG.md
           git commit -m "chore: release v${NEW}"
-          git push origin "$BRANCH"
-          gh pr create \
-            --title "chore: release v${NEW}" \
-            --body "Version bump to \`${NEW}\` + CHANGELOG. Merging into develop makes it release-ready; the develop → main promotion PR opens automatically and triggers Auto Release on merge." \
-            --base develop \
-            --head "$BRANCH"
+          # Force-push: the release branch is ephemeral prep. A leftover branch
+          # from a failed prior run must not block the retry with a
+          # non-fast-forward rejection; force-updating also refreshes the head
+          # of an already-open release PR.
+          git push --force origin "$BRANCH"
+          # Idempotent PR: reuse an already-open release PR instead of failing
+          # with "a pull request already exists" on a re-run.
+          EXISTING=$(gh pr list --base develop --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "Release PR #$EXISTING already open for $BRANCH; its head was updated by the force-push."
+          else
+            gh pr create \
+              --title "chore: release v${NEW}" \
+              --body "Version bump to \`${NEW}\` + CHANGELOG. Merging into develop makes it release-ready; the develop → main promotion PR opens automatically and triggers Auto Release on merge." \
+              --base develop \
+              --head "$BRANCH"
+          fi
