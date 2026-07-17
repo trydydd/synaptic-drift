@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "description": "Gold retrieval questions against a pack built live from modelcontextprotocol.io. Network-dependent and subject to upstream doc changes — the resolver raises EvalDatasetError on any ref that no longer resolves, which is the signal to re-validate this dataset. Refs verified against a build on 2026-06-11.",
+  "corpus": {
+    "type": "live",
+    "package": "mcp",
+    "version": null,
+    "source": "https://modelcontextprotocol.io/llms-full.txt",
+    "build_command": "synd build mcp@<date> --source https://modelcontextprotocol.io/llms-full.txt --output <dir>"
+  },
+  "questions": [
+    {
+      "id": "lq01",
+      "difficulty": "direct",
+      "query": "stdio transport newline delimited messages subprocess",
+      "keyword_query": "stdio transport messages stdin stdout",
+      "gold": [{"source_path": "specification/2025-11-25/basic/transports", "heading_path": "specification/2025-11-25/basic/transports / stdio"}]
+    },
+    {
+      "id": "lq02",
+      "difficulty": "direct",
+      "query": "Streamable HTTP resumability redelivery event id",
+      "keyword_query": "Streamable HTTP resumability redelivery",
+      "gold": [{"source_path": "specification/2025-11-25/basic/transports", "heading_path": "specification/2025-11-25/basic/transports / Streamable HTTP / Resumability and Redelivery"}]
+    },
+    {
+      "id": "lq03",
+      "difficulty": "paraphrase",
+      "query": "how does the client keep listening for messages the server sends on its own over HTTP",
+      "keyword_query": "listening server messages HTTP SSE stream",
+      "gold": [{"source_path": "specification/2025-11-25/basic/transports", "heading_path": "specification/2025-11-25/basic/transports / Streamable HTTP / Listening for Messages from the Server"}]
+    },
+    {
+      "id": "lq04",
+      "difficulty": "direct",
+      "query": "protected resource metadata discovery requirements",
+      "keyword_query": "protected resource metadata discovery",
+      "gold": [{"source_path": "specification/2025-11-25/basic/authorization", "heading_path": "specification/2025-11-25/basic/authorization / Authorization Server Discovery / Protected Resource Metadata Discovery Requirements"}]
+    },
+    {
+      "id": "lq05",
+      "difficulty": "vocabulary_mismatch",
+      "query": "how do I make users log in before they can use my HTTP server",
+      "keyword_query": "authorization OAuth roles overview",
+      "gold": [
+        {"source_path": "specification/2025-11-25/basic/authorization", "heading_path": "specification/2025-11-25/basic/authorization / Overview"},
+        {"source_path": "specification/2025-11-25/basic/authorization", "heading_path": "specification/2025-11-25/basic/authorization / Roles"}
+      ]
+    },
+    {
+      "id": "lq06",
+      "difficulty": "direct",
+      "query": "tools/list pagination cursor protocol message",
+      "keyword_query": "listing tools pagination cursor",
+      "gold": [{"source_path": "specification/2025-11-25/server/tools", "heading_path": "specification/2025-11-25/server/tools / Protocol Messages / Listing Tools"}]
+    },
+    {
+      "id": "lq07",
+      "difficulty": "direct",
+      "query": "tools/call protocol message arguments result",
+      "keyword_query": "calling tools protocol message",
+      "gold": [{"source_path": "specification/2025-11-25/server/tools", "heading_path": "specification/2025-11-25/server/tools / Protocol Messages / Calling Tools"}]
+    },
+    {
+      "id": "lq08",
+      "difficulty": "paraphrase",
+      "query": "tell connected clients that my set of tools changed at runtime",
+      "keyword_query": "tools list changed notification",
+      "gold": [{"source_path": "specification/2025-11-25/server/tools", "heading_path": "specification/2025-11-25/server/tools / Protocol Messages / List Changed Notification"}]
+    },
+    {
+      "id": "lq09",
+      "difficulty": "direct",
+      "query": "resource templates protocol message parameterized URI",
+      "keyword_query": "resource templates protocol",
+      "gold": [{"source_path": "specification/2025-11-25/server/resources", "heading_path": "specification/2025-11-25/server/resources / Protocol Messages / Resource Templates"}]
+    },
+    {
+      "id": "lq10",
+      "difficulty": "paraphrase",
+      "query": "subscribe to updates for a single resource",
+      "keyword_query": "resources subscribe updated notification",
+      "gold": [{"source_path": "specification/2025-11-25/server/resources", "heading_path": "specification/2025-11-25/server/resources / Protocol Messages / Subscriptions"}]
+    },
+    {
+      "id": "lq11",
+      "difficulty": "direct",
+      "query": "prompts/get protocol message arguments messages",
+      "keyword_query": "getting a prompt protocol message",
+      "gold": [{"source_path": "specification/2025-11-25/server/prompts", "heading_path": "specification/2025-11-25/server/prompts / Protocol Messages / Getting a Prompt"}]
+    },
+    {
+      "id": "lq12",
+      "difficulty": "direct",
+      "query": "sampling createMessage protocol creating messages",
+      "keyword_query": "sampling createMessage protocol",
+      "gold": [{"source_path": "specification/2025-11-25/client/sampling", "heading_path": "specification/2025-11-25/client/sampling / Protocol Messages / Creating Messages"}]
+    },
+    {
+      "id": "lq13",
+      "difficulty": "direct",
+      "query": "multi-turn tool loop sampling with tools",
+      "keyword_query": "multi-turn tool loop sampling",
+      "gold": [{"source_path": "specification/2025-11-25/client/sampling", "heading_path": "specification/2025-11-25/client/sampling / Protocol Messages / Multi-turn Tool Loop"}]
+    },
+    {
+      "id": "lq14",
+      "difficulty": "direct",
+      "query": "elicitation form mode requested schema primitive properties",
+      "keyword_query": "elicitation requested schema form",
+      "gold": [{"source_path": "specification/2025-11-25/client/elicitation", "heading_path": "specification/2025-11-25/client/elicitation / Protocol Messages / Form Mode Elicitation Requests / Requested Schema"}]
+    },
+    {
+      "id": "lq15",
+      "difficulty": "vocabulary_mismatch",
+      "query": "pause a running operation and ask the human for missing information",
+      "keyword_query": "elicitation user input request",
+      "gold": [
+        {"source_path": "specification/2025-11-25/client/elicitation", "heading_path": "specification/2025-11-25/client/elicitation"},
+        {"source_path": "specification/2025-11-25/client/elicitation", "heading_path": "specification/2025-11-25/client/elicitation / User Interaction Model"}
+      ]
+    },
+    {
+      "id": "lq16",
+      "difficulty": "direct",
+      "query": "MCP architecture data layer transport layer",
+      "keyword_query": "architecture layers data transport",
+      "gold": [{"source_path": "docs/learn/architecture", "heading_path": "docs/learn/architecture / Concepts of MCP / Layers"}]
+    },
+    {
+      "id": "lq17",
+      "difficulty": "paraphrase",
+      "query": "where should my python MCP server write its logs",
+      "keyword_query": "python server logging stdio",
+      "gold": [{"source_path": "docs/develop/build-server", "heading_path": "docs/develop/build-server / Python / Logging in MCP Servers"}]
+    },
+    {
+      "id": "lq18",
+      "difficulty": "paraphrase",
+      "query": "set up Claude Desktop to use a local filesystem server",
+      "keyword_query": "Claude Desktop filesystem server install",
+      "gold": [
+        {"source_path": "docs/develop/connect-local-servers", "heading_path": "docs/develop/connect-local-servers / Installing the Filesystem Server"},
+        {"source_path": "docs/develop/connect-local-servers", "heading_path": "docs/develop/connect-local-servers / Using the Filesystem Server"}
+      ]
+    },
+    {
+      "id": "lq19",
+      "difficulty": "direct",
+      "query": "python quick examples build MCP server",
+      "keyword_query": "python quick examples server",
+      "gold": [{"source_path": "docs/develop/build-server", "heading_path": "docs/develop/build-server / Python / Quick Examples"}]
+    },
+    {
+      "id": "lq20",
+      "difficulty": "vocabulary_mismatch",
+      "query": "who talks to whom in MCP and what runs where",
+      "keyword_query": "participants host client server architecture",
+      "gold": [{"source_path": "docs/learn/architecture", "heading_path": "docs/learn/architecture / Concepts of MCP / Participants"}]
+    }
+  ]
+}

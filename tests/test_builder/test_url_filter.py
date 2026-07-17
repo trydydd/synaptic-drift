@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from synd.builder.url_filter import (
+    DEFAULT_CRAWL_NOISE_URL_PATTERNS,
     DEFAULT_NOISE_URL_PATTERNS,
     filter_page_urls,
+    is_asset_url,
     is_noise_url,
 )
 
@@ -110,3 +112,115 @@ class TestFilterPageUrls:
         kept, excluded = filter_page_urls(pairs, DEFAULT_NOISE_URL_PATTERNS)
         assert kept == []
         assert len(excluded) == 2
+
+
+class TestSegmentStemMatching:
+    """Noise patterns must also match segments that carry a file extension —
+    crawled sites expose /genindex.html where wget mirrors had genindex/."""
+
+    def test_segment_with_html_extension_matches(self) -> None:
+        assert is_noise_url(
+            "https://docs.example.com/en/latest/genindex.html",
+            ("genindex",),
+        )
+
+    def test_segment_with_md_extension_matches(self) -> None:
+        assert is_noise_url(
+            "https://docs.example.com/changelog.md", DEFAULT_NOISE_URL_PATTERNS
+        )
+
+    def test_stem_does_not_create_partial_false_positive(self) -> None:
+        # "configuration-updates.md" stem is "configuration-updates", not "updates"
+        assert not is_noise_url(
+            "https://docs.example.com/configuration-updates.md",
+            DEFAULT_NOISE_URL_PATTERNS,
+        )
+
+    def test_research_does_not_match_search(self) -> None:
+        assert not is_noise_url(
+            "https://docs.example.com/research.html",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+
+
+class TestCrawlNoisePatterns:
+    def test_includes_all_base_noise_patterns(self) -> None:
+        assert set(DEFAULT_NOISE_URL_PATTERNS) <= set(DEFAULT_CRAWL_NOISE_URL_PATTERNS)
+
+    def test_genindex_page_is_noise(self) -> None:
+        assert is_noise_url(
+            "https://requests.readthedocs.io/en/latest/genindex.html",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+
+    def test_modules_source_viewer_is_noise(self) -> None:
+        assert is_noise_url(
+            "https://requests.readthedocs.io/en/latest/_modules/requests/models.html",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+
+    def test_search_page_is_noise(self) -> None:
+        assert is_noise_url(
+            "https://docs.example.com/en/stable/search.html",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+
+    def test_sources_and_static_are_noise(self) -> None:
+        assert is_noise_url(
+            "https://docs.example.com/_sources/index.rst.txt",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+        assert is_noise_url(
+            "https://docs.example.com/_static/css/theme.css",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+
+    def test_py_modindex_is_noise(self) -> None:
+        assert is_noise_url(
+            "https://docs.example.com/py-modindex.html",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+
+    def test_regular_docs_page_is_not_noise(self) -> None:
+        assert not is_noise_url(
+            "https://docs.example.com/en/stable/api/index.html",
+            DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+        )
+
+
+class TestIsAssetUrl:
+    def test_image_and_font_extensions_are_assets(self) -> None:
+        for url in (
+            "https://docs.example.com/_images/plot.png",
+            "https://docs.example.com/logo.svg",
+            "https://docs.example.com/fonts/lato.woff2",
+        ):
+            assert is_asset_url(url), url
+
+    def test_stylesheet_and_script_are_assets(self) -> None:
+        assert is_asset_url("https://docs.example.com/css/theme.css")
+        assert is_asset_url("https://docs.example.com/js/main.js")
+
+    def test_query_string_does_not_hide_extension(self) -> None:
+        assert is_asset_url("https://docs.example.com/css/theme.css?v=2.0")
+
+    def test_archives_and_pdf_are_assets(self) -> None:
+        assert is_asset_url("https://docs.example.com/download/docs.pdf")
+        assert is_asset_url("https://docs.example.com/release.tar.gz")
+        assert is_asset_url("https://docs.example.com/pkg.whl")
+
+    def test_objects_inv_is_asset(self) -> None:
+        assert is_asset_url("https://docs.example.com/en/stable/objects.inv")
+
+    def test_plain_text_is_asset(self) -> None:
+        # Sphinx _sources pages; llms.txt never reaches the crawler path.
+        assert is_asset_url("https://docs.example.com/index.rst.txt")
+
+    def test_html_and_md_and_extensionless_are_not_assets(self) -> None:
+        assert not is_asset_url("https://docs.example.com/guide.html")
+        assert not is_asset_url("https://docs.example.com/guide.md")
+        assert not is_asset_url("https://docs.example.com/guide/")
+        assert not is_asset_url("https://docs.example.com/guide")
+
+    def test_case_insensitive_extension(self) -> None:
+        assert is_asset_url("https://docs.example.com/IMAGE.PNG")

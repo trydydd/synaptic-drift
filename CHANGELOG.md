@@ -7,8 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Work targeting the next release lands on `develop` (crawler, D29 search rework,
-evaluation harness)._
+## [0.3.0] - 2026-07-17
+
+**Theme**: Growth — a general web crawler for docs sites without an `llms.txt`,
+plus retrieval and release-tooling improvements.
+
+### Added
+- `synd build --source <url>` — general web crawler for documentation sites that publish neither `llms.txt` nor `llms-full.txt`. BFS link-following seeded by sitemaps (robots `Sitemap:` directives → `<root>/sitemap.xml` → `<host>/sitemap.xml`, with `sitemapindex` recursion), host + path-prefix scoping, canonical-URL dedup, and a per-host `robots.txt` cache honoring `Crawl-delay` (with a `--no-robots` escape hatch). Configurable `--user-agent` and a `--max-pages` cap; crawl provenance (`crawl_pages_fetched` / `crawl_truncated` / `crawl_max_pages`) recorded in the manifest. Static HTML only — no JS rendering or embeddings. Crawled pages are sorted by canonical URL before chunk-ID assignment for deterministic builds. (D28)
+- `extract_links()` and `fetch_html()` fetch primitives (Content-Type + redirect aware) in `synd.builder.fetch`.
+- Evaluation harness under `tests/evals/` — L1/L2/L3 retrieval and end-task measurement with two gold corpora. Internal tooling; no runtime or packaging impact.
+
+### Changed
+- Search: replaced AND-matching-with-relaxation by **OR-join + BM25 ranking**, fixing keyword-form regressions where relaxation dropped the wrong terms (D29).
+- Release flow reworked around the `develop → main` branching model. `cut-release.yml` now runs on `develop`: it bumps the version, rolls `CHANGELOG` `[Unreleased]` into a dated version section, and opens a PR **into develop**. `promote.yml` (new) auto-opens the `develop → main` promotion PR when a version bump lands on develop; merging it triggers `auto-release.yml`, the single tag-and-release engine. `main` stays a clean ancestor of `develop`.
+- `bump-my-version` now also rewrites `src/synd/__init__.py` `__version__`, which previously went stale on every automated bump.
+- `auto-release.yml` fails loudly if the CHANGELOG has no section for the version being released, and treats the fastmcp pack build as best-effort so a docs-site outage can't block a release.
+
+### Removed
+- `release.yml` — dead on the automated path (a `GITHUB_TOKEN`-created tag does not fire `on: push: tags`) and a duplicate of `auto-release.yml`. `auto-release.yml` is now the only release engine.
+- `scripts/release.sh` — a divergent third release path (pushed tags directly to `main`, referenced a nonexistent `.venv312`). Superseded by the Cut Release → promote → Auto Release flow.
 
 ## [0.2.0] - 2026-07-16
 

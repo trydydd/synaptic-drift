@@ -1,0 +1,281 @@
+{
+  "meta": {
+    "timestamp": "2026-07-06T13:23:13.057006+00:00",
+    "git_commit": "9b047e4",
+    "model": "red",
+    "reps": 1,
+    "max_turns": 12,
+    "task_count": 10
+  },
+  "arms": {
+    "no_docs": {
+      "pass_rate": 0.3,
+      "n": 10,
+      "avg_latency_s": 464.165,
+      "total_latency_s": 4641.652
+    },
+    "with_docs": {
+      "pass_rate": 0.8,
+      "n": 10,
+      "avg_latency_s": 159.077,
+      "total_latency_s": 1590.765
+    }
+  },
+  "per_task": [
+    {
+      "task_id": "t01",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: @mcp\\.tool\\(\\s*name=[\"']search[\"']"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 378,
+      "error": null,
+      "latency_s": 206.849
+    },
+    {
+      "task_id": "t02",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 370,
+      "error": null,
+      "latency_s": 270.141
+    },
+    {
+      "task_id": "t03",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: Context"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 591,
+      "error": null,
+      "latency_s": 393.631
+    },
+    {
+      "task_id": "t04",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: ctx\\.(info|debug)\\("
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 1635,
+      "error": null,
+      "latency_s": 411.828
+    },
+    {
+      "task_id": "t05",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: Client\\(",
+        "must_not_match: subprocess"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 905,
+      "error": null,
+      "latency_s": 1144.488
+    },
+    {
+      "task_id": "t06",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 371,
+      "error": null,
+      "latency_s": 283.341
+    },
+    {
+      "task_id": "t07",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: @mcp\\.prompt"
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 359,
+      "error": null,
+      "latency_s": 80.996
+    },
+    {
+      "task_id": "t08",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: mcp\\.run\\("
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 1129,
+      "error": null,
+      "latency_s": 729.818
+    },
+    {
+      "task_id": "t09",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [
+        "must_match: ctx\\.sample\\("
+      ],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 2348,
+      "error": null,
+      "latency_s": 651.593
+    },
+    {
+      "task_id": "t10",
+      "arm": "no_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 1,
+      "tool_calls_made": 0,
+      "reply_chars": 1045,
+      "error": null,
+      "latency_s": 468.967
+    },
+    {
+      "task_id": "t01",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 4,
+      "tool_calls_made": 3,
+      "reply_chars": 754,
+      "error": null,
+      "latency_s": 141.535
+    },
+    {
+      "task_id": "t02",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 2,
+      "reply_chars": 988,
+      "error": null,
+      "latency_s": 82.63
+    },
+    {
+      "task_id": "t03",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 2,
+      "reply_chars": 1136,
+      "error": null,
+      "latency_s": 90.206
+    },
+    {
+      "task_id": "t04",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 5,
+      "tool_calls_made": 5,
+      "reply_chars": 1206,
+      "error": null,
+      "latency_s": 117.465
+    },
+    {
+      "task_id": "t05",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 3,
+      "reply_chars": 1383,
+      "error": null,
+      "latency_s": 193.294
+    },
+    {
+      "task_id": "t06",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 3,
+      "tool_calls_made": 3,
+      "reply_chars": 770,
+      "error": null,
+      "latency_s": 81.591
+    },
+    {
+      "task_id": "t07",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 12,
+      "tool_calls_made": 11,
+      "reply_chars": 811,
+      "error": null,
+      "latency_s": 296.738
+    },
+    {
+      "task_id": "t08",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": true,
+      "failures": [],
+      "turns_used": 4,
+      "tool_calls_made": 3,
+      "reply_chars": 1237,
+      "error": null,
+      "latency_s": 154.793
+    },
+    {
+      "task_id": "t09",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [],
+      "turns_used": 12,
+      "tool_calls_made": 13,
+      "reply_chars": 0,
+      "error": "max_turns",
+      "latency_s": 227.769
+    },
+    {
+      "task_id": "t10",
+      "arm": "with_docs",
+      "rep": 0,
+      "passed": false,
+      "failures": [],
+      "turns_used": 12,
+      "tool_calls_made": 13,
+      "reply_chars": 0,
+      "error": "max_turns",
+      "latency_s": 204.744
+    }
+  ]
+}

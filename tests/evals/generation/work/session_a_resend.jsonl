@@ -1,0 +1,80 @@
+{"pack_name": "resend", "chunk_id": 14, "capability": "how to create an account and API key, then verify a sending domain before letting an automated agent perform email tasks"}
+{"pack_name": "resend", "chunk_id": 54, "capability": "how to permanently remove a custom contact field definition from your account using an API call"}
+{"pack_name": "resend", "chunk_id": 59, "capability": "understand why a custom contact field's identifier and value type cannot be changed once it has been created"}
+{"pack_name": "resend", "chunk_id": 69, "capability": "how to look up which subscription topics a specific contact is enrolled in using either their unique ID or email address"}
+{"pack_name": "resend", "chunk_id": 74, "capability": "how to update a contact's name, unsubscribe status, or custom properties by referencing them via ID or email address"}
+{"pack_name": "resend", "chunk_id": 101, "capability": "how to download a specific file attachment that was included in a previously sent message"}
+{"pack_name": "resend", "chunk_id": 106, "capability": "how to send up to a hundred separate messages in one request instead of making many individual calls"}
+{"pack_name": "resend", "chunk_id": 157, "capability": "understand the different caps on requests per second, messages sent per day and month, and stored subscriber records"}
+{"pack_name": "resend", "chunk_id": 176, "capability": "how to retrieve the details of a single subscription category using its unique identifier"}
+{"pack_name": "resend", "chunk_id": 179, "capability": "how to change a subscription category's name, description, and whether it is visible on the public preference page"}
+{"pack_name": "resend", "chunk_id": 195, "capability": "understand the setup requirements needed before wiring an inbound email address into a chat-style conversational integration"}
+{"pack_name": "resend", "chunk_id": 206, "capability": "understand which conversational actions are unsupported over email and the required conventions for building a two-way messaging integration"}
+{"pack_name": "resend", "chunk_id": 208, "capability": "how to install the packages needed to add a chat-style adapter and its supporting dependencies to a project"}
+{"pack_name": "resend", "chunk_id": 215, "capability": "choose between example integrations such as an auto-reply bot, styled first-contact messages, proactive outreach, and attachment handling"}
+{"pack_name": "resend", "chunk_id": 225, "capability": "how to start a brand-new conversation with someone proactively instead of only replying to messages they send first"}
+{"pack_name": "resend", "chunk_id": 228, "capability": "when to reach out to a user first, such as for welcome messages, order updates, alerts, or scheduled digests"}
+{"pack_name": "resend", "chunk_id": 250, "capability": "how to diagnose your local command-line setup and check the status of your credentials, key, and domain configuration"}
+{"pack_name": "resend", "chunk_id": 280, "capability": "how to see the total number of requests made with a given credential and drill into detailed request logs"}
+{"pack_name": "resend", "chunk_id": 310, "capability": "how to personalize a mass message by inserting custom subscriber field values into its content"}
+{"pack_name": "resend", "chunk_id": 343, "capability": "choose between different workflow step types like branching, delays, waiting for events, sending messages, or updating subscriber records"}
+{"pack_name": "resend", "chunk_id": 351, "capability": "understand the possible states a triggered workflow run can be in, from still executing to completed or skipped"}
+{"pack_name": "resend", "chunk_id": 358, "capability": "how to fetch the details of one specific workflow execution using its identifiers through an API call"}
+{"pack_name": "resend", "chunk_id": 418, "capability": "understand why you must add and verify a domain you own before you can send or receive messages"}
+{"pack_name": "resend", "chunk_id": 432, "capability": "understand why sending messages from a region closer to your users improves speed, simplifies account management, and adds resilience"}
+{"pack_name": "resend", "chunk_id": 465, "capability": "how to find the complete reference documentation for sending multiple messages together in a single request"}
+{"pack_name": "resend", "chunk_id": 473, "capability": "understand why keeping a message's content small avoids having it truncated and hidden behind a view-more link by some inboxes"}
+{"pack_name": "resend", "chunk_id": 477, "capability": "configure a dedicated address for rewritten links instead of a shared one so spam filters do not flag your messages"}
+{"pack_name": "resend", "chunk_id": 483, "capability": "understand the reasons an address gets blocked from future sends, such as a hard delivery failure or a spam complaint"}
+{"pack_name": "resend", "chunk_id": 492, "capability": "understand how including a unique key with a send request lets you safely retry it without accidentally sending twice"}
+{"pack_name": "resend", "chunk_id": 502, "capability": "how to delay delivery of a message until a specific future time rather than sending it right away"}
+{"pack_name": "resend", "chunk_id": 528, "capability": "how to get step-by-step guidance and relevant context for resolving a specific error returned by an API call"}
+{"pack_name": "resend", "chunk_id": 568, "capability": "understand the difference between opting out of a single preference category versus unsubscribing from all future messages entirely"}
+{"pack_name": "resend", "chunk_id": 590, "capability": "how to permanently remove a reusable message layout either through a visual interface or programmatically"}
+{"pack_name": "resend", "chunk_id": 596, "capability": "how to preview a reusable message layout by sending a sample copy with test variable values to your own inbox"}
+{"pack_name": "resend", "chunk_id": 619, "capability": "when to think about how long you keep event notification data before deciding on a storage retention policy"}
+{"pack_name": "resend", "chunk_id": 627, "capability": "understand the capabilities of a tool that parses authentication reports, flags unauthorized senders, and summarizes results by email digest"}
+{"pack_name": "resend", "chunk_id": 722, "capability": "understand why a shared testing-only sending domain can only deliver messages to the address tied to your own account"}
+{"pack_name": "resend", "chunk_id": 729, "capability": "understand how a per-second request cap works and what response you get if you exceed it within the same window"}
+{"pack_name": "resend", "chunk_id": 737, "capability": "understand why asking a new subscriber to confirm their signup with a follow-up link improves compliance and delivery quality"}
+{"pack_name": "resend", "chunk_id": 760, "capability": "understand common misconceptions about needing approval before going live, including confusion around pending domain verification status"}
+{"pack_name": "resend", "chunk_id": 768, "capability": "how to find and download compliance and tax paperwork stored in your account's settings area"}
+{"pack_name": "resend", "chunk_id": 773, "capability": "how to add a specific authentication text record with a particular hosting provider's DNS management interface"}
+{"pack_name": "resend", "chunk_id": 780, "capability": "understand the framework version and bundler support needed before embedding a rich text editor component for composing messages"}
+{"pack_name": "resend", "chunk_id": 791, "capability": "how to verify an incoming message notification and forward its contents on to a different address"}
+{"pack_name": "resend", "chunk_id": 808, "capability": "how to write a serverless function handler that sends a message when called"}
+{"pack_name": "resend", "chunk_id": 811, "capability": "how to verify a sending domain with a particular DNS provider and why a subdomain is usually preferred over the root domain"}
+{"pack_name": "resend", "chunk_id": 894, "capability": "configure an authentication policy so your logo can appear next to your messages in supporting inboxes"}
+{"pack_name": "resend", "chunk_id": 899, "capability": "how to register your brand logo against a root domain or a specific subdomain used for sending"}
+{"pack_name": "resend", "chunk_id": 900, "capability": "understand what identity verification details are required to prove company ownership before enabling a branded logo feature"}
+{"pack_name": "resend", "chunk_id": 955, "capability": "how to configure DNS records with a particular cloud provider so a subdomain can accept incoming messages"}
+{"pack_name": "resend", "chunk_id": 964, "capability": "choose between one shared account or separate accounts per customer when isolating billing, limits, and reputation for a multi-tenant product"}
+{"pack_name": "resend", "chunk_id": 976, "capability": "understand how using fully separate accounts per customer automatically isolates event notifications without extra tagging or filtering logic"}
+{"pack_name": "resend", "chunk_id": 1071, "capability": "understand the tracking technique used to detect when a recipient has opened a message they received"}
+{"pack_name": "resend", "chunk_id": 1136, "capability": "how to install a packaged set of AI assistant instructions along with a related inbound processing add-on"}
+{"pack_name": "resend", "chunk_id": 1155, "capability": "how to prevent a message from being sent more than once when safely retrying a failed request"}
+{"pack_name": "resend", "chunk_id": 1169, "capability": "how to install the software package needed to send messages from a server-side JavaScript project"}
+{"pack_name": "resend", "chunk_id": 1190, "capability": "choose between example projects covering basic sending, attachments, templates, scheduling, contact management, domain setup, and inbound processing"}
+{"pack_name": "resend", "chunk_id": 1223, "capability": "understand the optional fields available when composing a message, such as extra recipients, custom headers, and scheduling"}
+{"pack_name": "resend", "chunk_id": 1250, "capability": "how to send a message containing styled markup using a familiar web framework's built-in mail helper"}
+{"pack_name": "resend", "chunk_id": 1253, "capability": "understand the credentials, domain verification, and environment setup needed before configuring SMTP delivery in a web project"}
+{"pack_name": "resend", "chunk_id": 1278, "capability": "understand which shortcuts and legacy patterns to avoid when integrating email sending into a particular backend framework"}
+{"pack_name": "resend", "chunk_id": 1282, "capability": "understand the checklist an AI assistant should confirm before finalizing a proposed integration for a specific backend framework"}
+{"pack_name": "resend", "chunk_id": 1312, "capability": "understand what account credentials, domain verification, and local tooling install are needed before starting a backend framework integration"}
+{"pack_name": "resend", "chunk_id": 1334, "capability": "understand the recommended conventions an AI assistant should always follow when adding message sending to a backend web server"}
+{"pack_name": "resend", "chunk_id": 1348, "capability": "how to send a message with styled markup content from a lightweight backend web framework"}
+{"pack_name": "resend", "chunk_id": 1357, "capability": "how to set up a client instance authenticated with your credential before making any calls"}
+{"pack_name": "resend", "chunk_id": 1378, "capability": "understand the account credentials and domain verification required before sending your first message from a backend language"}
+{"pack_name": "resend", "chunk_id": 1402, "capability": "how to find the server address, port, username, and password needed to configure outgoing mail delivery over SMTP"}
+{"pack_name": "resend", "chunk_id": 1433, "capability": "how to obtain and securely store an authentication credential and verify ownership of a sending domain before use"}
+{"pack_name": "resend", "chunk_id": 1478, "capability": "understand a checklist covering import statements, credential storage, awaited calls, error handling, and parameter naming an assistant should verify"}
+{"pack_name": "resend", "chunk_id": 1485, "capability": "how to add a messaging library as a dependency in a functional backend language's package manifest"}
+{"pack_name": "resend", "chunk_id": 1492, "capability": "understand the account credential and domain verification prerequisites needed before sending mail through an SMTP library"}
+{"pack_name": "resend", "chunk_id": 1519, "capability": "how to prevent a message from being sent more than once when safely retrying a failed request"}
+{"pack_name": "resend", "chunk_id": 1548, "capability": "understand how to build a message body from reusable UI components in a component-based frontend framework instead of raw markup"}
+{"pack_name": "resend", "chunk_id": 1562, "capability": "understand the account credential and domain verification steps required before sending your first message from a dynamic scripting language"}
+{"pack_name": "resend", "chunk_id": 1570, "capability": "how to load a secret credential from a local configuration file instead of hardcoding it in source code"}
+{"pack_name": "resend", "chunk_id": 1572, "capability": "understand the account credential and domain verification steps required before sending mail from a lightweight web framework"}
+{"pack_name": "resend", "chunk_id": 1609, "capability": "how to install the software package needed to send messages from a full-stack JavaScript web framework"}
+{"pack_name": "resend", "chunk_id": 1618, "capability": "understand the scope of guidance covering how AI-generated code should send messages correctly within a serverless hosting environment"}
+{"pack_name": "resend", "chunk_id": 1639, "capability": "how to store an authentication credential as an environment variable rather than embedding it directly in code"}

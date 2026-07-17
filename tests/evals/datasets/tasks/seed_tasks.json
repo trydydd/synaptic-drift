@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "description": "End-task eval: coding tasks given to a local model with and without synd doc access. Graders are STATIC ONLY — regex over the extracted python code blocks plus ast.parse validity. Model-generated code is never executed. Each task's 'teaches' field names the corpus chunk(s) containing the information the model needs, for failure analysis.",
+  "corpus": {
+    "type": "hermetic",
+    "package": "evalcorpus",
+    "version": "1.0.0",
+    "source": "tests/evals/fixtures/corpus"
+  },
+  "tasks": [
+    {
+      "id": "t01",
+      "prompt": "Using the FastMCP python library, write a complete server script with one tool. The python function must be named search_tool, but clients must see the tool published under the name 'search'. The tool takes a query string and returns a string.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["@mcp\\.tool\\(\\s*name=[\"']search[\"']", "def search_tool"],
+        "must_not_match": []
+      },
+      "teaches": ["fastmcp/quickstart / FastMCP Quickstart / Registering Tools"]
+    },
+    {
+      "id": "t02",
+      "prompt": "Using FastMCP, register a resource template that exposes user profiles at the URI users://{user_id}/profile. The function should return a JSON string for the given user_id.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["@mcp\\.resource\\(\\s*[\"']users://\\{user_id\\}/profile[\"']"],
+        "must_not_match": []
+      },
+      "teaches": ["fastmcp/quickstart / FastMCP Quickstart / Registering Resources"]
+    },
+    {
+      "id": "t03",
+      "prompt": "Write a FastMCP tool named process_items that takes a list of strings, processes them in a loop, and reports progress to the client as it goes so the user sees a progress bar. Do not use print().",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["report_progress", "Context"],
+        "must_not_match": ["print\\("]
+      },
+      "teaches": ["fastmcp/context / The Context Object / Progress Reporting"]
+    },
+    {
+      "id": "t04",
+      "prompt": "Write a FastMCP tool that logs an informational message to the connected client while it runs. The server uses the stdio transport, so the protocol stream must not be corrupted.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["ctx\\.(info|debug)\\("],
+        "must_not_match": ["print\\("]
+      },
+      "teaches": ["fastmcp/context / The Context Object / Logging Through the Context", "mcp/logging / Logging / stdio Servers and stderr"]
+    },
+    {
+      "id": "t05",
+      "prompt": "Write a pytest test for a FastMCP server that has an 'add' tool, without starting a subprocess or opening a socket. The test should call the tool with a=2, b=3 and assert on the result.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["Client\\(", "call_tool"],
+        "must_not_match": ["subprocess"]
+      },
+      "teaches": ["fastmcp/testing / Testing FastMCP Servers / In-Memory Testing with the Client"]
+    },
+    {
+      "id": "t06",
+      "prompt": "Write a FastMCP tool named fetch_page that downloads a URL with an HTTP client and returns the body text. The tool performs network I/O, so define it the way the FastMCP docs recommend for I/O-bound tools.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["async def fetch_page"],
+        "must_not_match": []
+      },
+      "teaches": ["fastmcp/quickstart / FastMCP Quickstart / Async Functions"]
+    },
+    {
+      "id": "t07",
+      "prompt": "Using FastMCP, register a prompt template named code_review that takes a 'language' argument and produces a user message asking for a review of code written in that language.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["@mcp\\.prompt"],
+        "must_not_match": []
+      },
+      "teaches": ["fastmcp/quickstart / FastMCP Quickstart / Registering Prompts"]
+    },
+    {
+      "id": "t08",
+      "prompt": "Write the entrypoint for a FastMCP server script so that a desktop host application can launch it as a subprocess. Use the transport that desktop hosts expect by default.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["mcp\\.run\\("],
+        "must_not_match": ["transport=[\"']sse[\"']"]
+      },
+      "teaches": ["fastmcp/quickstart / FastMCP Quickstart / Creating a Server", "fastmcp/running-server / Running Your Server / Transport Protocols / STDIO Transport (Default)"]
+    },
+    {
+      "id": "t09",
+      "prompt": "Write a FastMCP tool named summarize that takes a long text argument and asks the connected client's own language model to produce the summary, instead of calling any external LLM API. Handle the case where the user rejects the request.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["ctx\\.sample\\("],
+        "must_not_match": ["openai", "anthropic"]
+      },
+      "teaches": ["fastmcp/context / The Context Object / Requesting Sampling", "mcp/sampling / Sampling"]
+    },
+    {
+      "id": "t10",
+      "prompt": "Write a FastMCP tool named summarize_config that reads this same server's resource at URI config://app and returns a short description of it. Use the supported way for a tool to access its own server's resources.",
+      "graders": {
+        "must_parse": true,
+        "must_match": ["read_resource\\("],
+        "must_not_match": []
+      },
+      "teaches": ["fastmcp/context / The Context Object / Reading Resources from a Tool"]
+    }
+  ]
+}

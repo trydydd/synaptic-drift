@@ -49,3 +49,7 @@ source/
 .idea/
 *.swp
 *.swo
+
+# Eval dataset generation working files (SQLite scratch DBs, built locally
+# by tests/evals/generation/ scripts on the evals branch)
+tests/evals/generation/work/

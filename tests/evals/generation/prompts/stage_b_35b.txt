@@ -1,0 +1,34 @@
+ROLE: You synthesize realistic developer search queries from a capability description.
+
+A developer capability is described below. You must generate queries that sound
+like real humans typed them — NOT like a technical specification.
+
+CAPABILITY: {capability_statement}
+
+Generate queries for these TWO personas:
+
+PERSONA 3 — CROSS-ECOSYSTEM (vocabulary_mismatch difficulty)
+  This developer comes from a different tech stack (e.g. they know Rails/Django/Spring
+  concepts deeply but have never used this library or ecosystem). They use their own
+  ecosystem's terminology to describe what they want.
+  Their query will use NONE of the vocabulary from the capability statement or from
+  the library's documentation — they don't know those words yet.
+
+PERSONA 4 — HURRIED USER (noise/direct difficulty)
+  This developer is in a rush. They type incomplete fragments, often lowercase,
+  sometimes with a typo. Short, partial phrases. 3-6 words maximum.
+
+OUTPUT FORMAT — exactly 4 lines, no labels, no blank lines:
+Line 1: Persona 3 natural-language query (one sentence using foreign vocabulary)
+Line 2: Persona 3 keyword query (2-4 terms from their ecosystem, not this library's)
+Line 3: Persona 4 natural-language query (short fragment, may have typo, no capitals)
+Line 4: Persona 4 keyword query (2-3 terms, all lowercase)
+
+ADDITIONAL RULES:
+  - Persona 3 MUST use zero vocabulary from the capability statement.
+    If the capability mentions "tool annotation" write "decorator metadata" or
+    "middleware tag" or whatever their ecosystem calls the analogous concept.
+  - Persona 4 lines must be SHORT (≤6 words).
+  - All Persona 4 lines lowercase.
+
+CAPABILITY: {capability_statement}

@@ -30,12 +30,20 @@ def build_manifest(
     policy_profile: str | None,
     source_url: str,
     source_commit: str | None,
+    crawl_pages_fetched: int | None = None,
+    crawl_truncated: bool | None = None,
+    crawl_max_pages: int | None = None,
 ) -> ManifestDict:
     """Build the manifest dictionary from build parameters.
 
     The returned dict matches the manifest.v2 schema structurally; enum values
     are validated at the boundary (see synd.schemas.validate_manifest), which
     the builder calls before writing the final archive.
+
+    The crawl_* fields are provenance for crawled builds only: a pack with
+    crawl_truncated=true is incomplete — the crawl stopped at crawl_max_pages
+    with pages still in the frontier. Directory and llms.txt builds leave
+    them unset.
     """
     manifest: ManifestDict = {
         "schema_version": 2,
@@ -58,6 +66,12 @@ def build_manifest(
         manifest["policy_profile"] = policy_profile
     if source_commit is not None:
         manifest["source_commit"] = source_commit
+    if crawl_pages_fetched is not None:
+        manifest["crawl_pages_fetched"] = crawl_pages_fetched
+    if crawl_truncated is not None:
+        manifest["crawl_truncated"] = crawl_truncated
+    if crawl_max_pages is not None:
+        manifest["crawl_max_pages"] = crawl_max_pages
     return manifest
 
 

@@ -461,3 +461,68 @@ def test_fetch_docs_output_validates_against_contract(db: Database) -> None:
 
     validate_tool_response(dict(fetch_docs(db, chunk_ids=[1, 2])))
     validate_tool_response(dict(fetch_docs(db, chunk_ids=[])))
+
+
+# ---------------------------------------------------------------------------
+# Eval harness tool-schema parity
+# ---------------------------------------------------------------------------
+
+
+def _param_type(spec: dict[str, Any]) -> tuple[Any, Any]:
+    """JSON type of a parameter spec, plus its item type for arrays."""
+    items = spec.get("items")
+    item_type = items.get("type") if isinstance(items, dict) else None
+    return spec.get("type"), item_type
+
+
+def test_eval_tool_schemas_are_call_compatible_with_server() -> None:
+    """The end-task eval's hand-written tool schemas stay callable against
+    the real MCP server (tests/evals/endtask.py claims to mirror its tools).
+
+    The eval schemas are intentionally a simplified subset — they omit the
+    server's optional parameters (packages, max_tokens) and set their own
+    limit default — so this asserts call-compatibility, not equality: every
+    tool the eval advertises exists on the server, every eval parameter
+    exists on the server tool with the same JSON type, and the eval requires
+    everything the server requires. Then any tool call a model emits under
+    the eval schemas is a valid call to the real server.
+
+    NEG: the server renames a tool or parameter, changes a parameter's type,
+    or adds a new required parameter without the eval schemas being updated.
+    """
+    import asyncio
+
+    from synd.server import create_server
+    from tests.evals.endtask import FETCH_TOOL_SCHEMA, SEARCH_TOOL_SCHEMA
+
+    server_tools = {t.name: t for t in asyncio.run(create_server().list_tools())}
+
+    for eval_schema in (SEARCH_TOOL_SCHEMA, FETCH_TOOL_SCHEMA):
+        fn: Any = eval_schema["function"]
+        name = fn["name"]
+        assert name in server_tools, (
+            f"eval tool {name!r} is not registered on the real server"
+        )
+
+        real = server_tools[name].inputSchema
+        real_props = real["properties"]
+        eval_props = fn["parameters"]["properties"]
+
+        for param, spec in eval_props.items():
+            assert param in real_props, (
+                f"{name}.{param} in the eval schema is not accepted "
+                "by the real server tool"
+            )
+            assert _param_type(spec) == _param_type(real_props[param]), (
+                f"{name}.{param} type mismatch: eval declares "
+                f"{_param_type(spec)}, server expects "
+                f"{_param_type(real_props[param])}"
+            )
+
+        real_required = set(real.get("required", []))
+        eval_required = set(fn["parameters"].get("required", []))
+        assert real_required <= eval_required, (
+            f"{name}: server-required parameters "
+            f"{sorted(real_required - eval_required)} are optional "
+            "in the eval schema — the model may omit them"
+        )

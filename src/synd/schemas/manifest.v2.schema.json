@@ -110,6 +110,20 @@
     "source_tag": {
       "type": "string",
       "description": "Git tag at build time (deferred feature)."
+    },
+    "crawl_pages_fetched": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Crawled builds only: number of pages the crawler fetched."
+    },
+    "crawl_truncated": {
+      "type": "boolean",
+      "description": "Crawled builds only: true when the crawl stopped at crawl_max_pages with pages remaining — the pack is incomplete."
+    },
+    "crawl_max_pages": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Crawled builds only: the max-pages cap in effect at build time."
     }
   }
 }

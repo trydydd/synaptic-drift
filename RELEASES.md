@@ -17,17 +17,14 @@ identifier trigger the full release workflow.
 
 ## Pre-Release Checklist
 
-Work through this list in order. Do not tag until all items are complete.
+Work through this list before running Cut Release.
 
 ### 1. Known bugs and gaps
 
-Review `docs/todo.md` and confirm every v{N} item is resolved or explicitly deferred.
-
-The following bugs were open when v0.1.0 was tagged and are deferred to v0.1.1:
-
-- [ ] `src/synd/storage/db.py:121-126` — page ID foreign key integrity on import
-- [ ] `src/synd/search/fts.py:76` — silent exception swallowing on search failure
-- [ ] `src/synd/server.py` — `max_tokens` parameter accepted but not implemented
+Confirm the items scoped to this version in `docs/roadmap.md` are resolved or
+explicitly deferred, and that no decision in `docs/decisions.md` is left open in a
+way that blocks the release. (Historical note: `docs/todo.md` was folded into
+`docs/roadmap.md`; there is no separate todo file.)
 
 ### 2. Tests pass cleanly
 
@@ -51,67 +48,72 @@ git add tests/benchmarks/results/v{VERSION}.json
 git commit -m "chore: capture v{VERSION} benchmark baseline"
 ```
 
-### 4. Version bumped
+### 4. Version bump and CHANGELOG (automated — do not do by hand)
 
-Update the version string in two places and confirm they match:
+The version bump (`pyproject.toml` `[project] version` **and** `src/synd/__init__.py`
+`__version__`, kept in sync by `[tool.bumpversion]`) and the CHANGELOG roll
+(`## [Unreleased]` → `## [X.Y.Z] - <date>`) are performed by the **Cut Release**
+workflow. Do not edit the version strings or rename the CHANGELOG heading manually.
 
-- `pyproject.toml` → `[project] version`
-- `src/synd/__init__.py` → `__version__`
+What you *do* need before cutting: make sure the pending work is described under
+`## [Unreleased]` in `CHANGELOG.md` (Keep a Changelog format) — that block becomes
+the release notes verbatim.
 
 ### 5. README reflects reality
 
 Confirm the README quickstart works end-to-end with the current code.
 The README must not say "implementation is beginning" once any release ships.
 
-### 6. CHANGELOG entry written
-
-Add a section to `CHANGELOG.md` (create it for v0.1.0). Entries should follow
-[Keep a Changelog](https://keepachangelog.com/) format.
-
 ---
 
 ## Release Procedure
 
-```bash
-# 1. Ensure main branch is clean and tests pass
-git checkout main
-git pull origin main
-pytest tests/
-ruff check . && mypy src/
+Releases follow the repo's `feature → develop → main` flow. **Promoting develop
+to main is the release act.** There is no manual tagging and no direct commit to
+`main`; three workflows chain together:
 
-# 2. Capture performance baseline (see above)
-
-# 3. Bump version
-#    Edit pyproject.toml and src/synd/__init__.py
-
-# 4. Commit the version bump and baseline together
-git add pyproject.toml src/synd/__init__.py tests/benchmarks/results/v{VERSION}.json
-git commit -m "Release v{VERSION}"
-
-# 5. Tag
-git tag -a v{VERSION} -m "v{VERSION}"
-
-# 6. Push (tag push triggers the release workflow)
-git push origin main
-git push origin v{VERSION}
-
-# 7. Verify CI
-#    Watch the release workflow at .github/workflows/release.yml.
-#    It runs the full test suite, builds wheel + sdist, builds .ctx packs,
-#    and creates the GitHub Release with all artifacts attached.
-
-# 8. Publish to PyPI (currently manual — no twine step in CI yet)
-pip install build twine
-python -m build
-twine upload dist/synaptic_drift-{VERSION}*
 ```
+Actions → "Cut Release" (patch/minor/major), runs on develop
+   ├─ preflight (ruff, mypy, pytest) + bump version + roll CHANGELOG
+   └─ opens PR: release/vX.Y.Z → develop
+        merge ↓
+develop is release-ready
+   └─ promote.yml auto-opens PR: develop → main   ("Release vX.Y.Z")
+        review + merge ↓
+auto-release.yml (fires on the version change on main)
+   └─ runs full suite, builds wheel + sdist + packs,
+      creates the GitHub release and tags vX.Y.Z via the API
+```
+
+Step by step:
+
+1. **Land all release content on `develop`** via the normal feature-PR flow, and
+   make sure `## [Unreleased]` in `CHANGELOG.md` describes it.
+2. **Run Cut Release** (Actions → Cut Release → Run workflow → choose
+   `patch` / `minor` / `major`). It always operates on `develop` regardless of the
+   ref you launch it from. Review and merge the `release/vX.Y.Z → develop` PR it
+   opens.
+3. **Merge the promotion PR.** `promote.yml` auto-opens (or refreshes) the
+   `develop → main` PR titled `Release vX.Y.Z`. Review and merge it.
+4. **Auto Release runs on the merge.** Watch `.github/workflows/auto-release.yml`:
+   it re-runs the full suite (including `--network`), builds the wheel/sdist and
+   the fastmcp pack, and creates the GitHub release with tag `vX.Y.Z`. It aborts
+   if the CHANGELOG has no section for the version (so empty notes can't ship).
+
+> **Cutting on `develop` (not `main`) is deliberate**: the bump reaches `main` only
+> through the promotion PR, so `main` stays a clean ancestor of `develop` and the
+> two branches never diverge. Never PR a version bump straight into `main`.
+
+PyPI publishing is deferred to v0.3.0. When it lands, an OIDC `publish` job is
+appended to `auto-release.yml` (see the header comment there) — not a separate
+tag-triggered workflow.
 
 ---
 
 ## Release Artifacts
 
 Each GitHub Release contains the following files, attached automatically by
-`.github/workflows/release.yml`:
+`.github/workflows/auto-release.yml`:
 
 | Artifact | Description |
 |---|---|
@@ -121,12 +123,13 @@ Each GitHub Release contains the following files, attached automatically by
 
 ### Adding packs to a release
 
-The `build packs` step in `release.yml` builds one pack per library listed in the
-workflow. To add a library for v0.2.0:
+The `Build packs` step in `auto-release.yml` builds one pack per library listed in
+the workflow. To add a library:
 
 1. Confirm the library publishes `llms-full.txt`.
-2. Add a `curl` + `synd build` line to the `Build packs` step in `release.yml`.
-3. The `.ctx` file is picked up by the `files:` glob automatically.
+2. Add a `curl` + `synd build` line to the `Build packs` step in `auto-release.yml`.
+3. The `.ctx` file is picked up by the `files:` glob automatically. (The pack step
+   is best-effort — a fetch failure degrades the release rather than blocking it.)
 
 ### Artifact naming convention
 
@@ -252,23 +255,20 @@ Compare `v{N}.json` against `v{N-1}.json` before tagging. Expected behaviour:
 
 ## Hotfix Procedure
 
-For urgent patch releases on an already-shipped version:
+For an urgent patch on an already-shipped version, when `develop` contains
+unreleased work you don't want to ship yet:
 
-```bash
-# Branch from the release tag
-git checkout -b hotfix/v{VERSION}.{PATCH} v{VERSION}
+1. Branch from the tag: `git checkout -b hotfix/vX.Y.Z vX.Y.(Z-1)`.
+2. Make the fix and add a `## [Unreleased]` CHANGELOG entry; run `pytest tests/`.
+3. Open a PR from the hotfix branch **into `main`**, bumping the patch version and
+   rolling the CHANGELOG in that same PR (mirror what Cut Release does: bump
+   `pyproject.toml` + `src/synd/__init__.py`, and turn `## [Unreleased]` into
+   `## [X.Y.Z] - <date>`). Merging it triggers `auto-release.yml` and ships the
+   patch.
+4. **Back-merge to `develop`** afterward (`git checkout develop && git merge main`,
+   via PR) so `main` remains an ancestor of `develop` and the fix isn't lost.
 
-# Make the fix, run tests
-pytest tests/
-
-# Bump patch version in pyproject.toml and __init__.py
-# Tag and push
-git tag -a v{VERSION}.{PATCH} -m "v{VERSION}.{PATCH}"
-git push origin hotfix/v{VERSION}.{PATCH}
-git push origin v{VERSION}.{PATCH}
-
-# Open a PR to merge the fix back to main
-```
-
-Do not run the performance benchmark for hotfix releases unless the fix
-touches search, the MCP server, or response serialisation.
+This is the one case where a change lands on `main` ahead of `develop`; the
+mandatory back-merge in step 4 repairs it. Do not run the performance benchmark
+for hotfixes unless the fix touches search, the MCP server, or response
+serialisation.

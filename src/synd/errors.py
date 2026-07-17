@@ -31,6 +31,15 @@ class BuildError(SyndError):
     """Failures during pack building."""
 
 
+class CrawlError(BuildError):
+    """Web crawl failed: root unreachable, robots-blocked, or no pages found.
+
+    Individual page failures during a crawl are skipped with a warning and
+    never raise; this error means the crawl as a whole produced nothing
+    usable.
+    """
+
+
 class SearchError(SyndError):
     """Database or query error during search."""
 

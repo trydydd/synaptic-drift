@@ -1,0 +1,21 @@
+[meta]
+schema_version = 2
+generated_at = "2026-07-04T19:15:20Z"
+
+[packs."mcp@2025-05-29"]
+pack_digest = "sha256:527ea1ccb23bfe79c72896a297b0d24b7abb36bd7e0f3664963dd4a3e2a35245"
+lifecycle_state = "draft"
+indexed_at = "2026-07-04T19:15:12Z"
+source_url = "https://modelcontextprotocol.io/llms-full.txt"
+
+[packs."resend@2025-05-29"]
+pack_digest = "sha256:d93e6761e4cd5ac9d1f654847506dfaf087ead2b09c1253efbb651c689f03588"
+lifecycle_state = "draft"
+indexed_at = "2026-07-04T19:15:20Z"
+source_url = "https://resend.com/docs/llms-full.txt"
+
+[packs."trigger@2025-05-29"]
+pack_digest = "sha256:4728da2b9f79deba19292f8883d34e80ff1ecf5510d86bdd2901fa485ebe56d6"
+lifecycle_state = "draft"
+indexed_at = "2026-07-04T19:15:17Z"
+source_url = "https://trigger.dev/docs/llms-full.txt"

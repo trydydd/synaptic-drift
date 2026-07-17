@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "timestamp": "2026-07-05T21:37:45.595961+00:00",
+    "runs": 10,
+    "max_turns": 8,
+    "base_url": "http://192.168.0.214:8000/v1",
+    "model": "red",
+    "model_root": "Qwen/Qwen3.6-27B-FP8",
+    "max_model_len": 131072,
+    "owned_by": "vllm",
+    "requested_sampling_params": {
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "presence_penalty": 1.5,
+      "repetition_penalty": 1.0,
+      "max_tokens": 2048,
+      "disable_thinking": true
+    },
+    "request_timeout_s": 1800.0
+  },
+  "aggregate": {
+    "no_docs": {
+      "pass_rate_mean": 0.43,
+      "pass_rate_stdev": 0.1252,
+      "avg_latency_s_mean": 36.1114,
+      "avg_latency_s_stdev": 5.7116,
+      "per_run_pass_rate": [
+        0.5,
+        0.5,
+        0.3,
+        0.4,
+        0.3,
+        0.5,
+        0.6,
+        0.5,
+        0.2,
+        0.5
+      ],
+      "per_run_avg_latency_s": [
+        34.491,
+        30.853,
+        36.755,
+        41.554,
+        39.95,
+        32.287,
+        42.212,
+        29.048,
+        44.575,
+        29.389
+      ]
+    },
+    "with_docs": {
+      "pass_rate_mean": 0.83,
+      "pass_rate_stdev": 0.0483,
+      "avg_latency_s_mean": 50.4012,
+      "avg_latency_s_stdev": 4.7614,
+      "per_run_pass_rate": [
+        0.9,
+        0.8,
+        0.8,
+        0.9,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.9
+      ],
+      "per_run_avg_latency_s": [
+        49.134,
+        51.882,
+        54.354,
+        54.076,
+        47.419,
+        52.007,
+        47.267,
+        43.054,
+        59.034,
+        45.785
+      ]
+    }
+  }
+}
