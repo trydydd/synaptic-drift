@@ -665,3 +665,75 @@ def test_search_relaxed_malformed_operator_raises() -> None:
     db = _make_relaxed_db()
     with pytest.raises(SearchError):
         search_relaxed(db, "foo AND")
+
+
+# -- exact (unstemmed) matching contract (D30 closure: porter reverted) --
+
+
+def _make_stemming_db() -> Database:
+    """One pack, one chunk whose content uses only singular/base word forms."""
+    db = _make_db()
+    pack = Pack(
+        name="mathdocs",
+        version="1.0.0",
+        lifecycle_state="approved",
+        doc_version_status="stable",
+        indexed_at="2026-01-01T00:00:00Z",
+    )
+    pages = [Page(id=1, package="mathdocs", version="1.0.0", url="mathtext.md")]
+    chunks = [
+        Chunk(
+            id=1,
+            package="mathdocs",
+            version="1.0.0",
+            page_id=1,
+            heading_path="Mathtext",
+            summary="Render a mathematical formula in a label",
+            content=(
+                "Use the internal parser to render a mathematical formula "
+                "inside an axis label or title. The annotation is drawn with "
+                "the layout engine."
+            ),
+            source_url="mathtext.md",
+        ),
+    ]
+    _import_pack(db, pack, pages, chunks)
+    return db
+
+
+def test_search_matches_exact_word_form() -> None:
+    """The base form present in the content must match."""
+    db = _make_stemming_db()
+    results = search(db, "formula")
+    assert len(results) == 1
+    assert results[0].heading_path == "Mathtext"
+
+
+def test_search_does_not_stem_plural_to_singular() -> None:
+    """'formulas' must NOT match a chunk that only ever says 'formula'.
+
+    Porter stemming shipped briefly (D30 step 1) and was reverted after the
+    matrix measure: a wash under summary enrichment and RRF, while standalone
+    it flipped 9 direct-tier questions 1.00 → 0.00. Exact unicode61 matching
+    is the deliberate contract; morphology gaps are covered by build-time
+    summary enrichment (D30 closure in decisions.md).
+    """
+    db = _make_stemming_db()
+    results = search(db, "formulas")
+    assert results == []
+
+
+def test_search_does_not_stem_inflected_verbs() -> None:
+    """'rendering annotations' must not match 'render ... annotation'."""
+    db = _make_stemming_db()
+    results = search(db, "rendering annotations")
+    assert results == []
+
+
+def test_search_relaxed_does_not_stem_either() -> None:
+    """search_relaxed shares the FTS index: OR-joined terms stay unstemmed —
+    neither inflected term matches the base-form content."""
+    db = _make_stemming_db()
+    results, effective = search_relaxed(db, "formulas titles")
+    assert results == []
+    assert effective == "formulas OR titles"

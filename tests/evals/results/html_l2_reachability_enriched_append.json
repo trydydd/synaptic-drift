@@ -1,0 +1,6736 @@
+{
+  "dataset": "tests/evals/datasets/real/html_v1.json",
+  "db": "tests/evals/generation/work/html_enriched_append.db",
+  "model": "red",
+  "max_turns": 6,
+  "n_questions": 300,
+  "n_scored": 300,
+  "n_gold_unresolved": 0,
+  "gold_unresolved_ids": [],
+  "overall": {
+    "recall@1": 0.3683,
+    "recall@5": 0.6,
+    "recall@10": 0.7167,
+    "recall@20": 0.86,
+    "mrr": 0.4939,
+    "ndcg@10": 0.539
+  },
+  "by_difficulty": {
+    "direct": {
+      "n": 176,
+      "recall@1": 0.554,
+      "recall@5": 0.8807,
+      "recall@10": 0.9432,
+      "recall@20": 0.983,
+      "mrr": 0.7041,
+      "ndcg@10": 0.7611
+    },
+    "paraphrase": {
+      "n": 98,
+      "recall@1": 0.1122,
+      "recall@5": 0.2143,
+      "recall@10": 0.449,
+      "recall@20": 0.7245,
+      "mrr": 0.2129,
+      "ndcg@10": 0.2502
+    },
+    "vocabulary_mismatch": {
+      "n": 26,
+      "recall@1": 0.0769,
+      "recall@5": 0.1538,
+      "recall@10": 0.1923,
+      "recall@20": 0.5385,
+      "mrr": 0.13,
+      "ndcg@10": 0.1238
+    }
+  },
+  "by_pack": {
+    "fastapi": {
+      "n": 106,
+      "recall@1": 0.316,
+      "recall@5": 0.5849,
+      "recall@10": 0.6887,
+      "recall@20": 0.8208,
+      "mrr": 0.4564,
+      "ndcg@10": 0.506
+    },
+    "matplotlib": {
+      "n": 104,
+      "recall@1": 0.4615,
+      "recall@5": 0.6923,
+      "recall@10": 0.7788,
+      "recall@20": 0.9327,
+      "mrr": 0.5866,
+      "ndcg@10": 0.6247
+    },
+    "sqlalchemy": {
+      "n": 90,
+      "recall@1": 0.3222,
+      "recall@5": 0.5111,
+      "recall@10": 0.6778,
+      "recall@20": 0.8222,
+      "mrr": 0.4308,
+      "ndcg@10": 0.479
+    }
+  },
+  "questions": [
+    {
+      "id": "r0001",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0002",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0003",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0004",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0005",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0006",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07692307692307693,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0007",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0008",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0009",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0010",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0011",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0012",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0013",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07142857142857142,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0014",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0015",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0016",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0017",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.08333333333333333,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0018",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0019",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0020",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0021",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0022",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0023",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0024",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0025",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0026",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0027",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0028",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0029",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0030",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0031",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0032",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0033",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0034",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0035",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0036",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.02702702702702703,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0037",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0038",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0039",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0040",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0041",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0042",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0043",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0044",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0045",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0046",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0047",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0048",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0049",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.2,
+      "ndcg@10": 0.38685280723454163
+    },
+    {
+      "id": "r0050",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0051",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0052",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0053",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0054",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07142857142857142,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0055",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.125,
+      "ndcg@10": 0.31546487678572877
+    },
+    {
+      "id": "r0056",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0057",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0058",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0059",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0060",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0061",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0062",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0063",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0064",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0065",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07692307692307693,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0066",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0067",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0068",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0069",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0070",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07692307692307693,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0071",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.0625,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0072",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0073",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0074",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0075",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.0625,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0076",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0077",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0078",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0079",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.2,
+      "ndcg@10": 0.38685280723454163
+    },
+    {
+      "id": "r0080",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.09090909090909091,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0081",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.09090909090909091,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0082",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0083",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0084",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0085",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0086",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1,
+      "ndcg@10": 0.2890648263178879
+    },
+    {
+      "id": "r0087",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0088",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0089",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05263157894736842,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0090",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0091",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.0625,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0092",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0093",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0094",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.08333333333333333,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0095",
+      "pack": "matplotlib",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0096",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05263157894736842,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0097",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0098",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.058823529411764705,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0099",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0100",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.06666666666666667,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0101",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0102",
+      "pack": "matplotlib",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.047619047619047616,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0103",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0104",
+      "pack": "matplotlib",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0105",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0106",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07142857142857142,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0107",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0108",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.06666666666666667,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0109",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07692307692307693,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0110",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0111",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.2,
+      "ndcg@10": 0.38685280723454163
+    },
+    {
+      "id": "r0112",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.2,
+      "ndcg@10": 0.38685280723454163
+    },
+    {
+      "id": "r0113",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0114",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.017543859649122806,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0115",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.09090909090909091,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0116",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0117",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0118",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.125,
+      "ndcg@10": 0.31546487678572877
+    },
+    {
+      "id": "r0119",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0120",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0121",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0122",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0123",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0124",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0125",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0126",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@10": 0.3010299956639812
+    },
+    {
+      "id": "r0127",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@10": 0.3010299956639812
+    },
+    {
+      "id": "r0128",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0129",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0130",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0131",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0132",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0133",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.125,
+      "ndcg@10": 0.31546487678572877
+    },
+    {
+      "id": "r0134",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1,
+      "ndcg@10": 0.2890648263178879
+    },
+    {
+      "id": "r0135",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0136",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0137",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0138",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0139",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0140",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0141",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0142",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0143",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0144",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.0625,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0145",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0146",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07142857142857142,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0147",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0148",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0149",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0150",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0151",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.125,
+      "ndcg@10": 0.31546487678572877
+    },
+    {
+      "id": "r0152",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0153",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0154",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.125,
+      "ndcg@10": 0.31546487678572877
+    },
+    {
+      "id": "r0155",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.03225806451612903,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0156",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.125,
+      "ndcg@10": 0.31546487678572877
+    },
+    {
+      "id": "r0157",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0158",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0159",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0160",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@10": 0.3010299956639812
+    },
+    {
+      "id": "r0161",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0162",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0163",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0164",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@10": 0.3010299956639812
+    },
+    {
+      "id": "r0165",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0166",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0167",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0168",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0169",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.08333333333333333,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0170",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0171",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0172",
+      "pack": "sqlalchemy",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0173",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0174",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1,
+      "ndcg@10": 0.2890648263178879
+    },
+    {
+      "id": "r0175",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0176",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0177",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0178",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.02702702702702703,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0179",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07142857142857142,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0180",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0181",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.06666666666666667,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0182",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0183",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.058823529411764705,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0184",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0185",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0186",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.045454545454545456,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0187",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.04,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0188",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07692307692307693,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0189",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0190",
+      "pack": "sqlalchemy",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0191",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0192",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0193",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0194",
+      "pack": "sqlalchemy",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.045454545454545456,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0195",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.5,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0196",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0197",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0198",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.0625,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0199",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0200",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@10": 0.3333333333333333
+    },
+    {
+      "id": "r0201",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0202",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0203",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0204",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0205",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0206",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0207",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@10": 0.3333333333333333
+    },
+    {
+      "id": "r0208",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.2,
+      "ndcg@10": 0.38685280723454163
+    },
+    {
+      "id": "r0209",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0210",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0211",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0212",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0213",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0214",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0215",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07692307692307693,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0216",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0217",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0218",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0219",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0220",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0221",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0222",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.06666666666666667,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0223",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0224",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0225",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0226",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.04,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0227",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0228",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0229",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05555555555555555,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0230",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@10": 0.3010299956639812
+    },
+    {
+      "id": "r0231",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0232",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0233",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0234",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.06666666666666667,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0235",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0236",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0237",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.6182885020492784
+    },
+    {
+      "id": "r0238",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.02564102564102564,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0239",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.08333333333333333,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0240",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0241",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0242",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.125,
+      "ndcg@10": 0.31546487678572877
+    },
+    {
+      "id": "r0243",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0244",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0245",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0246",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.25,
+      "ndcg@10": 0.43067655807339306
+    },
+    {
+      "id": "r0247",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0248",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0249",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0250",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.014925373134328358,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0251",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0252",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@10": 0.5
+    },
+    {
+      "id": "r0253",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0254",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0255",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0256",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0257",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0258",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0259",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.25,
+      "ndcg@10": 0.43067655807339306
+    },
+    {
+      "id": "r0260",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05555555555555555,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0261",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0262",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0263",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0264",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0265",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0266",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0267",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0268",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0269",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0270",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0271",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0272",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0273",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0274",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.058823529411764705,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0275",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.04,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0276",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0277",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0278",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05263157894736842,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0279",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0280",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.07142857142857142,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0281",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0282",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0283",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.09090909090909091,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0284",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.25,
+      "ndcg@10": 0.43067655807339306
+    },
+    {
+      "id": "r0285",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0286",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0287",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0288",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    },
+    {
+      "id": "r0289",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0290",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.2,
+      "ndcg@10": 0.38685280723454163
+    },
+    {
+      "id": "r0291",
+      "pack": "fastapi",
+      "difficulty": "direct",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.045454545454545456,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0292",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0293",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.06666666666666667,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0294",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "mrr": 0.02631578947368421,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0295",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0296",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@10": 0.3010299956639812
+    },
+    {
+      "id": "r0297",
+      "pack": "fastapi",
+      "difficulty": "vocabulary_mismatch",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 1.0,
+      "mrr": 0.05,
+      "ndcg@10": 0.0
+    },
+    {
+      "id": "r0298",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.5,
+      "ndcg@10": 0.6309297535714575
+    },
+    {
+      "id": "r0299",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@10": 0.3562071871080222
+    },
+    {
+      "id": "r0300",
+      "pack": "fastapi",
+      "difficulty": "paraphrase",
+      "recall@1": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "recall@20": 1.0,
+      "mrr": 1.0,
+      "ndcg@10": 1.0
+    }
+  ],
+  "runs": [
+    {
+      "id": "r0001",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        14,
+        15,
+        19
+      ],
+      "error": null
+    },
+    {
+      "id": "r0002",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        53,
+        337,
+        625
+      ],
+      "error": null
+    },
+    {
+      "id": "r0003",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        55,
+        545,
+        815,
+        846
+      ],
+      "error": null
+    },
+    {
+      "id": "r0004",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        62,
+        969
+      ],
+      "error": null
+    },
+    {
+      "id": "r0005",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        66,
+        645
+      ],
+      "error": null
+    },
+    {
+      "id": "r0006",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1214,
+        1275
+      ],
+      "error": null
+    },
+    {
+      "id": "r0007",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        94,
+        1258
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0008",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        390,
+        386
+      ],
+      "error": null
+    },
+    {
+      "id": "r0009",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        478,
+        559,
+        560,
+        563,
+        849
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0010",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        162,
+        1313,
+        485
+      ],
+      "error": null
+    },
+    {
+      "id": "r0011",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        409,
+        437,
+        823,
+        1458,
+        439,
+        824
+      ],
+      "error": null
+    },
+    {
+      "id": "r0012",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        190
+      ],
+      "error": null
+    },
+    {
+      "id": "r0013",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        388,
+        666,
+        1089
+      ],
+      "error": null
+    },
+    {
+      "id": "r0014",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        199,
+        1425
+      ],
+      "error": null
+    },
+    {
+      "id": "r0015",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        207
+      ],
+      "error": null
+    },
+    {
+      "id": "r0016",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        209,
+        210
+      ],
+      "error": null
+    },
+    {
+      "id": "r0017",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1150,
+        1151,
+        1152
+      ],
+      "error": null
+    },
+    {
+      "id": "r0018",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        256
+      ],
+      "error": null
+    },
+    {
+      "id": "r0019",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        268,
+        284,
+        286
+      ],
+      "error": null
+    },
+    {
+      "id": "r0020",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        319
+      ],
+      "error": null
+    },
+    {
+      "id": "r0021",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        327,
+        328
+      ],
+      "error": null
+    },
+    {
+      "id": "r0022",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        327
+      ],
+      "error": null
+    },
+    {
+      "id": "r0023",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        334
+      ],
+      "error": null
+    },
+    {
+      "id": "r0024",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        392,
+        393,
+        394
+      ],
+      "error": null
+    },
+    {
+      "id": "r0025",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        437,
+        438,
+        431
+      ],
+      "error": null
+    },
+    {
+      "id": "r0026",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        431
+      ],
+      "error": null
+    },
+    {
+      "id": "r0027",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        442
+      ],
+      "error": null
+    },
+    {
+      "id": "r0028",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        449,
+        450,
+        827,
+        1452
+      ],
+      "error": null
+    },
+    {
+      "id": "r0029",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        453,
+        455,
+        828
+      ],
+      "error": null
+    },
+    {
+      "id": "r0030",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        463,
+        464
+      ],
+      "error": null
+    },
+    {
+      "id": "r0031",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        466,
+        854
+      ],
+      "error": null
+    },
+    {
+      "id": "r0032",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        468,
+        471
+      ],
+      "error": null
+    },
+    {
+      "id": "r0033",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        478
+      ],
+      "error": null
+    },
+    {
+      "id": "r0034",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        680,
+        1342,
+        1360
+      ],
+      "error": null
+    },
+    {
+      "id": "r0035",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        543,
+        544,
+        847
+      ],
+      "error": null
+    },
+    {
+      "id": "r0036",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        540,
+        546,
+        847,
+        1193
+      ],
+      "error": null
+    },
+    {
+      "id": "r0037",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        548
+      ],
+      "error": null
+    },
+    {
+      "id": "r0038",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        565,
+        851
+      ],
+      "error": null
+    },
+    {
+      "id": "r0039",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        594
+      ],
+      "error": null
+    },
+    {
+      "id": "r0040",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        595,
+        596,
+        597
+      ],
+      "error": null
+    },
+    {
+      "id": "r0041",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        692,
+        1376
+      ],
+      "error": null
+    },
+    {
+      "id": "r0042",
+      "search_calls_made": 6,
+      "tool_calls_made": 7,
+      "turns_used": 6,
+      "fetched_ids": [
+        970
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0043",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        707,
+        971,
+        1326
+      ],
+      "error": null
+    },
+    {
+      "id": "r0044",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        731
+      ],
+      "error": null
+    },
+    {
+      "id": "r0045",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        738,
+        739,
+        740,
+        1402
+      ],
+      "error": null
+    },
+    {
+      "id": "r0046",
+      "search_calls_made": 3,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        742,
+        743,
+        744,
+        1202,
+        745
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0047",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        751
+      ],
+      "error": null
+    },
+    {
+      "id": "r0048",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        761,
+        763
+      ],
+      "error": null
+    },
+    {
+      "id": "r0049",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        767,
+        781
+      ],
+      "error": null
+    },
+    {
+      "id": "r0050",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        784
+      ],
+      "error": null
+    },
+    {
+      "id": "r0051",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        863,
+        864,
+        865,
+        866
+      ],
+      "error": null
+    },
+    {
+      "id": "r0052",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        871
+      ],
+      "error": null
+    },
+    {
+      "id": "r0053",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        872
+      ],
+      "error": null
+    },
+    {
+      "id": "r0054",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        58,
+        834
+      ],
+      "error": null
+    },
+    {
+      "id": "r0055",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        484,
+        1325
+      ],
+      "error": null
+    },
+    {
+      "id": "r0056",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        72,
+        1065
+      ],
+      "error": null
+    },
+    {
+      "id": "r0057",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1129,
+        1130
+      ],
+      "error": null
+    },
+    {
+      "id": "r0058",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1147
+      ],
+      "error": null
+    },
+    {
+      "id": "r0059",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1161
+      ],
+      "error": null
+    },
+    {
+      "id": "r0060",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1180,
+        1181
+      ],
+      "error": null
+    },
+    {
+      "id": "r0061",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1014,
+        1213
+      ],
+      "error": null
+    },
+    {
+      "id": "r0062",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        945,
+        1238,
+        1320
+      ],
+      "error": null
+    },
+    {
+      "id": "r0063",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1241,
+        1319
+      ],
+      "error": null
+    },
+    {
+      "id": "r0064",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1264,
+        1265
+      ],
+      "error": null
+    },
+    {
+      "id": "r0065",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1245,
+        1246
+      ],
+      "error": null
+    },
+    {
+      "id": "r0066",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1279,
+        1285
+      ],
+      "error": null
+    },
+    {
+      "id": "r0067",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1298,
+        1300
+      ],
+      "error": null
+    },
+    {
+      "id": "r0068",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1235,
+        1320
+      ],
+      "error": null
+    },
+    {
+      "id": "r0069",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        385,
+        1334
+      ],
+      "error": null
+    },
+    {
+      "id": "r0070",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        677,
+        1327,
+        1345
+      ],
+      "error": null
+    },
+    {
+      "id": "r0071",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        666,
+        1364
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0072",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1409,
+        1410,
+        1412
+      ],
+      "error": null
+    },
+    {
+      "id": "r0073",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1406
+      ],
+      "error": null
+    },
+    {
+      "id": "r0074",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1419
+      ],
+      "error": null
+    },
+    {
+      "id": "r0075",
+      "search_calls_made": 3,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        1437,
+        1438,
+        1433,
+        1433,
+        1437,
+        1438
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0076",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1464
+      ],
+      "error": null
+    },
+    {
+      "id": "r0077",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        110,
+        112,
+        607
+      ],
+      "error": null
+    },
+    {
+      "id": "r0078",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        930,
+        1472
+      ],
+      "error": null
+    },
+    {
+      "id": "r0079",
+      "search_calls_made": 6,
+      "tool_calls_made": 7,
+      "turns_used": 6,
+      "fetched_ids": [
+        1477
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0080",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        204,
+        645
+      ],
+      "error": null
+    },
+    {
+      "id": "r0081",
+      "search_calls_made": 6,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0082",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        437,
+        135
+      ],
+      "error": null
+    },
+    {
+      "id": "r0083",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        284,
+        285,
+        286,
+        1025
+      ],
+      "error": null
+    },
+    {
+      "id": "r0084",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        327,
+        420
+      ],
+      "error": null
+    },
+    {
+      "id": "r0085",
+      "search_calls_made": 6,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0086",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        450,
+        1452
+      ],
+      "error": null
+    },
+    {
+      "id": "r0087",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        565
+      ],
+      "error": null
+    },
+    {
+      "id": "r0088",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        708,
+        971,
+        1410
+      ],
+      "error": null
+    },
+    {
+      "id": "r0089",
+      "search_calls_made": 4,
+      "tool_calls_made": 4,
+      "turns_used": 4,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0090",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 3,
+      "fetched_ids": [
+        750,
+        751
+      ],
+      "error": null
+    },
+    {
+      "id": "r0091",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        767
+      ],
+      "error": null
+    },
+    {
+      "id": "r0092",
+      "search_calls_made": 4,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        5104
+      ],
+      "error": null
+    },
+    {
+      "id": "r0093",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        782
+      ],
+      "error": null
+    },
+    {
+      "id": "r0094",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        872
+      ],
+      "error": null
+    },
+    {
+      "id": "r0095",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        834,
+        949
+      ],
+      "error": null
+    },
+    {
+      "id": "r0096",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        626,
+        1473
+      ],
+      "error": null
+    },
+    {
+      "id": "r0097",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        1161,
+        1174
+      ],
+      "error": null
+    },
+    {
+      "id": "r0098",
+      "search_calls_made": 3,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0099",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1300
+      ],
+      "error": null
+    },
+    {
+      "id": "r0100",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        8
+      ],
+      "error": null
+    },
+    {
+      "id": "r0101",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        385,
+        1334
+      ],
+      "error": null
+    },
+    {
+      "id": "r0102",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        677,
+        1345
+      ],
+      "error": null
+    },
+    {
+      "id": "r0103",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1387,
+        1390,
+        1410
+      ],
+      "error": null
+    },
+    {
+      "id": "r0104",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        1406
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0105",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1588,
+        1589,
+        1590,
+        1591
+      ],
+      "error": null
+    },
+    {
+      "id": "r0106",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        1612,
+        1762,
+        1798,
+        1799,
+        1801,
+        1616,
+        1758
+      ],
+      "error": null
+    },
+    {
+      "id": "r0107",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1740,
+        1741
+      ],
+      "error": null
+    },
+    {
+      "id": "r0108",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4515
+      ],
+      "error": null
+    },
+    {
+      "id": "r0109",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2718
+      ],
+      "error": null
+    },
+    {
+      "id": "r0110",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1820,
+        1842,
+        1883
+      ],
+      "error": null
+    },
+    {
+      "id": "r0111",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1865,
+        2142
+      ],
+      "error": null
+    },
+    {
+      "id": "r0112",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1874,
+        3092
+      ],
+      "error": null
+    },
+    {
+      "id": "r0113",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1899
+      ],
+      "error": null
+    },
+    {
+      "id": "r0114",
+      "search_calls_made": 6,
+      "tool_calls_made": 9,
+      "turns_used": 6,
+      "fetched_ids": [
+        3454,
+        1902,
+        1903,
+        1898,
+        1901
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0115",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        2275,
+        2370
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0116",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1983,
+        2012,
+        2013,
+        2015
+      ],
+      "error": null
+    },
+    {
+      "id": "r0117",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2196
+      ],
+      "error": null
+    },
+    {
+      "id": "r0118",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3119
+      ],
+      "error": null
+    },
+    {
+      "id": "r0119",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2122,
+        2423,
+        2453
+      ],
+      "error": null
+    },
+    {
+      "id": "r0120",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2139
+      ],
+      "error": null
+    },
+    {
+      "id": "r0121",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2152,
+        2153
+      ],
+      "error": null
+    },
+    {
+      "id": "r0122",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2222,
+        2259,
+        2273
+      ],
+      "error": null
+    },
+    {
+      "id": "r0123",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2367
+      ],
+      "error": null
+    },
+    {
+      "id": "r0124",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1921,
+        4479
+      ],
+      "error": null
+    },
+    {
+      "id": "r0125",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4489
+      ],
+      "error": null
+    },
+    {
+      "id": "r0126",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1504,
+        1917
+      ],
+      "error": null
+    },
+    {
+      "id": "r0127",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 3,
+      "fetched_ids": [
+        2418,
+        2448,
+        3546
+      ],
+      "error": null
+    },
+    {
+      "id": "r0128",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2480,
+        2489
+      ],
+      "error": null
+    },
+    {
+      "id": "r0129",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        2569,
+        3158
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0130",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2607,
+        2612,
+        2613
+      ],
+      "error": null
+    },
+    {
+      "id": "r0131",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2625
+      ],
+      "error": null
+    },
+    {
+      "id": "r0132",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        2675,
+        2670
+      ],
+      "error": null
+    },
+    {
+      "id": "r0133",
+      "search_calls_made": 3,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        2693,
+        2692
+      ],
+      "error": null
+    },
+    {
+      "id": "r0134",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2509,
+        2553,
+        2746
+      ],
+      "error": null
+    },
+    {
+      "id": "r0135",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2859,
+        2890
+      ],
+      "error": null
+    },
+    {
+      "id": "r0136",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        2805,
+        2905
+      ],
+      "error": null
+    },
+    {
+      "id": "r0137",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        2973,
+        2975
+      ],
+      "error": null
+    },
+    {
+      "id": "r0138",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        1817
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0139",
+      "search_calls_made": 2,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        2983,
+        2944,
+        2945,
+        2946
+      ],
+      "error": null
+    },
+    {
+      "id": "r0140",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2996,
+        2997
+      ],
+      "error": null
+    },
+    {
+      "id": "r0141",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3018
+      ],
+      "error": null
+    },
+    {
+      "id": "r0142",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2641,
+        3054
+      ],
+      "error": null
+    },
+    {
+      "id": "r0143",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        2144,
+        2149,
+        3059,
+        3060,
+        3057,
+        3058
+      ],
+      "error": null
+    },
+    {
+      "id": "r0144",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3214,
+        3215,
+        3216
+      ],
+      "error": null
+    },
+    {
+      "id": "r0145",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3232,
+        3242
+      ],
+      "error": null
+    },
+    {
+      "id": "r0146",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        3232,
+        3242,
+        3236
+      ],
+      "error": null
+    },
+    {
+      "id": "r0147",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3343
+      ],
+      "error": null
+    },
+    {
+      "id": "r0148",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        3362,
+        3365
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0149",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        3375,
+        3376,
+        3379,
+        3385,
+        4394
+      ],
+      "error": null
+    },
+    {
+      "id": "r0150",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3573,
+        3574,
+        3575
+      ],
+      "error": null
+    },
+    {
+      "id": "r0151",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3190
+      ],
+      "error": null
+    },
+    {
+      "id": "r0152",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3736
+      ],
+      "error": null
+    },
+    {
+      "id": "r0153",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3737
+      ],
+      "error": null
+    },
+    {
+      "id": "r0154",
+      "search_calls_made": 3,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        3760,
+        3762,
+        3767,
+        3333,
+        3342
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0155",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        3727,
+        3924,
+        3928,
+        3940,
+        3863,
+        3865
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0156",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3915,
+        3916
+      ],
+      "error": null
+    },
+    {
+      "id": "r0157",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        3916,
+        3917,
+        3915
+      ],
+      "error": null
+    },
+    {
+      "id": "r0158",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        3921,
+        3922,
+        3921
+      ],
+      "error": null
+    },
+    {
+      "id": "r0159",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        3969,
+        4021,
+        4029
+      ],
+      "error": null
+    },
+    {
+      "id": "r0160",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3645,
+        3707,
+        3708,
+        4307
+      ],
+      "error": null
+    },
+    {
+      "id": "r0161",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        4078
+      ],
+      "error": null
+    },
+    {
+      "id": "r0162",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2629,
+        2911,
+        2912,
+        4506
+      ],
+      "error": null
+    },
+    {
+      "id": "r0163",
+      "search_calls_made": 2,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        4123,
+        4104,
+        4122
+      ],
+      "error": null
+    },
+    {
+      "id": "r0164",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        4146,
+        4153,
+        4344
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0165",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        4183,
+        4208,
+        4212
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0166",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4266,
+        4275,
+        4276
+      ],
+      "error": null
+    },
+    {
+      "id": "r0167",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4363
+      ],
+      "error": null
+    },
+    {
+      "id": "r0168",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3375,
+        3380,
+        3384,
+        3385
+      ],
+      "error": null
+    },
+    {
+      "id": "r0169",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        4376,
+        4385
+      ],
+      "error": null
+    },
+    {
+      "id": "r0170",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3260,
+        4389,
+        4537
+      ],
+      "error": null
+    },
+    {
+      "id": "r0171",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4436
+      ],
+      "error": null
+    },
+    {
+      "id": "r0172",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4492
+      ],
+      "error": null
+    },
+    {
+      "id": "r0173",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3310,
+        3333,
+        3342,
+        3352,
+        3355
+      ],
+      "error": null
+    },
+    {
+      "id": "r0174",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        4253,
+        4389,
+        4253,
+        4389
+      ],
+      "error": null
+    },
+    {
+      "id": "r0175",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1491
+      ],
+      "error": null
+    },
+    {
+      "id": "r0176",
+      "search_calls_made": 5,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0177",
+      "search_calls_made": 3,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        2044,
+        2646
+      ],
+      "error": null
+    },
+    {
+      "id": "r0178",
+      "search_calls_made": 5,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0179",
+      "search_calls_made": 10,
+      "tool_calls_made": 11,
+      "turns_used": 6,
+      "fetched_ids": [
+        2122
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0180",
+      "search_calls_made": 6,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0181",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        2509,
+        2541,
+        2553
+      ],
+      "error": null
+    },
+    {
+      "id": "r0182",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        1517,
+        2645
+      ],
+      "error": null
+    },
+    {
+      "id": "r0183",
+      "search_calls_made": 3,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        1525,
+        4424,
+        2589,
+        2905,
+        1584,
+        1960
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0184",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        2983
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0185",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        2997,
+        2144
+      ],
+      "error": null
+    },
+    {
+      "id": "r0186",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 4,
+      "fetched_ids": [
+        3353,
+        3333,
+        3343,
+        3349
+      ],
+      "error": null
+    },
+    {
+      "id": "r0187",
+      "search_calls_made": 3,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0188",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        1722,
+        2377
+      ],
+      "error": null
+    },
+    {
+      "id": "r0189",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        1758
+      ],
+      "error": null
+    },
+    {
+      "id": "r0190",
+      "search_calls_made": 3,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        4179,
+        4180,
+        4182,
+        4186,
+        3023
+      ],
+      "error": null
+    },
+    {
+      "id": "r0191",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        1648,
+        4275,
+        4276
+      ],
+      "error": null
+    },
+    {
+      "id": "r0192",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        3110,
+        3209
+      ],
+      "error": null
+    },
+    {
+      "id": "r0193",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        3159
+      ],
+      "error": null
+    },
+    {
+      "id": "r0194",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        4492
+      ],
+      "error": null
+    },
+    {
+      "id": "r0195",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4573,
+        6095
+      ],
+      "error": null
+    },
+    {
+      "id": "r0196",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        5187,
+        4613
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0197",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4616,
+        4617,
+        4618
+      ],
+      "error": null
+    },
+    {
+      "id": "r0198",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        4987,
+        4623
+      ],
+      "error": null
+    },
+    {
+      "id": "r0199",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4627
+      ],
+      "error": null
+    },
+    {
+      "id": "r0200",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 3,
+      "fetched_ids": [
+        4625,
+        4626,
+        4629,
+        4630
+      ],
+      "error": null
+    },
+    {
+      "id": "r0201",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4651,
+        5625
+      ],
+      "error": null
+    },
+    {
+      "id": "r0202",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4656,
+        4658
+      ],
+      "error": null
+    },
+    {
+      "id": "r0203",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4706
+      ],
+      "error": null
+    },
+    {
+      "id": "r0204",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4725
+      ],
+      "error": null
+    },
+    {
+      "id": "r0205",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4727
+      ],
+      "error": null
+    },
+    {
+      "id": "r0206",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4742,
+        4743,
+        4745,
+        4747
+      ],
+      "error": null
+    },
+    {
+      "id": "r0207",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4747,
+        6343
+      ],
+      "error": null
+    },
+    {
+      "id": "r0208",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4753,
+        4755
+      ],
+      "error": null
+    },
+    {
+      "id": "r0209",
+      "search_calls_made": 3,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        4750,
+        6352
+      ],
+      "error": null
+    },
+    {
+      "id": "r0210",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4755,
+        4771
+      ],
+      "error": null
+    },
+    {
+      "id": "r0211",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4770,
+        5754,
+        5755,
+        5756
+      ],
+      "error": null
+    },
+    {
+      "id": "r0212",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        4773,
+        4760,
+        5248
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0213",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4850,
+        4851,
+        4852
+      ],
+      "error": null
+    },
+    {
+      "id": "r0214",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4879,
+        4881,
+        4883,
+        4884
+      ],
+      "error": null
+    },
+    {
+      "id": "r0215",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        4892
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0216",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4955
+      ],
+      "error": null
+    },
+    {
+      "id": "r0217",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4902,
+        4972
+      ],
+      "error": null
+    },
+    {
+      "id": "r0218",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5005
+      ],
+      "error": null
+    },
+    {
+      "id": "r0219",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5014
+      ],
+      "error": null
+    },
+    {
+      "id": "r0220",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5016,
+        5017
+      ],
+      "error": null
+    },
+    {
+      "id": "r0221",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5030,
+        5031,
+        5035
+      ],
+      "error": null
+    },
+    {
+      "id": "r0222",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5031
+      ],
+      "error": null
+    },
+    {
+      "id": "r0223",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        5042,
+        5921
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0224",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        5028,
+        5073,
+        5077,
+        5070,
+        5075
+      ],
+      "error": null
+    },
+    {
+      "id": "r0225",
+      "search_calls_made": 3,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        5101,
+        5110,
+        6438
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0226",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        5093,
+        5094,
+        5349,
+        5350,
+        5123,
+        5126,
+        5129
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0227",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        5135,
+        5206,
+        6174
+      ],
+      "error": null
+    },
+    {
+      "id": "r0228",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        5256,
+        5257,
+        5258,
+        5911,
+        5257
+      ],
+      "error": null
+    },
+    {
+      "id": "r0229",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4716
+      ],
+      "error": null
+    },
+    {
+      "id": "r0230",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5947,
+        5950
+      ],
+      "error": null
+    },
+    {
+      "id": "r0231",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        6285,
+        6286,
+        6284
+      ],
+      "error": null
+    },
+    {
+      "id": "r0232",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4663,
+        4666,
+        4669,
+        5238,
+        5309
+      ],
+      "error": null
+    },
+    {
+      "id": "r0233",
+      "search_calls_made": 3,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0234",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        5097,
+        5105,
+        5106,
+        5107,
+        5110
+      ],
+      "error": null
+    },
+    {
+      "id": "r0235",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        5093,
+        5351,
+        5105,
+        5106,
+        5107,
+        5108,
+        5110
+      ],
+      "error": null
+    },
+    {
+      "id": "r0236",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5355
+      ],
+      "error": null
+    },
+    {
+      "id": "r0237",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5446,
+        5456,
+        5464
+      ],
+      "error": null
+    },
+    {
+      "id": "r0238",
+      "search_calls_made": 4,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        5470,
+        5471,
+        5472,
+        5473,
+        5475
+      ],
+      "error": null
+    },
+    {
+      "id": "r0239",
+      "search_calls_made": 3,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        4634,
+        5558,
+        6154
+      ],
+      "error": null
+    },
+    {
+      "id": "r0240",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5568,
+        6183,
+        6184
+      ],
+      "error": null
+    },
+    {
+      "id": "r0241",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4836,
+        5581
+      ],
+      "error": null
+    },
+    {
+      "id": "r0242",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6424
+      ],
+      "error": null
+    },
+    {
+      "id": "r0243",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5824
+      ],
+      "error": null
+    },
+    {
+      "id": "r0244",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5852,
+        5862
+      ],
+      "error": null
+    },
+    {
+      "id": "r0245",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        5899,
+        5917
+      ],
+      "error": null
+    },
+    {
+      "id": "r0246",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        4569,
+        6455
+      ],
+      "error": null
+    },
+    {
+      "id": "r0247",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5239,
+        5930
+      ],
+      "error": null
+    },
+    {
+      "id": "r0248",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5935,
+        5947,
+        5950
+      ],
+      "error": null
+    },
+    {
+      "id": "r0249",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5984
+      ],
+      "error": null
+    },
+    {
+      "id": "r0250",
+      "search_calls_made": 5,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        5987
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0251",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6008
+      ],
+      "error": null
+    },
+    {
+      "id": "r0252",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6028,
+        6032
+      ],
+      "error": null
+    },
+    {
+      "id": "r0253",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        6035,
+        6067
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0254",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6048,
+        6049
+      ],
+      "error": null
+    },
+    {
+      "id": "r0255",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6073
+      ],
+      "error": null
+    },
+    {
+      "id": "r0256",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5024,
+        6105
+      ],
+      "error": null
+    },
+    {
+      "id": "r0257",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        6151
+      ],
+      "error": null
+    },
+    {
+      "id": "r0258",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6156,
+        6157,
+        6158
+      ],
+      "error": null
+    },
+    {
+      "id": "r0259",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6164,
+        6165
+      ],
+      "error": null
+    },
+    {
+      "id": "r0260",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6189,
+        6190
+      ],
+      "error": null
+    },
+    {
+      "id": "r0261",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6216
+      ],
+      "error": null
+    },
+    {
+      "id": "r0262",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6230
+      ],
+      "error": null
+    },
+    {
+      "id": "r0263",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6238,
+        6242
+      ],
+      "error": null
+    },
+    {
+      "id": "r0264",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6240
+      ],
+      "error": null
+    },
+    {
+      "id": "r0265",
+      "search_calls_made": 2,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        6278,
+        6280,
+        6279
+      ],
+      "error": null
+    },
+    {
+      "id": "r0266",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6287,
+        6288
+      ],
+      "error": null
+    },
+    {
+      "id": "r0267",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        6303,
+        6307,
+        6302
+      ],
+      "error": null
+    },
+    {
+      "id": "r0268",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        6374,
+        6375,
+        6376
+      ],
+      "error": null
+    },
+    {
+      "id": "r0269",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6376,
+        6378,
+        6380
+      ],
+      "error": null
+    },
+    {
+      "id": "r0270",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6381
+      ],
+      "error": null
+    },
+    {
+      "id": "r0271",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6388,
+        6390,
+        6392,
+        6394
+      ],
+      "error": null
+    },
+    {
+      "id": "r0272",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6401,
+        6409,
+        6413
+      ],
+      "error": null
+    },
+    {
+      "id": "r0273",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6459
+      ],
+      "error": null
+    },
+    {
+      "id": "r0274",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        5349
+      ],
+      "error": null
+    },
+    {
+      "id": "r0275",
+      "search_calls_made": 3,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        4614,
+        5862,
+        4615,
+        4617,
+        4618
+      ],
+      "error": null
+    },
+    {
+      "id": "r0276",
+      "search_calls_made": 3,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0277",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5625
+      ],
+      "error": null
+    },
+    {
+      "id": "r0278",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        4657,
+        4656,
+        4658
+      ],
+      "error": null
+    },
+    {
+      "id": "r0279",
+      "search_calls_made": 3,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        5999
+      ],
+      "error": null
+    },
+    {
+      "id": "r0280",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4723,
+        6290
+      ],
+      "error": null
+    },
+    {
+      "id": "r0281",
+      "search_calls_made": 2,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0282",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4726,
+        4727
+      ],
+      "error": null
+    },
+    {
+      "id": "r0283",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4761,
+        4771
+      ],
+      "error": null
+    },
+    {
+      "id": "r0284",
+      "search_calls_made": 1,
+      "tool_calls_made": 1,
+      "turns_used": 2,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0285",
+      "search_calls_made": 2,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [
+        4902,
+        4903,
+        4904,
+        4970,
+        6106
+      ],
+      "error": null
+    },
+    {
+      "id": "r0286",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5005
+      ],
+      "error": null
+    },
+    {
+      "id": "r0287",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        4786,
+        5012,
+        5014
+      ],
+      "error": null
+    },
+    {
+      "id": "r0288",
+      "search_calls_made": 1,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        5107,
+        5111,
+        5104,
+        5105
+      ],
+      "error": null
+    },
+    {
+      "id": "r0289",
+      "search_calls_made": 8,
+      "tool_calls_made": 9,
+      "turns_used": 6,
+      "fetched_ids": [
+        5123,
+        5126,
+        5129
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0290",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5164,
+        5992,
+        6242
+      ],
+      "error": null
+    },
+    {
+      "id": "r0291",
+      "search_calls_made": 5,
+      "tool_calls_made": 5,
+      "turns_used": 6,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0292",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5250
+      ],
+      "error": null
+    },
+    {
+      "id": "r0293",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        5097,
+        5103,
+        5104,
+        5105,
+        5106,
+        5110
+      ],
+      "error": null
+    },
+    {
+      "id": "r0294",
+      "search_calls_made": 4,
+      "tool_calls_made": 6,
+      "turns_used": 6,
+      "fetched_ids": [
+        6032,
+        4836
+      ],
+      "error": "max_turns"
+    },
+    {
+      "id": "r0295",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5761,
+        6423
+      ],
+      "error": null
+    },
+    {
+      "id": "r0296",
+      "search_calls_made": 2,
+      "tool_calls_made": 3,
+      "turns_used": 4,
+      "fetched_ids": [
+        4584,
+        4585,
+        5924
+      ],
+      "error": null
+    },
+    {
+      "id": "r0297",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        5239,
+        5926
+      ],
+      "error": null
+    },
+    {
+      "id": "r0298",
+      "search_calls_made": 4,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [],
+      "error": null
+    },
+    {
+      "id": "r0299",
+      "search_calls_made": 2,
+      "tool_calls_made": 4,
+      "turns_used": 5,
+      "fetched_ids": [
+        5021,
+        5025,
+        5024,
+        6105
+      ],
+      "error": null
+    },
+    {
+      "id": "r0300",
+      "search_calls_made": 1,
+      "tool_calls_made": 2,
+      "turns_used": 3,
+      "fetched_ids": [
+        6238
+      ],
+      "error": null
+    }
+  ]
+}

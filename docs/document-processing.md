@@ -87,7 +87,32 @@ Each chunk receives a one-line summary, generated heuristically at build time.
 
 **For code-heavy chunks** (more than 50% of content is inside code fences): extract the first function or class signature from the leading code block. If no signature is found, fall back to the first sentence of any prose in the chunk.
 
-The summary field is present in the schema and the generation strategy can be upgraded in the future without a format change. No LLM dependency is involved.
+The summary field is present in the schema and the generation strategy can be upgraded in the future without a format change. The heuristic path has no LLM dependency.
+
+### LLM summary enrichment (`--summarizer llm`)
+
+`synd build --summarizer llm` opts into a stronger summary: the heuristic sentence above, with a model-generated sentence **appended**. The generated sentence restates the chunk in plain developer vocabulary alongside the library's own terms, which lifts retrieval on paraphrased and vocabulary-mismatched queries; keeping the heuristic sentence in front preserves the chunk's own tokens as exact-match capital for terse, direct queries. This is the first shipping step of the hybrid-search program — see `docs/decisions.md` **D31** for the format/prompt/reproducibility rationale and `docs/hybrid-search.md` for what comes next.
+
+**Usage** (a local OpenAI-compatible endpoint such as vLLM):
+
+```
+synd build my-lib@1.0.0 --source ./docs --output ./packs \
+  --summarizer llm \
+  --summarizer-url http://localhost:8000/v1 \
+  --summarizer-model <served-model-name>
+```
+
+`--summarizer-url`, `--summarizer-model`, and `--summarizer-api-key` also read from `SYND_SUMMARIZER_URL` / `SYND_SUMMARIZER_MODEL` / `SYND_SUMMARIZER_API_KEY`. Heuristic generation remains the default — `llm` is strictly opt-in.
+
+**Reproducibility — the summary lockfile.** Model output at temperature 0 is not byte-stable across engine versions and hardware, so a summary *lockfile* (`<output>/<package>@<version>.summaries.jsonl` by default, or `--summary-lockfile PATH`) is the build input of record. It maps each chunk's content hash to its summary and pins the prompt version and model in a header line. A warm rebuild reuses cached summaries byte-for-byte and calls the model only for new or changed chunks — so `identical source + identical lockfile → identical chunk bytes`, with no model in the loop. Keep the lockfile alongside the source (commit it) for reproducible republishing; delete it to regenerate from scratch. Changing the prompt version or the model is rejected against an existing lockfile — remove it deliberately to regenerate.
+
+**Failure behavior.** If the endpoint is unreachable, returns a malformed response, or emits a degenerate summary (empty, or over 600 characters), the build fails with a `SummarizerError` (exit code 6) rather than shipping a pack that mixes LLM and heuristic summaries. Summaries generated before the failure are flushed to the lockfile first, so re-running the build retries only the chunks that failed.
+
+**Cost.** Roughly one chunk per generated sentence, concurrent by default. A cold build of a ~6,500-chunk corpus on a local 27B at concurrency 16 takes on the order of an hour; warm rebuilds from the lockfile complete in seconds.
+
+**Locality note.** This is the one point in `synd` where corpus content leaves the local process: with `--summarizer llm`, each chunk's heading path and content are sent to the endpoint you configure. It is a **build-time** call made by the pack *publisher*; it does not affect the query-time guarantee that consuming a pack makes no outbound network calls. Point `--summarizer-url` at an endpoint you control (e.g. a local vLLM) to keep the whole pipeline on your own infrastructure.
+
+**Provenance.** LLM-summarized packs record `summarizer`, `summarizer_model`, and `summarizer_prompt_version` in `manifest.json` (visible via `synd inspect`); heuristic packs leave these unset.
 
 ## 5. Content Normalization
 

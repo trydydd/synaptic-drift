@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS chunks (
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
     heading_path, summary, content,
     content='chunks',
-    content_rowid='id'
+    content_rowid='id',
+    tokenize='unicode61'
 );
 
 CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
@@ -85,6 +86,33 @@ class Database:
             self._conn.commit()
         except Exception:
             pass  # Column already exists
+        self._migrate_fts_tokenizer()
+
+    def _migrate_fts_tokenizer(self) -> None:
+        """Soft migration: rebuild chunks_fts if it carries the porter
+        tokenizer. Porter stemming shipped briefly during D30 step 1 and was
+        reverted after measurement showed it is a wash under summary
+        enrichment while costing direct-tier precision standalone (see
+        decisions.md D30 closure). CREATE VIRTUAL TABLE IF NOT EXISTS never
+        alters an existing table, so a database created during that window
+        would otherwise silently keep stemmed matching. The AFTER
+        INSERT/DELETE triggers on chunks reference chunks_fts by name and
+        survive the drop/recreate.
+        """
+        row = self._conn.execute(
+            "SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'"
+        ).fetchone()
+        if row is None or "porter" not in row["sql"]:
+            return
+        self._conn.execute("DROP TABLE chunks_fts")
+        self._conn.execute(
+            "CREATE VIRTUAL TABLE chunks_fts USING fts5("
+            "heading_path, summary, content, "
+            "content='chunks', content_rowid='id', "
+            "tokenize='unicode61')"
+        )
+        self._conn.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')")
+        self._conn.commit()
 
     def import_pack(
         self,

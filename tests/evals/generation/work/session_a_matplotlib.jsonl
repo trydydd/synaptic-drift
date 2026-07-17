@@ -1,0 +1,80 @@
+{"pack_name": "matplotlib", "chunk_id": 14, "capability": "how to find example plots demonstrating different ways to create and use figure windows"}
+{"pack_name": "matplotlib", "chunk_id": 52, "capability": "how to draw vertical or horizontal reference lines and filled shapes on a plot"}
+{"pack_name": "matplotlib", "chunk_id": 55, "capability": "how to visualize statistical distributions with box, violin, or cumulative distribution plots"}
+{"pack_name": "matplotlib", "chunk_id": 62, "capability": "how to clear all content from a plot's drawing area so it can be reused"}
+{"pack_name": "matplotlib", "chunk_id": 66, "capability": "how to reverse the direction of a plot axis or control its display limits"}
+{"pack_name": "matplotlib", "chunk_id": 89, "capability": "how to save a finished plot to an image or vector graphics file"}
+{"pack_name": "matplotlib", "chunk_id": 94, "capability": "how to capture mouse clicks or wait for user interaction on a plot window"}
+{"pack_name": "matplotlib", "chunk_id": 143, "capability": "how to find examples of scatter plots with legends, masked points, or attached histograms"}
+{"pack_name": "matplotlib", "chunk_id": 147, "capability": "how to find examples of plotting data with error bars in different styles"}
+{"pack_name": "matplotlib", "chunk_id": 162, "capability": "how to find minimal examples of a basic plot and simple subplot layouts"}
+{"pack_name": "matplotlib", "chunk_id": 164, "capability": "how to find examples of three-dimensional plots like scatter, arrows, and rotating views"}
+{"pack_name": "matplotlib", "chunk_id": 179, "capability": "how to find examples of arranging multiple images or plots in grid layouts"}
+{"pack_name": "matplotlib", "chunk_id": 190, "capability": "how to keep a fixed aspect ratio for cells when arranging images in a grid"}
+{"pack_name": "matplotlib", "chunk_id": 192, "capability": "how to place a small inset plot inside or next to a larger plot"}
+{"pack_name": "matplotlib", "chunk_id": 199, "capability": "how to divide a figure into plot areas with fixed physical sizes"}
+{"pack_name": "matplotlib", "chunk_id": 207, "capability": "how to draw a curved coordinate grid or polar projection inside a rectangular plot"}
+{"pack_name": "matplotlib", "chunk_id": 210, "capability": "how to create rotated or floating plot areas with their own coordinate systems"}
+{"pack_name": "matplotlib", "chunk_id": 229, "capability": "how to pick specific individual colors out of a continuous color gradient"}
+{"pack_name": "matplotlib", "chunk_id": 256, "capability": "how to overlay contour lines on an image so their coordinates align correctly"}
+{"pack_name": "matplotlib", "chunk_id": 286, "capability": "how to place images at exact positions in a figure while preserving relative sizes"}
+{"pack_name": "matplotlib", "chunk_id": 319, "capability": "how to create shaded relief terrain visualizations from elevation data"}
+{"pack_name": "matplotlib", "chunk_id": 327, "capability": "how to compute and visualize the gradient field of data on a triangular mesh"}
+{"pack_name": "matplotlib", "chunk_id": 334, "capability": "how to overlay a semi-transparent watermark image on top of a chart"}
+{"pack_name": "matplotlib", "chunk_id": 394, "capability": "how to find scatter plot examples organized by topic tags like legends"}
+{"pack_name": "matplotlib", "chunk_id": 409, "capability": "how to find examples of rotating, scaling, and combining three-dimensional plots"}
+{"pack_name": "matplotlib", "chunk_id": 431, "capability": "how to combine flat and three-dimensional plots in the same figure"}
+{"pack_name": "matplotlib", "chunk_id": 442, "capability": "how to plot a three-dimensional surface colored by a gradient with custom axis tick formatting"}
+{"pack_name": "matplotlib", "chunk_id": 449, "capability": "how to plot a three-dimensional surface built from a triangular mesh"}
+{"pack_name": "matplotlib", "chunk_id": 453, "capability": "how to draw a three-dimensional voxel plot with unevenly spaced coordinates"}
+{"pack_name": "matplotlib", "chunk_id": 459, "capability": "how to find examples of pie charts, donut charts, and their labeling options"}
+{"pack_name": "matplotlib", "chunk_id": 468, "capability": "how to set a custom color for each slice of a pie chart"}
+{"pack_name": "matplotlib", "chunk_id": 478, "capability": "how to draw error bars on a plot that uses polar coordinates"}
+{"pack_name": "matplotlib", "chunk_id": 503, "capability": "understand the difference between arrows fixed to data coordinates versus screen position when annotating"}
+{"pack_name": "matplotlib", "chunk_id": 543, "capability": "how to draw box and whisker plots and control their appearance and statistics"}
+{"pack_name": "matplotlib", "chunk_id": 548, "capability": "how to plot the coherence between two noisy signals over time"}
+{"pack_name": "matplotlib", "chunk_id": 565, "capability": "how to plot a two-dimensional histogram with hexagonal bins colored by point density"}
+{"pack_name": "matplotlib", "chunk_id": 571, "capability": "how to plot two histograms mirrored against each other for comparing distributions"}
+{"pack_name": "matplotlib", "chunk_id": 594, "capability": "how to plot the cross-correlation and auto-correlation of two data series"}
+{"pack_name": "matplotlib", "chunk_id": 602, "capability": "how to apply a predefined color theme stylesheet to change the overall look of plots"}
+{"pack_name": "matplotlib", "chunk_id": 692, "capability": "choose between display style and text style fractions when writing math in labels"}
+{"pack_name": "matplotlib", "chunk_id": 699, "capability": "how to set font family, size, weight, and style on text using property setters"}
+{"pack_name": "matplotlib", "chunk_id": 707, "capability": "how to render mathematical expressions and symbols in labels and titles"}
+{"pack_name": "matplotlib", "chunk_id": 731, "capability": "how to format axis tick labels with a custom function, like showing values in millions"}
+{"pack_name": "matplotlib", "chunk_id": 739, "capability": "how to control where date ticks appear on a time axis at yearly, monthly, or hourly intervals"}
+{"pack_name": "matplotlib", "chunk_id": 744, "capability": "understand precision limits when plotting high-resolution timestamps and how the reference epoch affects them"}
+{"pack_name": "matplotlib", "chunk_id": 751, "capability": "how to add automatic minor tick marks between major tick intervals"}
+{"pack_name": "matplotlib", "chunk_id": 763, "capability": "how to fix an axis showing an unreadable number of tick labels when plotting string data"}
+{"pack_name": "matplotlib", "chunk_id": 781, "capability": "how to install the plotting library using a standard package installer on a desktop operating system"}
+{"pack_name": "matplotlib", "chunk_id": 784, "capability": "how to find the directory where an installed package lives on disk"}
+{"pack_name": "matplotlib", "chunk_id": 866, "capability": "how to cite a specific released version of the software in an academic publication"}
+{"pack_name": "matplotlib", "chunk_id": 871, "capability": "understand where and when the community's behavioral rules apply to members"}
+{"pack_name": "matplotlib", "chunk_id": 872, "capability": "how to report abusive or unacceptable behavior to the project's community leaders"}
+{"pack_name": "matplotlib", "chunk_id": 949, "capability": "how to display a numeric data array as an image in a plot"}
+{"pack_name": "matplotlib", "chunk_id": 958, "capability": "how to rotate axis tick labels so they are easier to read"}
+{"pack_name": "matplotlib", "chunk_id": 970, "capability": "how to add text, axis labels, and a title to a plot"}
+{"pack_name": "matplotlib", "chunk_id": 1065, "capability": "how to set the aspect ratio of a plot in data coordinates"}
+{"pack_name": "matplotlib", "chunk_id": 1129, "capability": "how to apply shared creation options such as polar projection when composing a figure from a text layout"}
+{"pack_name": "matplotlib", "chunk_id": 1147, "capability": "how to build a standalone color legend with custom discrete colors and interval boundaries"}
+{"pack_name": "matplotlib", "chunk_id": 1161, "capability": "how to map data symmetric around a center value onto a diverging color scale"}
+{"pack_name": "matplotlib", "chunk_id": 1180, "capability": "understand how color choices survive conversion to grayscale when plots are printed in black and white"}
+{"pack_name": "matplotlib", "chunk_id": 1213, "capability": "configure path simplification and pixel snapping settings that trade drawing fidelity for file size and speed"}
+{"pack_name": "matplotlib", "chunk_id": 1238, "capability": "understand the implicit interface that creates figures and plot areas for you automatically"}
+{"pack_name": "matplotlib", "chunk_id": 1241, "capability": "understand how third party data containers can expose their own plotting methods"}
+{"pack_name": "matplotlib", "chunk_id": 1264, "capability": "how to make plot elements clickable so code runs when a user selects them"}
+{"pack_name": "matplotlib", "chunk_id": 1268, "capability": "understand the different ways a figure window is displayed depending on environment and rendering backend"}
+{"pack_name": "matplotlib", "chunk_id": 1279, "capability": "how to enable or disable automatic redrawing of plots after every plotting command"}
+{"pack_name": "matplotlib", "chunk_id": 1298, "capability": "how to manually flush pending window events and request redraws in a custom event loop"}
+{"pack_name": "matplotlib", "chunk_id": 1320, "capability": "choose between the explicit object-oriented style and the implicit convenience style for building plots"}
+{"pack_name": "matplotlib", "chunk_id": 1334, "capability": "how to represent a third data dimension using colors in a two-dimensional plot"}
+{"pack_name": "matplotlib", "chunk_id": 1342, "capability": "how to annotate a data point with text and an arrow pointing to it"}
+{"pack_name": "matplotlib", "chunk_id": 1360, "capability": "how to position an annotation using different coordinate systems for horizontal and vertical placement"}
+{"pack_name": "matplotlib", "chunk_id": 1364, "capability": "how to visually connect two plot areas to show a zoomed region relationship"}
+{"pack_name": "matplotlib", "chunk_id": 1388, "capability": "configure a custom typesetting preamble and fonts when rendering text through an external engine"}
+{"pack_name": "matplotlib", "chunk_id": 1406, "capability": "understand the named relative font sizes and how they scale against the default size"}
+{"pack_name": "matplotlib", "chunk_id": 1419, "capability": "how to overlay a secondary plot area that shares its location with a host and follows its position"}
+{"pack_name": "matplotlib", "chunk_id": 1433, "capability": "understand the parts of a custom axis object like tick marks, labels, and offset text"}
+{"pack_name": "matplotlib", "chunk_id": 1464, "capability": "how to measure the rendered size and position of a plot element in pixels"}
+{"pack_name": "matplotlib", "chunk_id": 1471, "capability": "how to vertically align the y axis labels across multiple stacked subplots"}
+{"pack_name": "matplotlib", "chunk_id": 1472, "capability": "how to control which plot elements draw on top of others in a plot"}
+{"pack_name": "matplotlib", "chunk_id": 1477, "capability": "how to find community support channels and search previously asked questions"}

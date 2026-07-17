@@ -124,6 +124,21 @@
       "type": "integer",
       "minimum": 1,
       "description": "Crawled builds only: the max-pages cap in effect at build time."
+    },
+    "summarizer": {
+      "type": "string",
+      "enum": ["llm"],
+      "description": "LLM-summarized builds only: chunk summaries are model-generated (heuristic builds leave this unset)."
+    },
+    "summarizer_model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "LLM-summarized builds only: the model identifier that generated the summaries."
+    },
+    "summarizer_prompt_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "LLM-summarized builds only: version of the summary prompt (a prompt change regenerates every summary and pack digest)."
     }
   }
 }

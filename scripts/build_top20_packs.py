@@ -33,6 +33,16 @@ _MATPLOTLIB_UA = (
     "Mozilla/5.0 (compatible; synd/0.3; +https://github.com/trydydd/synaptic-drift)"
 )
 
+# fastapi.tiangolo.com serves full translated copies of the docs under
+# two-letter (plus em/zh-hant) path prefixes. Without excluding them the
+# 500-page budget fills up with duplicate pages in other languages.
+_FASTAPI_LANGS = (
+    "az bn de em es fa fr he hi hu id it ja ko nl pl pt ru tr uk ur vi yo zh zh-hant"
+).split()
+_FASTAPI_EXCLUDES = [
+    flag for lang in _FASTAPI_LANGS for flag in ("--exclude-url-pattern", lang)
+]
+
 
 @dataclass
 class Target:
@@ -59,7 +69,13 @@ TARGETS: list[Target] = [
     Target("click", "8.2.1", "https://click.palletsprojects.com/en/stable/"),
     Target("pytest", "8.4.1", "https://docs.pytest.org/en/stable/"),
     Target("sqlalchemy", "2.0.41", "https://docs.sqlalchemy.org/en/20/"),
-    Target("fastapi", "0.115.14", "https://fastapi.tiangolo.com/"),
+    Target(
+        "fastapi",
+        "0.115.14",
+        "https://fastapi.tiangolo.com/",
+        extra_flags=_FASTAPI_EXCLUDES,
+        notes="translations excluded so the page budget goes to English docs",
+    ),
     Target("flask", "3.1.1", "https://flask.palletsprojects.com/en/stable/"),
     Target(
         "django",

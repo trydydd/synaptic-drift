@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-17
+
+**Theme**: Smarter Search — build-time LLM summary enrichment, measured on a new evaluation harness.
+
+### Added
+- `synd build --summarizer llm` — build-time LLM summary enrichment. Appends one model-authored sentence to each chunk's heuristic summary (append format, versioned `v1` prompt, greedy decoding) via a publisher-run OpenAI-compatible endpoint. Config: `--summarizer-url` / `--summarizer-model` / `--summarizer-api-key`, with `SYND_SUMMARIZER_URL` / `_MODEL` / `_API_KEY` env fallbacks. Default stays `heuristic` — no network, no model. (D30/D31)
+- Summary lockfile (`--summary-lockfile`) — a `content_hash → summary` JSONL with a pinned prompt-version/model header. Warm rebuilds reuse summaries byte-for-byte and call the model only for new/changed chunks, so `--summarizer llm` builds are reproducible and offline after the first run. (D31 §3)
+- Manifest provenance for LLM summaries — records summarizer strategy, model id, and prompt version, so a pack shows that its summaries are model-generated and by what. (D31 §5)
+- `SummarizerError` (exit code 6) — fail-hard on an unreachable endpoint, empty output, or degenerate (over-long) output; successes flush to the lockfile first so a retry is cheap, and no partial pack is ever written. (D31 §4)
+- Evaluation harness under `tests/evals/` — the D30 hybrid-search evidence ladder (L1 engine ceiling / L2 agent competence / L3 end-task), two gold corpora (`html_v1`, `pilot_v1`), and the RRF matrix prototype. Internal tooling; no runtime or packaging impact.
+
+### Changed
+- Chunker: split oversized atomic lists and paragraphs that exceed the max-chunk budget instead of only warning (D29, superseding D24's warn-only clause); strip residual navigation furniture (e.g. SQLAlchemy sidebars) by element id during HTML extraction.
+
 ## [0.3.0] - 2026-07-17
 
 **Theme**: Growth — a general web crawler for docs sites without an `llms.txt`,
