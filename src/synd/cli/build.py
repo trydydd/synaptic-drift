@@ -16,6 +16,7 @@ from synd.builder.chunking import (
 )
 from synd.builder.crawler import DEFAULT_MAX_PAGES
 from synd.builder.manifest import load_manifest
+from synd.builder.summarize import LlmSummarizerConfig
 from synd.cli.exit_codes import EXIT_USAGE, exit_code_for
 from synd.errors import BuildError, SyndError
 
@@ -142,6 +143,51 @@ def _parse_package_spec(spec: str) -> tuple[str, str]:
         "Defaults to 2× --max-chunk-tokens."
     ),
 )
+@click.option(
+    "--summarizer",
+    type=click.Choice(["heuristic", "llm"]),
+    default="heuristic",
+    show_default=True,
+    help=(
+        "Summary strategy. 'llm' appends a model-generated sentence to each "
+        "heuristic summary using a publisher-run OpenAI-compatible endpoint "
+        "(requires --summarizer-url and --summarizer-model). Build-time "
+        "only: chunk content is sent to that endpoint; query time stays "
+        "fully local."
+    ),
+)
+@click.option(
+    "--summarizer-url",
+    default=None,
+    envvar="SYND_SUMMARIZER_URL",
+    help=(
+        "OpenAI-compatible base URL (e.g. http://localhost:8000/v1) for "
+        "--summarizer llm. Env: SYND_SUMMARIZER_URL."
+    ),
+)
+@click.option(
+    "--summarizer-model",
+    default=None,
+    envvar="SYND_SUMMARIZER_MODEL",
+    help="Served model name for --summarizer llm. Env: SYND_SUMMARIZER_MODEL.",
+)
+@click.option(
+    "--summarizer-api-key",
+    default=None,
+    envvar="SYND_SUMMARIZER_API_KEY",
+    help="Bearer token for the endpoint, if any. Env: SYND_SUMMARIZER_API_KEY.",
+)
+@click.option(
+    "--summary-lockfile",
+    default=None,
+    type=click.Path(path_type=Path),
+    help=(
+        "Summary cache keyed by chunk content hash (default: "
+        "<output>/<package>@<version>.summaries.jsonl). Warm rebuilds reuse "
+        "it byte-for-byte — keep it next to the source for reproducible "
+        "packs; delete it to regenerate all summaries."
+    ),
+)
 def build(
     package_spec: str,
     source: str,
@@ -159,6 +205,11 @@ def build(
     max_chunk_tokens: int | None,
     min_chunk_tokens: int | None,
     warn_chunk_tokens: int | None,
+    summarizer: str,
+    summarizer_url: str | None,
+    summarizer_model: str | None,
+    summarizer_api_key: str | None,
+    summary_lockfile: Path | None,
 ) -> None:
     """Build a documentation pack from source files or a URL.
 
@@ -191,6 +242,27 @@ def build(
         min_chunk_tokens if min_chunk_tokens is not None else _DEFAULT_MIN_CHUNK_TOKENS
     )
 
+    summarizer_config: LlmSummarizerConfig | None = None
+    if summarizer == "llm":
+        if not summarizer_url or not summarizer_model:
+            console.print(
+                "[red]error: --summarizer llm requires --summarizer-url and "
+                "--summarizer-model (or SYND_SUMMARIZER_URL / "
+                "SYND_SUMMARIZER_MODEL)[/red]"
+            )
+            sys.exit(EXIT_USAGE)
+        lockfile_path = (
+            summary_lockfile
+            if summary_lockfile is not None
+            else Path(output) / f"{pkg}@{ver}.summaries.jsonl"
+        )
+        summarizer_config = LlmSummarizerConfig(
+            base_url=summarizer_url,
+            model=summarizer_model,
+            api_key=summarizer_api_key or "",
+            lockfile_path=lockfile_path,
+        )
+
     try:
         if source.startswith(("http://", "https://")):
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -212,6 +284,8 @@ def build(
                 max_pages=max_pages,
                 user_agent=user_agent,
                 respect_robots=not no_robots,
+                summarizer=summarizer,
+                summarizer_config=summarizer_config,
             )
         else:
             source_path = Path(source)
@@ -233,6 +307,8 @@ def build(
                 max_chunk_tokens=resolved_max,
                 min_chunk_tokens=resolved_min,
                 warn_chunk_tokens=warn_chunk_tokens,
+                summarizer=summarizer,
+                summarizer_config=summarizer_config,
             )
         console.print(f"[green]Pack built: {ctx_path}[/green]")
         _print_crawl_summary(ctx_path)

@@ -32,7 +32,12 @@ from synd.builder.manifest import (
     compute_pack_digest,
 )
 from synd.builder.normalizer import normalize
-from synd.errors import BuildError, FetchError, SchemaValidationError
+from synd.builder.summarize import (
+    CURRENT_PROMPT_VERSION,
+    LlmSummarizerConfig,
+    generate_summaries,
+)
+from synd.errors import BuildError, FetchError, SchemaValidationError, SummarizerError
 from synd.schemas import validate_chunk, validate_manifest, validate_pages
 from synd.schemas.types import ChunkRecord, PageRecord
 from synd.storage.models import Page
@@ -51,6 +56,8 @@ def build_pack(
     max_chunk_tokens: int = _DEFAULT_MAX_CHUNK_TOKENS,
     min_chunk_tokens: int = _DEFAULT_MIN_CHUNK_TOKENS,
     warn_chunk_tokens: int | None = None,
+    summarizer: str = "heuristic",
+    summarizer_config: LlmSummarizerConfig | None = None,
 ) -> tuple[Path, list[RawChunk]]:
     """Build a .ctx pack from a local source directory.
 
@@ -133,6 +140,8 @@ def build_pack(
         source_commit=source_commit,
         max_chunk_tokens=max_chunk_tokens,
         warn_chunk_tokens=warn_chunk_tokens,
+        summarizer=summarizer,
+        summarizer_config=summarizer_config,
     )
 
 
@@ -155,6 +164,8 @@ def build_pack_from_url(
     max_pages: int = DEFAULT_MAX_PAGES,
     user_agent: str | None = None,
     respect_robots: bool = True,
+    summarizer: str = "heuristic",
+    summarizer_config: LlmSummarizerConfig | None = None,
 ) -> tuple[Path, list[RawChunk]]:
     """Build a .ctx pack from a URL source.
 
@@ -284,6 +295,8 @@ def build_pack_from_url(
         ),
         crawl_truncated=crawl_result.truncated if crawl_result is not None else None,
         crawl_max_pages=max_pages if crawl_result is not None else None,
+        summarizer=summarizer,
+        summarizer_config=summarizer_config,
     )
 
 
@@ -304,6 +317,8 @@ def _finalize_pack(
     crawl_pages_fetched: int | None = None,
     crawl_truncated: bool | None = None,
     crawl_max_pages: int | None = None,
+    summarizer: str = "heuristic",
+    summarizer_config: LlmSummarizerConfig | None = None,
 ) -> tuple[Path, list[RawChunk]]:
     """Assign IDs, compute hashes, generate summaries, write .ctx archive.
 
@@ -311,6 +326,14 @@ def _finalize_pack(
     (URL sources). Returns (pack_path, oversized_chunks) where oversized_chunks
     are chunks whose token_count exceeds warn_chunk_tokens (defaults to 2× max).
     """
+    summarizer_model: str | None = None
+    summarizer_prompt_version: str | None = None
+    if summarizer == "llm":
+        if summarizer_config is None:
+            raise SummarizerError("summarizer='llm' requires a summarizer config")
+        summarizer_model = summarizer_config.model
+        summarizer_prompt_version = CURRENT_PROMPT_VERSION
+
     for i, rc in enumerate(raw_chunks, start=1):
         rc.id = i
 
@@ -322,6 +345,9 @@ def _finalize_pack(
     for rc in raw_chunks:
         if not rc.summary:
             rc.summary = generate_summary(rc.content, heading_path=rc.heading_path)
+
+    if summarizer == "llm" and summarizer_config is not None:
+        _apply_llm_summaries(raw_chunks, summarizer_config)
 
     manifest = build_manifest(
         package=package,
@@ -338,6 +364,9 @@ def _finalize_pack(
         crawl_pages_fetched=crawl_pages_fetched,
         crawl_truncated=crawl_truncated,
         crawl_max_pages=crawl_max_pages,
+        summarizer=summarizer if summarizer != "heuristic" else None,
+        summarizer_model=summarizer_model,
+        summarizer_prompt_version=summarizer_prompt_version,
     )
 
     # Build the on-disk records once and validate them against their schemas
@@ -376,6 +405,26 @@ def _finalize_pack(
     oversized.sort(key=lambda rc: rc.token_count or 0, reverse=True)
 
     return pack_path, oversized
+
+
+def _apply_llm_summaries(
+    raw_chunks: list[RawChunk], config: LlmSummarizerConfig
+) -> None:
+    """Append an LLM sentence to every chunk's heuristic summary (D31).
+
+    Chunks are keyed by their normalized content hash — the same identity the
+    chunk record and the gold datasets use — so duplicate-content chunks share
+    one generation and the summary lockfile survives chunk-ID reshuffles.
+    """
+    chunks_by_hash: dict[str, tuple[str, str]] = {}
+    for rc in raw_chunks:
+        chunks_by_hash.setdefault(
+            _content_hash(rc.content), (rc.heading_path, rc.content)
+        )
+    llm_by_hash = generate_summaries(chunks_by_hash, config)
+    for rc in raw_chunks:
+        llm_sentence = llm_by_hash[_content_hash(rc.content)]
+        rc.summary = f"{rc.summary} {llm_sentence}".strip()
 
 
 def _url_path_label(url: str) -> str:

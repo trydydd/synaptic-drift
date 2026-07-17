@@ -5,9 +5,10 @@ model. The strong-model half (expert, paraphrase personas) is authored by
 Claude in a Claude Code session and merged by finalize_stage_b.py — this
 script no longer calls the Anthropic API.
 
-Model label is fixed as "35b" (representing the weak-model half, regardless of
-the actual served model). Pilot run used Qwen3.6:27b (fp8 quantization with
-unquantized KV cache) with reasoning disabled.
+The "model" field written into each output record is the actual
+SYND_GEN_VLLM_MODEL value used for generation — not a placeholder. Pilot run
+used Qwen3.6:27b (fp8 quantization with unquantized KV cache) with reasoning
+disabled.
 
 Always appends to --output and skips (pack_name, chunk_id, model) keys already
 present, so it is safe to re-run after an interruption and composes with
@@ -30,7 +31,7 @@ Output JSONL (one line per (chunk, persona)):
         "source_url": "...",
         "content_hash": "sha256:...",
         "capability": "...",
-        "model": "35b",
+        "model": "<value of SYND_GEN_VLLM_MODEL, e.g. 'qwen3.6-27b-fp8'>",
         "persona": "vocab_mismatch" | "hurried",
         "nl_query": "how do i mark a tool as retry-safe",
         "keyword_query": "tool retry safe idempotent"
@@ -48,7 +49,6 @@ import urllib.request
 from pathlib import Path
 
 _MAX_TOKENS = 200
-_MODEL_LABEL = "35b"
 
 _PROMPT_35B = Path(__file__).parent / "prompts" / "stage_b_35b.txt"
 
@@ -162,7 +162,8 @@ def generate_stage_b(
 
     if not vllm_url or not vllm_model:
         raise SystemExit(
-            "SYND_GEN_VLLM_URL and SYND_GEN_VLLM_MODEL not set (required for 35B)"
+            "SYND_GEN_VLLM_URL and SYND_GEN_VLLM_MODEL not set "
+            "(required for the weak-half model)"
         )
 
     prompt_35b = _PROMPT_35B.read_text(encoding="utf-8")
@@ -182,18 +183,18 @@ def generate_stage_b(
             print(f"\nB [{line_no}] chunk {cap['chunk_id']} {cap['heading_path'][:55]}")
             print(f"  capability: {cap['capability'][:80]}")
 
-            key = (cap["pack_name"], cap["chunk_id"], _MODEL_LABEL)
+            key = (cap["pack_name"], cap["chunk_id"], vllm_model)
             if key in done_keys:
-                print("  [35b] skip (already done)")
+                print(f"  [{vllm_model}] skip (already done)")
                 continue
 
             prompt = prompt_35b.format(capability_statement=cap["capability"])
             raw = _call_vllm(prompt, vllm_url, vllm_model, vllm_key)
             results = _parse_two_persona_lines(raw, _PERSONA_NAMES_35B)
-            _write_records(out, cap, _MODEL_LABEL, results)
+            _write_records(out, cap, vllm_model, results)
             out.flush()
             for persona, nl, kw in results:
-                print(f"  [35b/{persona}] {nl[:60]} | {kw}")
+                print(f"  [{vllm_model}/{persona}] {nl[:60]} | {kw}")
             if delay_s > 0:
                 time.sleep(delay_s)
 

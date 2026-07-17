@@ -1,0 +1,160 @@
+{"pack_name": "matplotlib", "chunk_id": 14, "persona": "expert", "nl_query": "matplotlib figure demo examples for creating and using figure windows", "keyword_query": "figure demo examples"}
+{"pack_name": "matplotlib", "chunk_id": 14, "persona": "paraphrase", "nl_query": "gallery of samples that show various ways to open and manage chart canvases", "keyword_query": "chart canvas gallery"}
+{"pack_name": "matplotlib", "chunk_id": 52, "persona": "expert", "nl_query": "how to draw axvline axhline and axvspan shapes on my axes", "keyword_query": "axvline axhspan axes"}
+{"pack_name": "matplotlib", "chunk_id": 52, "persona": "paraphrase", "nl_query": "add a straight marker at a given value and a shaded rectangle band to a chart", "keyword_query": "marker shaded band"}
+{"pack_name": "matplotlib", "chunk_id": 55, "persona": "expert", "nl_query": "boxplot violinplot and ecdf plots for visualizing statistical distributions in matplotlib", "keyword_query": "boxplot violinplot ecdf"}
+{"pack_name": "matplotlib", "chunk_id": 55, "persona": "paraphrase", "nl_query": "compare data spread with whisker style charts or a cumulative curve", "keyword_query": "whisker chart cumulative"}
+{"pack_name": "matplotlib", "chunk_id": 62, "persona": "expert", "nl_query": "how to clear the axes with cla so the plot can be reused", "keyword_query": "cla clear axes"}
+{"pack_name": "matplotlib", "chunk_id": 62, "persona": "paraphrase", "nl_query": "wipe everything drawn inside a chart region to start over fresh", "keyword_query": "wipe chart region"}
+{"pack_name": "matplotlib", "chunk_id": 66, "persona": "expert", "nl_query": "invert_xaxis or set_xlim to reverse axis direction and control limits", "keyword_query": "invert axis xlim"}
+{"pack_name": "matplotlib", "chunk_id": 66, "persona": "paraphrase", "nl_query": "make a graph scale run backwards from high to low and choose its visible range", "keyword_query": "backwards scale range"}
+{"pack_name": "matplotlib", "chunk_id": 89, "persona": "expert", "nl_query": "savefig to save a matplotlib figure as png or pdf", "keyword_query": "savefig png pdf"}
+{"pack_name": "matplotlib", "chunk_id": 89, "persona": "paraphrase", "nl_query": "write a finished chart out to an image or vector file on disk", "keyword_query": "chart image vector"}
+{"pack_name": "matplotlib", "chunk_id": 94, "persona": "expert", "nl_query": "use ginput or waitforbuttonpress to capture mouse clicks on a figure", "keyword_query": "ginput mouse clicks"}
+{"pack_name": "matplotlib", "chunk_id": 94, "persona": "paraphrase", "nl_query": "pause a chart window and record where the user taps before continuing", "keyword_query": "record user taps"}
+{"pack_name": "matplotlib", "chunk_id": 143, "persona": "expert", "nl_query": "scatter plot examples with legend, masked data, and attached histograms", "keyword_query": "scatter legend histogram"}
+{"pack_name": "matplotlib", "chunk_id": 143, "persona": "paraphrase", "nl_query": "gallery of dot charts with keyed labels, filtered values, and side distribution panels", "keyword_query": "dot chart gallery"}
+{"pack_name": "matplotlib", "chunk_id": 147, "persona": "expert", "nl_query": "errorbar demo examples showing different error bar styles", "keyword_query": "errorbar demo styles"}
+{"pack_name": "matplotlib", "chunk_id": 147, "persona": "paraphrase", "nl_query": "sample charts that draw uncertainty whiskers around measurements in various looks", "keyword_query": "uncertainty whiskers charts"}
+{"pack_name": "matplotlib", "chunk_id": 162, "persona": "expert", "nl_query": "minimal pyplot example with a simple plot and basic subplots", "keyword_query": "simple plot subplots"}
+{"pack_name": "matplotlib", "chunk_id": 162, "persona": "paraphrase", "nl_query": "the shortest starter snippet drawing one line chart and a small grid of panels", "keyword_query": "starter snippet panels"}
+{"pack_name": "matplotlib", "chunk_id": 164, "persona": "expert", "nl_query": "mplot3d examples with 3d scatter, quiver arrows, and rotating views", "keyword_query": "mplot3d scatter quiver"}
+{"pack_name": "matplotlib", "chunk_id": 164, "persona": "paraphrase", "nl_query": "sample charts in three dimensions including spinning the camera around", "keyword_query": "three dimensional samples"}
+{"pack_name": "matplotlib", "chunk_id": 179, "persona": "expert", "nl_query": "axes_grid examples for arranging multiple images in a grid layout", "keyword_query": "axes_grid image layout"}
+{"pack_name": "matplotlib", "chunk_id": 179, "persona": "paraphrase", "nl_query": "samples showing how to tile several pictures side by side in rows and columns", "keyword_query": "tile pictures rows"}
+{"pack_name": "matplotlib", "chunk_id": 190, "persona": "expert", "nl_query": "keep a fixed aspect ratio for axes cells in an ImageGrid", "keyword_query": "ImageGrid fixed aspect"}
+{"pack_name": "matplotlib", "chunk_id": 190, "persona": "paraphrase", "nl_query": "stop picture tiles from stretching so their shape proportions stay constant", "keyword_query": "tiles stretch proportions"}
+{"pack_name": "matplotlib", "chunk_id": 192, "persona": "expert", "nl_query": "inset_axes to place a small inset plot inside a parent axes", "keyword_query": "inset_axes parent axes"}
+{"pack_name": "matplotlib", "chunk_id": 192, "persona": "paraphrase", "nl_query": "embed a tiny zoom panel in the corner of a bigger chart", "keyword_query": "tiny zoom panel"}
+{"pack_name": "matplotlib", "chunk_id": 199, "persona": "expert", "nl_query": "use axes_divider with fixed size to make axes with absolute dimensions in a figure", "keyword_query": "axes_divider fixed size"}
+{"pack_name": "matplotlib", "chunk_id": 199, "persona": "paraphrase", "nl_query": "split a canvas into chart regions whose width and height are exact physical measurements", "keyword_query": "exact physical measurements"}
+{"pack_name": "matplotlib", "chunk_id": 207, "persona": "expert", "nl_query": "curvilinear grid demo drawing a polar projection inside rectangular axes", "keyword_query": "curvilinear polar axes"}
+{"pack_name": "matplotlib", "chunk_id": 207, "persona": "paraphrase", "nl_query": "overlay a bent circular style coordinate mesh onto a normal square chart", "keyword_query": "circular mesh chart"}
+{"pack_name": "matplotlib", "chunk_id": 210, "persona": "expert", "nl_query": "floating_axes to create rotated axes with a custom coordinate system", "keyword_query": "floating_axes rotated axes"}
+{"pack_name": "matplotlib", "chunk_id": 210, "persona": "paraphrase", "nl_query": "make a tilted chart region that has its own independent scales inside the canvas", "keyword_query": "tilted chart scales"}
+{"pack_name": "matplotlib", "chunk_id": 229, "persona": "expert", "nl_query": "how to get specific individual colors from a matplotlib colormap", "keyword_query": "colormap individual colors"}
+{"pack_name": "matplotlib", "chunk_id": 229, "persona": "paraphrase", "nl_query": "sample distinct shades at chosen points along a continuous gradient palette", "keyword_query": "gradient palette shades"}
+{"pack_name": "matplotlib", "chunk_id": 256, "persona": "expert", "nl_query": "align contour lines over an image using the extent keyword", "keyword_query": "contour image extent"}
+{"pack_name": "matplotlib", "chunk_id": 256, "persona": "paraphrase", "nl_query": "draw level curves on top of a picture so both share the same coordinate mapping", "keyword_query": "level curves picture"}
+{"pack_name": "matplotlib", "chunk_id": 286, "persona": "expert", "nl_query": "use figimage to place images at exact pixel positions in a figure", "keyword_query": "figimage pixel positions"}
+{"pack_name": "matplotlib", "chunk_id": 286, "persona": "paraphrase", "nl_query": "put pictures at precise spots on the canvas without resizing them", "keyword_query": "pictures precise spots"}
+{"pack_name": "matplotlib", "chunk_id": 319, "persona": "expert", "nl_query": "use LightSource shading to create shaded relief from a DEM", "keyword_query": "LightSource shaded relief"}
+{"pack_name": "matplotlib", "chunk_id": 319, "persona": "paraphrase", "nl_query": "render terrain elevation with hill lighting so mountains look three dimensional", "keyword_query": "terrain hill lighting"}
+{"pack_name": "matplotlib", "chunk_id": 327, "persona": "expert", "nl_query": "compute the gradient of data on a triangular mesh with CubicTriInterpolator", "keyword_query": "trigradient triangular mesh"}
+{"pack_name": "matplotlib", "chunk_id": 327, "persona": "paraphrase", "nl_query": "display the slope direction field from values sampled over a triangle network", "keyword_query": "slope field triangles"}
+{"pack_name": "matplotlib", "chunk_id": 334, "persona": "expert", "nl_query": "add a semi-transparent watermark image with figimage and alpha", "keyword_query": "watermark figimage alpha"}
+{"pack_name": "matplotlib", "chunk_id": 334, "persona": "paraphrase", "nl_query": "stamp a faded logo picture over my chart as a background overlay", "keyword_query": "faded logo overlay"}
+{"pack_name": "matplotlib", "chunk_id": 394, "persona": "expert", "nl_query": "scatter plot examples tagged with legend topics in the gallery", "keyword_query": "scatter examples legend"}
+{"pack_name": "matplotlib", "chunk_id": 394, "persona": "paraphrase", "nl_query": "browse dot chart samples grouped by subject labels such as keys", "keyword_query": "dot chart samples"}
+{"pack_name": "matplotlib", "chunk_id": 409, "persona": "expert", "nl_query": "mplot3d examples for rotating, scaling, and combining 3d plots", "keyword_query": "mplot3d rotate combine"}
+{"pack_name": "matplotlib", "chunk_id": 409, "persona": "paraphrase", "nl_query": "samples that spin, resize, and merge multiple three dimensional charts", "keyword_query": "spin merge charts"}
+{"pack_name": "matplotlib", "chunk_id": 431, "persona": "expert", "nl_query": "mix 2d and 3d subplots in the same figure", "keyword_query": "2d 3d subplots"}
+{"pack_name": "matplotlib", "chunk_id": 431, "persona": "paraphrase", "nl_query": "put a flat chart and a depth chart together on one canvas", "keyword_query": "flat depth canvas"}
+{"pack_name": "matplotlib", "chunk_id": 442, "persona": "expert", "nl_query": "plot_surface with a colormap and custom z axis tick formatting", "keyword_query": "plot_surface colormap ticks"}
+{"pack_name": "matplotlib", "chunk_id": 442, "persona": "paraphrase", "nl_query": "draw a shaded three dimensional sheet colored by height with my own number labels along an edge", "keyword_query": "shaded sheet height"}
+{"pack_name": "matplotlib", "chunk_id": 449, "persona": "expert", "nl_query": "plot_trisurf to draw a 3d surface from a triangular mesh", "keyword_query": "plot_trisurf triangular surface"}
+{"pack_name": "matplotlib", "chunk_id": 449, "persona": "paraphrase", "nl_query": "render a solid sheet in three dimensions built out of little triangle patches", "keyword_query": "sheet triangle patches"}
+{"pack_name": "matplotlib", "chunk_id": 453, "persona": "expert", "nl_query": "3d voxel plot with non-uniform x y z coordinates using voxels", "keyword_query": "voxels nonuniform coordinates"}
+{"pack_name": "matplotlib", "chunk_id": 453, "persona": "paraphrase", "nl_query": "draw stacked cubes in space where the grid spacing is irregular", "keyword_query": "cubes irregular spacing"}
+{"pack_name": "matplotlib", "chunk_id": 459, "persona": "expert", "nl_query": "pie and donut chart examples with labeling options", "keyword_query": "pie donut labels"}
+{"pack_name": "matplotlib", "chunk_id": 459, "persona": "paraphrase", "nl_query": "gallery of circular wedge graphs including ring style and caption choices", "keyword_query": "wedge ring graphs"}
+{"pack_name": "matplotlib", "chunk_id": 468, "persona": "expert", "nl_query": "set custom colors for each wedge in a pie chart", "keyword_query": "pie wedge colors"}
+{"pack_name": "matplotlib", "chunk_id": 468, "persona": "paraphrase", "nl_query": "give every slice of a round proportion graph its own shade", "keyword_query": "slice shade graph"}
+{"pack_name": "matplotlib", "chunk_id": 478, "persona": "expert", "nl_query": "errorbar plot in polar coordinates", "keyword_query": "errorbar polar coordinates"}
+{"pack_name": "matplotlib", "chunk_id": 478, "persona": "paraphrase", "nl_query": "show uncertainty whiskers on a circular chart with angle and radius scales", "keyword_query": "whiskers circular chart"}
+{"pack_name": "matplotlib", "chunk_id": 503, "persona": "expert", "nl_query": "annotate arrows anchored in data coordinates versus figure fraction", "keyword_query": "annotate arrow coordinates"}
+{"pack_name": "matplotlib", "chunk_id": 503, "persona": "paraphrase", "nl_query": "difference between callout pointers pinned to a value location and ones fixed to the window itself", "keyword_query": "callout pointer pinned"}
+{"pack_name": "matplotlib", "chunk_id": 543, "persona": "expert", "nl_query": "customize boxplot whiskers, caps, fliers, and medians", "keyword_query": "boxplot whiskers fliers"}
+{"pack_name": "matplotlib", "chunk_id": 543, "persona": "paraphrase", "nl_query": "control the look and summary numbers of a quartile box graph", "keyword_query": "quartile box graph"}
+{"pack_name": "matplotlib", "chunk_id": 548, "persona": "expert", "nl_query": "use cohere to plot the coherence of two signals", "keyword_query": "cohere coherence signals"}
+{"pack_name": "matplotlib", "chunk_id": 548, "persona": "paraphrase", "nl_query": "chart how strongly two noisy measurement series move together across frequencies", "keyword_query": "noisy series frequencies"}
+{"pack_name": "matplotlib", "chunk_id": 565, "persona": "expert", "nl_query": "hexbin plot for a 2d histogram with hexagonal bins colored by density", "keyword_query": "hexbin density histogram"}
+{"pack_name": "matplotlib", "chunk_id": 565, "persona": "paraphrase", "nl_query": "chart crowding of many scattered values using little six sided cells", "keyword_query": "six sided cells"}
+{"pack_name": "matplotlib", "chunk_id": 571, "persona": "expert", "nl_query": "plot two histograms back to back mirrored for comparison", "keyword_query": "mirrored histograms comparison"}
+{"pack_name": "matplotlib", "chunk_id": 571, "persona": "paraphrase", "nl_query": "show a pair of frequency bar charts flipped against each other to contrast groups", "keyword_query": "flipped frequency bars"}
+{"pack_name": "matplotlib", "chunk_id": 594, "persona": "expert", "nl_query": "xcorr and acorr to plot cross-correlation and autocorrelation", "keyword_query": "xcorr acorr correlation"}
+{"pack_name": "matplotlib", "chunk_id": 594, "persona": "paraphrase", "nl_query": "graph how two number series relate to shifted copies of themselves and each other", "keyword_query": "shifted series relation"}
+{"pack_name": "matplotlib", "chunk_id": 602, "persona": "expert", "nl_query": "use plt.style.use to apply a predefined stylesheet theme", "keyword_query": "style sheets theme"}
+{"pack_name": "matplotlib", "chunk_id": 602, "persona": "paraphrase", "nl_query": "switch the whole visual appearance of my graphs with a ready-made look preset", "keyword_query": "appearance look preset"}
+{"pack_name": "matplotlib", "chunk_id": 692, "persona": "expert", "nl_query": "mathtext displaystyle versus textstyle for fractions in labels", "keyword_query": "displaystyle textstyle fractions"}
+{"pack_name": "matplotlib", "chunk_id": 692, "persona": "paraphrase", "nl_query": "choose big or compact rendering for stacked division expressions in chart captions", "keyword_query": "stacked division captions"}
+{"pack_name": "matplotlib", "chunk_id": 699, "persona": "expert", "nl_query": "set font family size weight and style with setp on text objects", "keyword_query": "setp font properties"}
+{"pack_name": "matplotlib", "chunk_id": 699, "persona": "paraphrase", "nl_query": "change typeface, character height, and boldness of chart words through attribute methods", "keyword_query": "typeface boldness attributes"}
+{"pack_name": "matplotlib", "chunk_id": 707, "persona": "expert", "nl_query": "render latex math expressions in matplotlib titles and labels with mathtext", "keyword_query": "mathtext latex labels"}
+{"pack_name": "matplotlib", "chunk_id": 707, "persona": "paraphrase", "nl_query": "put formulas and special symbols into chart captions and headings", "keyword_query": "formulas symbols captions"}
+{"pack_name": "matplotlib", "chunk_id": 731, "persona": "expert", "nl_query": "use FuncFormatter to format tick labels as millions", "keyword_query": "FuncFormatter tick millions"}
+{"pack_name": "matplotlib", "chunk_id": 731, "persona": "paraphrase", "nl_query": "show shortened numbers on a chart scale using my own conversion routine", "keyword_query": "shortened numbers routine"}
+{"pack_name": "matplotlib", "chunk_id": 739, "persona": "expert", "nl_query": "YearLocator MonthLocator HourLocator to control date tick placement on a time axis", "keyword_query": "YearLocator date ticks"}
+{"pack_name": "matplotlib", "chunk_id": 739, "persona": "paraphrase", "nl_query": "decide the spacing of calendar markings along a chart's chronological scale", "keyword_query": "calendar markings spacing"}
+{"pack_name": "matplotlib", "chunk_id": 744, "persona": "expert", "nl_query": "datetime64 precision limits and the date epoch rcParam for high resolution timestamps", "keyword_query": "epoch datetime precision"}
+{"pack_name": "matplotlib", "chunk_id": 744, "persona": "paraphrase", "nl_query": "why microsecond level time values lose accuracy on charts and the role of the reference start point", "keyword_query": "microsecond accuracy reference"}
+{"pack_name": "matplotlib", "chunk_id": 751, "persona": "expert", "nl_query": "AutoMinorLocator to add automatic minor ticks between major ticks", "keyword_query": "AutoMinorLocator minor ticks"}
+{"pack_name": "matplotlib", "chunk_id": 751, "persona": "paraphrase", "nl_query": "insert small intermediate scale marks between the main divisions of a chart edge", "keyword_query": "intermediate scale marks"}
+{"pack_name": "matplotlib", "chunk_id": 763, "persona": "expert", "nl_query": "axis unreadable with too many tick labels when plotting categorical strings", "keyword_query": "categorical ticks unreadable"}
+{"pack_name": "matplotlib", "chunk_id": 763, "persona": "paraphrase", "nl_query": "chart edge floods with markings because my values are words, fix by converting to numbers", "keyword_query": "word values numbers"}
+{"pack_name": "matplotlib", "chunk_id": 781, "persona": "expert", "nl_query": "pip install matplotlib on windows macos or linux", "keyword_query": "pip install matplotlib"}
+{"pack_name": "matplotlib", "chunk_id": 781, "persona": "paraphrase", "nl_query": "get the charting package onto my desktop machine with the usual dependency manager", "keyword_query": "charting package manager"}
+{"pack_name": "matplotlib", "chunk_id": 784, "persona": "expert", "nl_query": "use matplotlib.__file__ to find the install directory of the package", "keyword_query": "matplotlib file directory"}
+{"pack_name": "matplotlib", "chunk_id": 784, "persona": "paraphrase", "nl_query": "locate the folder on disk that holds a python module after setup", "keyword_query": "module folder disk"}
+{"pack_name": "matplotlib", "chunk_id": 866, "persona": "expert", "nl_query": "how to cite a specific matplotlib version with its DOI in a paper", "keyword_query": "cite DOI version"}
+{"pack_name": "matplotlib", "chunk_id": 866, "persona": "paraphrase", "nl_query": "reference the exact release of this software in an academic bibliography", "keyword_query": "academic bibliography release"}
+{"pack_name": "matplotlib", "chunk_id": 871, "persona": "expert", "nl_query": "where does the matplotlib code of conduct apply to community members", "keyword_query": "code conduct scope"}
+{"pack_name": "matplotlib", "chunk_id": 871, "persona": "paraphrase", "nl_query": "which spaces and situations are covered by the project's behavior rules", "keyword_query": "behavior rules coverage"}
+{"pack_name": "matplotlib", "chunk_id": 872, "persona": "expert", "nl_query": "how to report code of conduct violations to matplotlib community leaders", "keyword_query": "report conduct violations"}
+{"pack_name": "matplotlib", "chunk_id": 872, "persona": "paraphrase", "nl_query": "who do i contact about harassment or unacceptable actions from other members", "keyword_query": "contact harassment members"}
+{"pack_name": "matplotlib", "chunk_id": 949, "persona": "expert", "nl_query": "imshow to display a 2d array as an image", "keyword_query": "imshow array image"}
+{"pack_name": "matplotlib", "chunk_id": 949, "persona": "paraphrase", "nl_query": "render a grid of numbers as a colored picture in a chart", "keyword_query": "numbers colored picture"}
+{"pack_name": "matplotlib", "chunk_id": 958, "persona": "expert", "nl_query": "rotate x axis tick labels for readability", "keyword_query": "rotate tick labels"}
+{"pack_name": "matplotlib", "chunk_id": 958, "persona": "paraphrase", "nl_query": "slant the crowded text along the bottom of a chart so it is legible", "keyword_query": "slant bottom text"}
+{"pack_name": "matplotlib", "chunk_id": 970, "persona": "expert", "nl_query": "add xlabel ylabel title and text to a plot", "keyword_query": "xlabel title text"}
+{"pack_name": "matplotlib", "chunk_id": 970, "persona": "paraphrase", "nl_query": "put captions, a heading, and words onto my graph edges", "keyword_query": "captions heading graph"}
+{"pack_name": "matplotlib", "chunk_id": 1065, "persona": "expert", "nl_query": "set_aspect to control the aspect ratio of axes in data coordinates", "keyword_query": "set_aspect data ratio"}
+{"pack_name": "matplotlib", "chunk_id": 1065, "persona": "paraphrase", "nl_query": "make one unit along the horizontal equal the same distance vertically on a chart", "keyword_query": "equal unit distance"}
+{"pack_name": "matplotlib", "chunk_id": 1129, "persona": "expert", "nl_query": "pass subplot_kw like polar projection to subplot_mosaic", "keyword_query": "subplot_mosaic subplot_kw polar"}
+{"pack_name": "matplotlib", "chunk_id": 1129, "persona": "paraphrase", "nl_query": "apply shared construction settings such as circular coordinates when building panels from a string layout", "keyword_query": "circular panels layout"}
+{"pack_name": "matplotlib", "chunk_id": 1147, "persona": "expert", "nl_query": "standalone colorbar with ListedColormap and BoundaryNorm interval boundaries", "keyword_query": "colorbar BoundaryNorm ListedColormap"}
+{"pack_name": "matplotlib", "chunk_id": 1147, "persona": "paraphrase", "nl_query": "build a separate color key using my own discrete shades and value ranges", "keyword_query": "color key ranges"}
+{"pack_name": "matplotlib", "chunk_id": 1161, "persona": "expert", "nl_query": "TwoSlopeNorm or CenteredNorm to map symmetric data onto a diverging colormap", "keyword_query": "TwoSlopeNorm diverging colormap"}
+{"pack_name": "matplotlib", "chunk_id": 1161, "persona": "paraphrase", "nl_query": "shade values spreading both directions from a midpoint with two contrasting hue ends", "keyword_query": "midpoint contrasting hues"}
+{"pack_name": "matplotlib", "chunk_id": 1180, "persona": "expert", "nl_query": "how colormaps convert to grayscale for black and white printing", "keyword_query": "colormap grayscale printing"}
+{"pack_name": "matplotlib", "chunk_id": 1180, "persona": "paraphrase", "nl_query": "check that chart hues remain distinguishable on a monochrome printout", "keyword_query": "monochrome printout hues"}
+{"pack_name": "matplotlib", "chunk_id": 1213, "persona": "expert", "nl_query": "rcParams path.simplify and snapping settings to trade fidelity for smaller files and speed", "keyword_query": "path simplify snapping"}
+{"pack_name": "matplotlib", "chunk_id": 1213, "persona": "paraphrase", "nl_query": "reduce curve detail and align strokes to the pixel grid so output shrinks and renders faster", "keyword_query": "reduce curve detail"}
+{"pack_name": "matplotlib", "chunk_id": 1238, "persona": "expert", "nl_query": "how the implicit pyplot interface creates figures and axes automatically", "keyword_query": "implicit pyplot interface"}
+{"pack_name": "matplotlib", "chunk_id": 1238, "persona": "paraphrase", "nl_query": "the convenience layer that silently makes a canvas and chart region when you call drawing commands", "keyword_query": "convenience layer canvas"}
+{"pack_name": "matplotlib", "chunk_id": 1241, "persona": "expert", "nl_query": "how pandas-like data containers can provide their own plot methods", "keyword_query": "data containers plot"}
+{"pack_name": "matplotlib", "chunk_id": 1241, "persona": "paraphrase", "nl_query": "let a custom dataset class ship built in charting helpers", "keyword_query": "dataset charting helpers"}
+{"pack_name": "matplotlib", "chunk_id": 1264, "persona": "expert", "nl_query": "enable picker on artists so pick events fire when clicked", "keyword_query": "picker pick events"}
+{"pack_name": "matplotlib", "chunk_id": 1264, "persona": "paraphrase", "nl_query": "run a callback when someone selects an element on an interactive graph", "keyword_query": "callback select element"}
+{"pack_name": "matplotlib", "chunk_id": 1268, "persona": "expert", "nl_query": "how figures are displayed by different matplotlib backends and environments", "keyword_query": "figure display backends"}
+{"pack_name": "matplotlib", "chunk_id": 1268, "persona": "paraphrase", "nl_query": "why the chart window appears differently in a notebook, terminal, or gui shell", "keyword_query": "chart window notebook"}
+{"pack_name": "matplotlib", "chunk_id": 1279, "persona": "expert", "nl_query": "plt.ion and plt.ioff to toggle interactive redrawing", "keyword_query": "ion ioff interactive"}
+{"pack_name": "matplotlib", "chunk_id": 1279, "persona": "paraphrase", "nl_query": "stop charts refreshing automatically after every drawing command and update manually instead", "keyword_query": "automatic refresh toggle"}
+{"pack_name": "matplotlib", "chunk_id": 1298, "persona": "expert", "nl_query": "flush_events and draw_idle for manual redraws in a custom event loop", "keyword_query": "flush_events draw_idle"}
+{"pack_name": "matplotlib", "chunk_id": 1298, "persona": "paraphrase", "nl_query": "process pending gui messages and ask the canvas to repaint from my own message cycle", "keyword_query": "repaint pending messages"}
+{"pack_name": "matplotlib", "chunk_id": 1320, "persona": "expert", "nl_query": "object oriented axes api versus pyplot implicit style, which to use", "keyword_query": "object oriented pyplot"}
+{"pack_name": "matplotlib", "chunk_id": 1320, "persona": "paraphrase", "nl_query": "should i build charts by keeping references to canvas parts or through global convenience calls", "keyword_query": "references global calls"}
+{"pack_name": "matplotlib", "chunk_id": 1334, "persona": "expert", "nl_query": "use a colormap to represent a third dimension in a 2d scatter plot", "keyword_query": "colormap third dimension"}
+{"pack_name": "matplotlib", "chunk_id": 1334, "persona": "paraphrase", "nl_query": "encode an extra variable as shading on a flat chart", "keyword_query": "extra variable shading"}
+{"pack_name": "matplotlib", "chunk_id": 1342, "persona": "expert", "nl_query": "annotate a data point with text and an arrow", "keyword_query": "annotate arrow text"}
+{"pack_name": "matplotlib", "chunk_id": 1342, "persona": "paraphrase", "nl_query": "attach a caption to a specific value with a pointer leading to it", "keyword_query": "caption pointer value"}
+{"pack_name": "matplotlib", "chunk_id": 1360, "persona": "expert", "nl_query": "annotate with different textcoords for x and y placement", "keyword_query": "annotate textcoords placement"}
+{"pack_name": "matplotlib", "chunk_id": 1360, "persona": "paraphrase", "nl_query": "position a callout using one reference frame horizontally and another vertically", "keyword_query": "callout reference frames"}
+{"pack_name": "matplotlib", "chunk_id": 1364, "persona": "expert", "nl_query": "indicate_inset_zoom or ConnectionPatch to link a zoomed region between two axes", "keyword_query": "ConnectionPatch inset zoom"}
+{"pack_name": "matplotlib", "chunk_id": 1364, "persona": "paraphrase", "nl_query": "draw guide lines showing that one chart panel magnifies part of another", "keyword_query": "panel magnify guides"}
+{"pack_name": "matplotlib", "chunk_id": 1388, "persona": "expert", "nl_query": "configure the latex preamble and fonts with text.usetex rendering", "keyword_query": "usetex latex preamble"}
+{"pack_name": "matplotlib", "chunk_id": 1388, "persona": "paraphrase", "nl_query": "customize the setup block and typefaces when chart words go through an external typesetting program", "keyword_query": "typesetting setup block"}
+{"pack_name": "matplotlib", "chunk_id": 1406, "persona": "expert", "nl_query": "named font sizes like x-large and how they scale relative to default", "keyword_query": "relative font sizes"}
+{"pack_name": "matplotlib", "chunk_id": 1406, "persona": "paraphrase", "nl_query": "what the word based text magnitude presets mean compared with the base value", "keyword_query": "text magnitude presets"}
+{"pack_name": "matplotlib", "chunk_id": 1419, "persona": "expert", "nl_query": "parasite axes overlay that follows the host axes position", "keyword_query": "parasite host axes"}
+{"pack_name": "matplotlib", "chunk_id": 1419, "persona": "paraphrase", "nl_query": "stack a second transparent chart region exactly over an existing one so they move together", "keyword_query": "stacked transparent region"}
+{"pack_name": "matplotlib", "chunk_id": 1433, "persona": "expert", "nl_query": "axisartist components: ticks, ticklabels, and offset text on an axis object", "keyword_query": "axisartist ticks ticklabels"}
+{"pack_name": "matplotlib", "chunk_id": 1433, "persona": "paraphrase", "nl_query": "the pieces that make up a customized chart edge like its marks, numbering, and shifted magnitude note", "keyword_query": "edge marks numbering"}
+{"pack_name": "matplotlib", "chunk_id": 1464, "persona": "expert", "nl_query": "get_window_extent to measure an artist's rendered size and position in pixels", "keyword_query": "get_window_extent pixels"}
+{"pack_name": "matplotlib", "chunk_id": 1464, "persona": "paraphrase", "nl_query": "find the actual on screen bounding rectangle of a drawn chart element", "keyword_query": "bounding rectangle element"}
+{"pack_name": "matplotlib", "chunk_id": 1471, "persona": "expert", "nl_query": "align_ylabels to line up y axis labels across stacked subplots", "keyword_query": "align_ylabels stacked subplots"}
+{"pack_name": "matplotlib", "chunk_id": 1471, "persona": "paraphrase", "nl_query": "make the vertical captions of several charts in a column sit at the same offset", "keyword_query": "vertical captions column"}
+{"pack_name": "matplotlib", "chunk_id": 1472, "persona": "expert", "nl_query": "zorder to control which artists draw on top", "keyword_query": "zorder drawing order"}
+{"pack_name": "matplotlib", "chunk_id": 1472, "persona": "paraphrase", "nl_query": "choose the stacking of chart pieces so one covers another", "keyword_query": "stacking chart pieces"}
+{"pack_name": "matplotlib", "chunk_id": 1477, "persona": "expert", "nl_query": "matplotlib community support channels and searching old questions on discourse", "keyword_query": "community support discourse"}
+{"pack_name": "matplotlib", "chunk_id": 1477, "persona": "paraphrase", "nl_query": "where can users get help and look through previously answered threads", "keyword_query": "help answered threads"}
