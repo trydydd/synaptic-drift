@@ -1,34 +1,32 @@
 # Synaptic Drift — Semver Roadmap
 
-## Current Focus — Evaluation-Driven Search Quality (v1.1 promoted from contingency)
+## Current Focus — "Smarter Search" (the milestone after 0.3.0)
 
-v0.1.1, v0.2.0, and the v0.3.0 crawler are complete. 629 tests passing. The
-active stream is the **v1.1 "Smarter Search"** program, which is no longer a
-contingency: the trigger fired. A crawled-HTML gold corpus (`html_v1`, 300 Qs)
-plus the llms.txt pilot reproduced real, large-sample vocabulary-mismatch and
-paraphrase failures that tuned FTS5 cannot address (recall@1–20 = 0.000 at
-n=26 on the vocab tier), satisfying D25/D29/D30's evidence bar. See
-`docs/decisions.md` D29–D31 and `docs/hybrid-search.md`.
+v0.1.1 and v0.2.0 are shipped (tagged); **v0.3.0 — the general web crawler — is
+cutting now** (`synd build --source <url>` for sites without `llms.txt`, the
+OR+BM25 search rework, and the evaluation harness; see the `[0.3.0]` CHANGELOG
+section). This branch carries the **next milestone, "Smarter Search"**: the D30
+evidence ladder and the D31 build-time LLM summary enrichment it justified.
 
-**Shipped in this stream:**
-- **D29** — targeted intra-block chunk splitting + HTML boilerplate stripping.
+**On this branch (the next release):**
 - **D30** — the hybrid-search evidence ladder: L1/L2/L3 eval harness, two gold
-  corpora, the RRF matrix prototype, and the measured sequencing (enrichment
-  first, weighted RRF second, porter stemmer rejected as a wash).
+  corpora (`html_v1`, `pilot_v1`), the RRF matrix prototype, and the measured
+  sequencing (enrichment first, weighted RRF second, porter stemmer rejected as
+  a wash). See `docs/decisions.md` D29–D31 and `docs/hybrid-search.md`.
 - **D31** — `synd build --summarizer llm`: build-time LLM summary enrichment
-  (append format, v1 prompt, content-hash summary lockfile for
-  reproducibility, fail-hard semantics, manifest provenance). Porter stemmer
-  reverted to unicode61 in the same change. **This is v1.1 step 1, shipped.**
+  (append format, v1 prompt, content-hash summary lockfile for reproducibility,
+  fail-hard semantics, manifest provenance). Porter stemmer reverted to
+  unicode61 in the same change.
 
-**Next up** (see "v1.1" below and `docs/spikes.yaml` S14/S15): land the
-`feature/top-20` branch, run the model-size sweep (the eval program's headline
-deliverable), then decide weighted-RRF step 2 / reranking / BGE-M3 on the sweep
-evidence.
+**Next up** (see "v1.1" below and `docs/spikes.yaml` S14/S15): run the model-size
+sweep (the eval program's headline deliverable), then decide weighted-RRF step 2 /
+reranking / BGE-M3 on the sweep evidence.
 
-**Still open from v0.2.0/v0.3.0** (deferred, not blocking the search stream):
-PyPI release — the publish step is written but unreachable on the automated
-path (see the Release section for the trigger gap and fix); pre-built top-20
-packs and the pack registry.
+**Deferred:**
+- **Pre-built packs + the pack registry → v0.3.1 "Distribution"** (below). 0.3.0
+  ships the crawler that *builds* the packs; publishing/resolving them follows.
+- **PyPI release** — the publish step is written but unreachable on the automated
+  path (see the Release section below for the trigger gap and fix).
 
 ---
 
@@ -212,16 +210,24 @@ packs and the pack registry.
   - `src/synd/builder/crawler.py` — BFS link-following seeded by sitemaps (robots `Sitemap:` directives → `<root>/sitemap.xml` → `<host>/sitemap.xml`, sitemapindex recursion; sitemaps seed but never replace link-following — RTD sitemaps list only version roots), host+path-prefix scoping, canonical-URL dedup, per-host robots cache honoring `Crawl-delay`
   - `src/synd/builder/fetch.py` — `extract_links()`, `fetch_html()` (Content-Type + redirect-aware), User-Agent threading
   - Crawled pages sorted by canonical URL before chunk-ID assignment (deterministic builds); crawl provenance (`crawl_pages_fetched`/`crawl_truncated`/`crawl_max_pages`) recorded in the manifest
-- [ ] **Pre-built packs for top 20 libraries** — the crawler now covers the 19 packages without `llms.txt` (pydantic builds from its llms.txt; boto3 is out of acceptance scope — subtree recipe documented instead). Acceptance harness: `scripts/build_top20_packs.py`. See `docs/top20-python-packages.md`. Publish as GitHub Releases.
-- [ ] **Pack registry (static hosting)** — `synd add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
-  - New module: `src/synd/registry/` (client only; server is a static file host)
-  - `synd add` accepts `package@version` in addition to file paths
+- Pre-built packs and the pack registry are deferred to **v0.3.1 — "Distribution"** (below). 0.3.0 ships the crawler; distribution follows once there is something to distribute.
 - [ ] **CI/CD templates** — GitHub Actions, GitLab CI, CircleCI: build packs on release, verify in PRs, publish to static registry
 - [ ] **Pre-built packs for top 100 libraries** — scale up pack-building CI pipeline
 - [ ] **Token budget intelligence** — `max_tokens` on `search`/`fetch` controls response size, balancing breadth vs. depth within the budget
 - [ ] **`index-deps` MCP tool** — scans project deps, reports which have packs available, which are indexed, which are stale
 - [ ] **Staleness detection** — compare indexed pack versions against project lockfiles. Surface warnings via `index-deps` MCP tool
 - [ ] **Structured logging** — JSON logging at key checkpoints. `python logging` with configurable verbosity
+
+---
+
+## v0.3.1 — "Distribution"
+
+**Theme**: Publish and resolve pre-built packs, now that the crawler can produce them.
+
+- [ ] **Pre-built packs for top 20 libraries** — the crawler covers the 19 packages without `llms.txt` (pydantic builds from its llms.txt; boto3 is out of acceptance scope — subtree recipe documented instead). Acceptance harness: `scripts/build_top20_packs.py`. See `docs/top20-python-packages.md`. Publish as GitHub Releases.
+- [ ] **Pack registry (static hosting)** — `synd add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
+  - New module: `src/synd/registry/` (client only; server is a static file host)
+  - `synd add` accepts `package@version` in addition to file paths
 
 ---
 
