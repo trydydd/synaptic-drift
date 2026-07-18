@@ -688,8 +688,20 @@ spikes:
 
   - id: S14
     title: Query-time reranking — feasibility under the model-free constraint
-    status: open
-    outcome: null
+    status: done
+    outcome: >
+      Rejected at both tested model sizes (Xenova/ms-marco-MiniLM-L-6-v2,
+      80MB; BAAI/bge-reranker-base, 1.04GB) — see D32 in decisions.md.
+      Reranking the top-20 of the winning rrf-bm25+bgelarge fusion is net
+      negative in aggregate on both gold corpora: it regresses the
+      majority-share direct tier (already near-ceiling) for a narrow gain on
+      paraphrase/vocabulary_mismatch, at 650ms-3.8s per query depending on
+      model size — 20-300x the dense encoder's own latency. Going bigger did
+      not fix it (html quality was worse with bge-reranker-base than with
+      MiniLM-6), confirming the regression is structural (rerank-then-
+      truncate collides with an already-good fusion), not a reranker-capacity
+      problem. Item 2 (agent-as-reranker L2 comparison) is moot: there is no
+      improved reranked list to hand the agent. Not shipped.
     context: |
       The Context7 head-to-head on the html_v1 vocabulary_mismatch tier
       (docs/hybrid-search.md, 2026-07-14) localized the remaining competitive
@@ -755,8 +767,27 @@ spikes:
 
   - id: S15
     title: BGE-M3 dense+sparse vs the current unicode61-BM25 + MiniLM stack
-    status: open
-    outcome: null
+    status: done
+    outcome: >
+      Rejected as specified — see D33 in decisions.md. Feasibility gate fails:
+      no PyTorch-free path exists for BGE-M3 (isolated eval venv measured at
+      1.4GB incl. 722MB torch, plus 4.3GB model weights, vs bge-large's
+      PyTorch-free 1.2GB). Per-tier scoring on both gold corpora found the
+      dense leg gives a real lift over MiniLM, but the learned-sparse leg —
+      the reason BGE-M3 was considered at all — falsifies its own hypothesis:
+      it underperforms plain BM25 in aggregate, taxes the direct tier hard
+      standalone (html direct recall@5 0.972 to 0.804), and does not beat the
+      already-prototyped BM25+MiniLM fusion on the vocabulary_mismatch tier
+      it was meant to fix. Full dense+sparse fusion scores below dense-only
+      fusion, confirming sparse is actively harmful in combination, not
+      merely unproven. Follow-up measured fastembed's PyTorch-free ONNX
+      bge-base-en-v1.5 and bge-large-en-v1.5 against BGE-M3-dense: bge-large
+      matches or beats BGE-M3's dense-only recall@5 on both corpora, and is
+      within noise after RRF fusion, at comparable per-query latency.
+      Adopted: bge-large-en-v1.5 as the [semantic] dense encoder for D30 step
+      2 (bge-base-en-v1.5 as the lighter fallback), sparse leg dropped
+      entirely. docs/hybrid-search.md Dependencies and File size sections
+      corrected.
     context: |
       The roadmap's old v1.1 "Smarter Search" entry proposed BGE-M3 dense +
       sparse vectors as THE hybrid-search design, computed at `synd add` time.
