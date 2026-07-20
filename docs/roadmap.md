@@ -1,34 +1,31 @@
 # Synaptic Drift — Semver Roadmap
 
-## Current Focus — Evaluation-Driven Search Quality (v1.1 promoted from contingency)
+## Current Focus — v0.4.0 "Smarter Search"
 
-v0.1.1, v0.2.0, and the v0.3.0 crawler are complete. 730 tests passing. The
-active stream is the **v1.1 "Smarter Search"** program, which is no longer a
-contingency: the trigger fired. A crawled-HTML gold corpus (`html_v1`, 300 Qs)
-plus the llms.txt pilot reproduced real, large-sample vocabulary-mismatch and
-paraphrase failures that tuned FTS5 cannot address (recall@1–20 = 0.000 at
-n=26 on the vocab tier), satisfying D25/D29/D30's evidence bar. See
-`docs/decisions.md` D29–D31 and `docs/hybrid-search.md`.
+v0.1.1, v0.2.0, and **v0.3.0 (the general web crawler) are shipped** (tagged).
+This branch is **v0.4.0 "Smarter Search"** (a minor bump — new `--summarizer llm`
+CLI option and new manifest fields): the D30 evidence ladder and the D31
+build-time LLM summary enrichment it justified.
 
-**Shipped in this stream:**
-- **D29** — targeted intra-block chunk splitting + HTML boilerplate stripping.
+**In this release:**
 - **D30** — the hybrid-search evidence ladder: L1/L2/L3 eval harness, two gold
-  corpora, the RRF matrix prototype, and the measured sequencing (enrichment
-  first, weighted RRF second, porter stemmer rejected as a wash).
+  corpora (`html_v1`, `pilot_v1`), the RRF matrix prototype, and the measured
+  sequencing (enrichment first, weighted RRF second, porter stemmer rejected as
+  a wash). See `docs/decisions.md` D29–D31 and `docs/hybrid-search.md`.
 - **D31** — `synd build --summarizer llm`: build-time LLM summary enrichment
-  (append format, v1 prompt, content-hash summary lockfile for
-  reproducibility, fail-hard semantics, manifest provenance). Porter stemmer
-  reverted to unicode61 in the same change. **This is v1.1 step 1, shipped.**
+  (append format, v1 prompt, content-hash summary lockfile for reproducibility,
+  fail-hard semantics, manifest provenance). Porter stemmer reverted to
+  unicode61 in the same change.
 
-**Next up** (see "v1.1" below and `docs/spikes.yaml` S14/S15): land the
-`feature/top-20` branch, run the model-size sweep (the eval program's headline
-deliverable), then decide weighted-RRF step 2 / reranking / BGE-M3 on the sweep
-evidence.
+**Next up** (see "v0.4.0" below and `docs/spikes.yaml` S14/S15): run the model-size
+sweep (the eval program's headline deliverable), then decide weighted-RRF step 2 /
+reranking / BGE-M3 on the sweep evidence.
 
-**Still open from v0.3.0** (deferred, not blocking the search stream):
-PyPI release — the publish step is written but unreachable on the automated
-path (see v0.3.0 for the trigger gap and fix); pre-built top-20 packs and the
-pack registry.
+**Deferred:**
+- **Pre-built packs + the pack registry → v0.4.1 "Distribution"** (below). The
+  crawler that *builds* the packs shipped in 0.3.0; publishing/resolving follows.
+- **PyPI release** — the publish step is written but unreachable on the automated
+  path (see v0.3.0 below for the trigger gap and fix).
 
 ---
 
@@ -204,10 +201,7 @@ pack registry.
     - **Recommended fix:** move/add the `publish` job into `auto-release.yml` (it already builds `dist/` in-job; append an OIDC publish job with `environment: name: pypi`). Then `release.yml` can either be retired or kept solely for manual PAT-driven tag pushes. *Do not* switch the automated path back to a PAT-pushed tag — that reintroduces the loop-prevention bug `auto-release.yml` was created to fix.
   - **Metadata gaps.** `pyproject.toml` has no `description`, `readme`, `license`, `authors`, `classifiers`, or `[project.urls]`. The package uploads but renders a blank PyPI page. Fill these before the first publish.
   - **External prerequisite (cannot be done from the repo).** Configure a PyPI Trusted Publisher on pypi.org for `synaptic-drift`, scoped to repo `trydydd/synaptic-drift`, the **workflow filename that runs `publish`** (must match wherever the job ends up — `auto-release.yml` under the recommended fix), and environment name `pypi`. Trusted publishers are bound to a specific workflow filename, so this must be kept in sync with the fix above. A pending-publisher entry can be created before the project's first release.
-- [ ] **Pre-built packs for top 20 libraries** — the crawler now covers the 19 packages without `llms.txt` (pydantic builds from its llms.txt; boto3 is out of acceptance scope — subtree recipe documented instead). Acceptance harness: `scripts/build_top20_packs.py`. See `docs/top20-python-packages.md`. Publish as GitHub Releases.
-- [ ] **Pack registry (static hosting)** — `synd add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
-  - New module: `src/synd/registry/` (client only; server is a static file host)
-  - `synd add` accepts `package@version` in addition to file paths
+- Pre-built packs and the pack registry are deferred to **v0.4.1 — "Distribution"** (below). 0.3.0 ships the crawler; distribution follows once there is something to distribute.
 - [ ] **`synd init`** — scan project deps, download pre-built packs, configure MCP server (after PyPI release + pre-built packs)
   - New module: `src/synd/cli/init.py`
   - Parse `requirements.txt`, `pyproject.toml`, `package.json`, `Cargo.toml`
@@ -219,6 +213,82 @@ pack registry.
 - [ ] **`index-deps` MCP tool** — scans project deps, reports which have packs available, which are indexed, which are stale
 - [ ] **Staleness detection** — compare indexed pack versions against project lockfiles. Surface warnings via `index-deps` MCP tool
 - [ ] **Structured logging** — JSON logging at key checkpoints. `python logging` with configurable verbosity
+
+---
+
+## v0.4.0 — "Smarter Search"
+
+**Theme**: Improve retrieval on vocabulary-mismatch and paraphrase queries that
+tuned FTS5 cannot reach. Gate every rung on measurement, not schedule.
+
+**Trigger (met, 2026-07)**: the `html_v1` and `pilot_v1` gold corpora reproduced
+vocabulary-mismatch recall@1–20 = 0.000 (n=26) and paraphrase recall@5 = 0.000
+(n=98) against real crawled docs — evidence tuned FTS5 cannot address. See
+`docs/decisions.md` D25/D29/D30, `docs/hybrid-search.md`.
+
+**Design note**: an earlier draft proposed BGE-M3 dense+sparse vectors computed
+at `synd add` time as *the* design. The measured program landed differently —
+build-time enrichment first, then a weighted-RRF vector leg using a tiny
+pure-ONNX encoder (all-MiniLM-L6-v2, no PyTorch), embeddings shipped inside the
+`.ctx` at build time. BGE-M3 is now an open evaluation question, not an
+assumption (see S15).
+
+### Shipped in 0.4.0
+
+- [x] **Build-time LLM summary enrichment** (D31). `synd build --summarizer llm`:
+  append-format summaries, v1 prompt, content-hash summary lockfile for
+  reproducible republishing, fail-hard semantics, manifest provenance. Strict
+  improvement on both gold corpora; zero query-time dependency. Porter stemmer
+  evaluated and reverted (a wash under enrichment). See D30/D31,
+  `docs/document-processing.md`.
+- [x] **Evaluation harness** — the D30 L1/L2/L3 evidence ladder, `html_v1` +
+  `pilot_v1` gold corpora, and the RRF matrix prototype under `tests/evals/`.
+
+### Next (post-0.4.0)
+
+- [ ] **Model-size sweep** — the eval program's headline deliverable. Run
+  L2/L3 (agent competence + endtask A/B) across the target model sizes
+  (Qwen3 {0.6B, 4B, 8B, 14B, 30B-A3B} + the served 27B) with enrichment on, to
+  answer how small a calling model can still use `synd` effectively. The L2
+  finding that the residual failure is the model's *selection* among surfaced
+  results — not retrieval — makes this the input that gates the remaining
+  decisions. Harness: `docs/eval-harness-design.md` e14/e15.
+- [ ] **Weighted RRF + `sqlite-vec`** — the vector leg, prototyped and measured
+  in `tests/evals/l1_rrf_matrix.py` (enriched rrf-w3: html direct recall@5 0.964,
+  paraphrase off the floor). Ship as `synaptic-drift[semantic]`: build-time
+  MiniLM embeddings bundled in the `.ctx`, `sqlite-vec` ANN at query time, RRF
+  fusion. Model-free BM25-only remains the byte-for-byte fallback when no encoder
+  is present. Gate the go/no-go on sweep results.
+- [ ] **[S14] Query-time reranking — feasibility** — whether a local optional
+  ONNX cross-encoder closes the rank-1 gap Context7 holds, or whether the D12
+  summary-scan workflow already suffices (esp. for small sweep models). Ship /
+  defer-until-sweep / reject with numbers. See `docs/spikes.yaml` S14.
+- [ ] **[S15] BGE-M3 dense+sparse evaluation** — does BGE-M3 (dense +
+  learned-sparse, if a PyTorch-free ONNX path exists) beat the current
+  unicode61-BM25 + MiniLM-dense stack enough to justify its weight? The
+  learned-sparse leg is the interesting case for the vocab-mismatch tier. Feeds
+  which encoder the vector leg ships with. See `docs/spikes.yaml` S15.
+
+### Deferred cleanup
+
+- [ ] Retire the eval-side prototype scripts (`tests/evals/generation/
+  enrich_summaries.py`, `build_enriched_artifacts.py`) and re-point the matrix
+  at packs built by the real `--summarizer llm` flag (never bypass the public
+  API).
+- [ ] Pilot-corpus enrichment ship-readiness — the pilot result is measured
+  (D30 pilot addendum) but building real pilot packs via the shipped flag is
+  untested end to end.
+
+---
+
+## v0.4.1 — "Distribution"
+
+**Theme**: Publish and resolve pre-built packs, now that the crawler can produce them.
+
+- [ ] **Pre-built packs for top 20 libraries** — the crawler covers the 19 packages without `llms.txt` (pydantic builds from its llms.txt; boto3 is out of acceptance scope — subtree recipe documented instead). Acceptance harness: `scripts/build_top20_packs.py`. See `docs/top20-python-packages.md`. Publish as GitHub Releases.
+- [ ] **Pack registry (static hosting)** — `synd add fastapi@0.115.0` resolves against a registry index (JSON manifest on CDN or GitHub Pages). No auth. Read-only.
+  - New module: `src/synd/registry/` (client only; server is a static file host)
+  - `synd add` accepts `package@version` in addition to file paths
 
 ---
 
@@ -234,69 +304,3 @@ pack registry.
 - [ ] **Audit logging** — who imported what, when, from where. New `audit_log` table in `index.db`
 - [ ] **Backup and recovery** — `synd rebuild --from-lockfile`
 - [ ] **Comprehensive documentation** — man pages, API reference, enterprise deployment guide
-
----
-
-## v1.1 — "Smarter Search" *(active — trigger fired)*
-
-**Theme**: Improve retrieval on vocabulary-mismatch and paraphrase queries that
-tuned FTS5 cannot reach. Gate every rung on measurement, not schedule.
-
-**Trigger (met, 2026-07)**: the `html_v1` and `pilot_v1` gold corpora reproduced
-vocabulary-mismatch recall@1–20 = 0.000 (n=26) and paraphrase recall@5 = 0.000
-(n=98) against real crawled docs — evidence tuned FTS5 cannot address. See
-`docs/decisions.md` D25/D29/D30, `docs/hybrid-search.md`.
-
-**Design correction (2026-07)**: this section originally proposed BGE-M3
-dense+sparse vectors computed at `synd add` time as *the* design. The measured
-program landed differently — build-time enrichment first, then a weighted-RRF
-vector leg using a tiny pure-ONNX encoder (all-MiniLM-L6-v2, no PyTorch),
-embeddings shipped inside the `.ctx` at build time (not recomputed at add
-time). BGE-M3 is now an open evaluation question, not an assumption (see S15).
-
-### Shipped
-
-- [x] **Step 1 — build-time LLM summary enrichment** (D31). `synd build
-  --summarizer llm`: append-format summaries, v1 prompt, content-hash summary
-  lockfile for reproducible republishing, fail-hard semantics, manifest
-  provenance. Strict improvement on both gold corpora; zero query-time
-  dependency. Porter stemmer evaluated and reverted (a wash under enrichment).
-  See D30/D31, `docs/document-processing.md`.
-
-### Next
-
-- [ ] **Land `feature/top-20`** — the branch carrying D29/D30/D31, the eval
-  harness, and both gold corpora. A large, tested, documented unit; cut the PR
-  to `main` before opening new work.
-- [ ] **Model-size sweep** — the eval program's headline deliverable. Run
-  L2/L3 (agent competence + endtask A/B) across the target model sizes
-  (Qwen3 {0.6B, 4B, 8B, 14B, 30B-A3B} + the served 27B) with enrichment on, to
-  answer how small a calling model can still use `synd` effectively. The L2
-  finding that the residual failure is the model's *selection* among surfaced
-  results — not retrieval — makes this the input that gates the remaining
-  decisions. Harness: `docs/eval-harness-design.md` e14/e15.
-- [ ] **Step 2 — weighted RRF + `sqlite-vec`** — the vector leg, prototyped and
-  measured in `tests/evals/l1_rrf_matrix.py` (enriched rrf-w3: html direct
-  recall@5 0.964, paraphrase off the floor). Ship as `synaptic-drift[semantic]`:
-  build-time MiniLM embeddings bundled in the `.ctx`, `sqlite-vec` ANN at query
-  time, RRF fusion. Model-free BM25-only remains the byte-for-byte fallback
-  when no encoder is present. Gate the go/no-go on sweep results.
-- [ ] **[S14] Query-time reranking — feasibility** — whether a local optional
-  ONNX cross-encoder closes the rank-1 gap Context7 holds, or whether the
-  D12 summary-scan workflow already suffices (esp. for small sweep models).
-  Ship / defer-until-sweep / reject with numbers. See `docs/spikes.yaml` S14.
-- [ ] **[S15] BGE-M3 dense+sparse evaluation** — does BGE-M3 (dense +
-  learned-sparse, if a PyTorch-free ONNX path exists) beat the current
-  unicode61-BM25 + MiniLM-dense stack enough to justify its weight? The
-  learned-sparse leg is the interesting case for the vocab-mismatch tier.
-  Feeds which encoder step 2 ships with. See `docs/spikes.yaml` S15.
-
-### Deferred cleanup (fold into step 2)
-
-- [ ] Retire the eval-side prototype scripts (`tests/evals/generation/
-  enrich_summaries.py`, `build_enriched_artifacts.py`) and re-point the matrix
-  at packs built by the real `--summarizer llm` flag (never bypass the public
-  API). Open because step-2 measurements still consume the prototype artifacts.
-- [ ] Pilot-corpus enrichment ship-readiness — the pilot result is measured
-  (D30 pilot addendum) but building real pilot packs via the shipped flag is
-  untested end to end.
