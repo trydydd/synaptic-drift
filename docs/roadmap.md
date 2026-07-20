@@ -25,7 +25,7 @@ reranking / BGE-M3 on the sweep evidence.
 - **Pre-built packs + the pack registry → v0.4.1 "Distribution"** (below). The
   crawler that *builds* the packs shipped in 0.3.0; publishing/resolving follows.
 - **PyPI release** — the publish step is written but unreachable on the automated
-  path (see the Release section below for the trigger gap and fix).
+  path (see v0.3.0 below for the trigger gap and fix).
 
 ---
 
@@ -184,20 +184,7 @@ reranking / BGE-M3 on the sweep evidence.
 
 ### Release — after foundation + S5
 
-- [ ] **PyPI release** (`pip install synaptic-drift`, `pip install synaptic-drift[serve]`) — the packaging conflict is resolved ([S5](docs/spikes.yaml) — `mcp` is an optional `[serve]` extra, base install has no server dependency), and a `pypa/gh-action-pypi-publish` (OIDC trusted publisher) `publish` job already exists. The actual remaining blocker is a **CI trigger gap**, plus metadata gaps and an external prerequisite:
-  - **Orphaned publish job (the real blocker).** The `publish` job lives only in `release.yml`, which fires on `push: tags: v*`. But the automated release path (`cut-release.yml` → PR → merge → `auto-release.yml`) creates the release *and its tag* via the GitHub API using `GITHUB_TOKEN`. GitHub's loop-prevention policy means a `GITHUB_TOKEN`-created tag does **not** trigger `on: push: tags` workflows — so `release.yml` never fires and nothing is uploaded to PyPI. `auto-release.yml`'s header comment confirms the no-double-fire behaviour is intentional, but the side effect is that publishing is unreachable.
-    - **Recommended fix:** move/add the `publish` job into `auto-release.yml` (it already builds `dist/` in-job; append an OIDC publish job with `environment: name: pypi`). Then `release.yml` can either be retired or kept solely for manual PAT-driven tag pushes. *Do not* switch the automated path back to a PAT-pushed tag — that reintroduces the loop-prevention bug `auto-release.yml` was created to fix.
-  - **Metadata gaps.** `pyproject.toml` has no `description`, `readme`, `license`, `authors`, `classifiers`, or `[project.urls]`. The package uploads but renders a blank PyPI page. Fill these before the first publish.
-  - **External prerequisite (cannot be done from the repo).** Configure a PyPI Trusted Publisher on pypi.org for `synaptic-drift`, scoped to repo `trydydd/synaptic-drift`, the **workflow filename that runs `publish`** (must match wherever the job ends up — `auto-release.yml` under the recommended fix), and environment name `pypi`. Trusted publishers are bound to a specific workflow filename, so this must be kept in sync with the fix above. A pending-publisher entry can be created before the project's first release.
 - [x] **Validator optimization** — `compute_pack_digest()` now hashes each ZIP entry's content directly in filename-sorted order, eliminating the full in-memory ZIP reconstruction. The previous implementation read the entire archive into memory and rebuilt a second in-memory ZIP — decompressing and re-compressing every file — solely to zero out `pack_digest` before hashing, allocating 500MB+ near the archive limit. See `src/synd/builder/manifest.py:compute_pack_digest`; merged in PR #38.
-
-### Discovery — after PyPI release + pre-built packs
-
-- [ ] **`synd init`** — scan project deps, download pre-built packs, configure MCP server
-  - New module: `src/synd/cli/init.py`
-  - Parse `requirements.txt`, `pyproject.toml`, `package.json`, `Cargo.toml`
-  - Map package names to `.ctx` pack URLs (static JSON registry on GitHub)
-  - Generate MCP config (`.cursor/mcp.json` or Claude Code equivalent)
 
 ---
 
@@ -209,7 +196,17 @@ reranking / BGE-M3 on the sweep evidence.
   - `src/synd/builder/crawler.py` — BFS link-following seeded by sitemaps (robots `Sitemap:` directives → `<root>/sitemap.xml` → `<host>/sitemap.xml`, sitemapindex recursion; sitemaps seed but never replace link-following — RTD sitemaps list only version roots), host+path-prefix scoping, canonical-URL dedup, per-host robots cache honoring `Crawl-delay`
   - `src/synd/builder/fetch.py` — `extract_links()`, `fetch_html()` (Content-Type + redirect-aware), User-Agent threading
   - Crawled pages sorted by canonical URL before chunk-ID assignment (deterministic builds); crawl provenance (`crawl_pages_fetched`/`crawl_truncated`/`crawl_max_pages`) recorded in the manifest
+- [ ] **PyPI release** (`pip install synaptic-drift`, `pip install synaptic-drift[serve]`) — the packaging conflict is resolved ([S5](docs/spikes.yaml) — `mcp` is an optional `[serve]` extra, base install has no server dependency), and a `pypa/gh-action-pypi-publish` (OIDC trusted publisher) `publish` job already exists. The actual remaining blocker is a **CI trigger gap**, plus metadata gaps and an external prerequisite:
+  - **Orphaned publish job (the real blocker).** The `publish` job lives only in `release.yml`, which fires on `push: tags: v*`. But the automated release path (`cut-release.yml` → PR → merge → `auto-release.yml`) creates the release *and its tag* via the GitHub API using `GITHUB_TOKEN`. GitHub's loop-prevention policy means a `GITHUB_TOKEN`-created tag does **not** trigger `on: push: tags` workflows — so `release.yml` never fires and nothing is uploaded to PyPI. `auto-release.yml`'s header comment confirms the no-double-fire behaviour is intentional, but the side effect is that publishing is unreachable.
+    - **Recommended fix:** move/add the `publish` job into `auto-release.yml` (it already builds `dist/` in-job; append an OIDC publish job with `environment: name: pypi`). Then `release.yml` can either be retired or kept solely for manual PAT-driven tag pushes. *Do not* switch the automated path back to a PAT-pushed tag — that reintroduces the loop-prevention bug `auto-release.yml` was created to fix.
+  - **Metadata gaps.** `pyproject.toml` has no `description`, `readme`, `license`, `authors`, `classifiers`, or `[project.urls]`. The package uploads but renders a blank PyPI page. Fill these before the first publish.
+  - **External prerequisite (cannot be done from the repo).** Configure a PyPI Trusted Publisher on pypi.org for `synaptic-drift`, scoped to repo `trydydd/synaptic-drift`, the **workflow filename that runs `publish`** (must match wherever the job ends up — `auto-release.yml` under the recommended fix), and environment name `pypi`. Trusted publishers are bound to a specific workflow filename, so this must be kept in sync with the fix above. A pending-publisher entry can be created before the project's first release.
 - Pre-built packs and the pack registry are deferred to **v0.4.1 — "Distribution"** (below). 0.3.0 ships the crawler; distribution follows once there is something to distribute.
+- [ ] **`synd init`** — scan project deps, download pre-built packs, configure MCP server (after PyPI release + pre-built packs)
+  - New module: `src/synd/cli/init.py`
+  - Parse `requirements.txt`, `pyproject.toml`, `package.json`, `Cargo.toml`
+  - Map package names to `.ctx` pack URLs (static JSON registry on GitHub)
+  - Generate MCP config (`.cursor/mcp.json` or Claude Code equivalent)
 - [ ] **CI/CD templates** — GitHub Actions, GitLab CI, CircleCI: build packs on release, verify in PRs, publish to static registry
 - [ ] **Pre-built packs for top 100 libraries** — scale up pack-building CI pipeline
 - [ ] **Token budget intelligence** — `max_tokens` on `search`/`fetch` controls response size, balancing breadth vs. depth within the budget
