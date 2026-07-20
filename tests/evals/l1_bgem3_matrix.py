@@ -221,9 +221,7 @@ def run_matrix(corpus: str) -> dict[str, Any]:
         return [r for r in rows if r["condition"] == cond and r["query_form"] == form]
 
     latency_path = _WORK / f"{corpus}_bgem3_latency.json"
-    latency = (
-        json.loads(latency_path.read_text()) if latency_path.exists() else None
-    )
+    latency = json.loads(latency_path.read_text()) if latency_path.exists() else None
 
     return {
         "corpus": corpus,

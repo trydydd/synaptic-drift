@@ -78,7 +78,9 @@ def _query_texts(corpus: str) -> tuple[list[str], list[str]]:
     return keys, texts
 
 
-def _encode(model: BGEM3FlagModel, texts: list[str]) -> tuple[np.ndarray, list[dict[int, float]]]:
+def _encode(
+    model: BGEM3FlagModel, texts: list[str]
+) -> tuple[np.ndarray, list[dict[int, float]]]:
     out = model.encode(
         texts,
         batch_size=_BATCH,
@@ -89,7 +91,9 @@ def _encode(model: BGEM3FlagModel, texts: list[str]) -> tuple[np.ndarray, list[d
     )
     dense = np.asarray(out["dense_vecs"], dtype=np.float32)
     dense /= np.linalg.norm(dense, axis=1, keepdims=True) + 1e-12
-    sparse = [{int(t): float(w) for t, w in row.items()} for row in out["lexical_weights"]]
+    sparse = [
+        {int(t): float(w) for t, w in row.items()} for row in out["lexical_weights"]
+    ]
     return dense, sparse
 
 
@@ -123,7 +127,9 @@ def main() -> None:
     t0 = time.perf_counter()
     chunk_dense, chunk_sparse = _encode(model, chunk_texts)
     chunk_secs = time.perf_counter() - t0
-    print(f"  chunks encoded in {chunk_secs:.1f}s ({len(chunk_ids) / chunk_secs:.1f}/s)")
+    print(
+        f"  chunks encoded in {chunk_secs:.1f}s ({len(chunk_ids) / chunk_secs:.1f}/s)"
+    )
 
     q_keys, q_texts = _query_texts(corpus)
     print(f"{corpus}: encoding {len(q_keys)} queries…")
@@ -144,12 +150,8 @@ def main() -> None:
         chunk_sparse,
     )
     q_key_arr = np.array(q_keys)
-    np.savez(
-        _WORK / f"{corpus}_bgem3_dense_query.npz", ids=q_key_arr, vecs=q_dense
-    )
-    _save_sparse(
-        _WORK / f"{corpus}_bgem3_sparse_query.npz", q_key_arr, q_sparse
-    )
+    np.savez(_WORK / f"{corpus}_bgem3_dense_query.npz", ids=q_key_arr, vecs=q_dense)
+    _save_sparse(_WORK / f"{corpus}_bgem3_sparse_query.npz", q_key_arr, q_sparse)
 
     latency = {
         "corpus": corpus,

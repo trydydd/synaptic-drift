@@ -115,7 +115,9 @@ def run_matrix(corpus: str) -> dict[str, Any]:
                 "bgebase-dense": dense["bgebase"],
                 "bgelarge-dense": dense["bgelarge"],
                 "bgem3-dense": dense["bgem3"],
-                "rrf-w3-bm25+minilm": rrf_fuse([bm25, dense["minilm"]], weights=[3.0, 1.0]),
+                "rrf-w3-bm25+minilm": rrf_fuse(
+                    [bm25, dense["minilm"]], weights=[3.0, 1.0]
+                ),
                 "rrf-bm25+minilm": rrf_fuse([bm25, dense["minilm"]]),
                 "rrf-bm25+bgebase": rrf_fuse([bm25, dense["bgebase"]]),
                 "rrf-bm25+bgelarge": rrf_fuse([bm25, dense["bgelarge"]]),

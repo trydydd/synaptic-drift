@@ -101,7 +101,11 @@ def main() -> None:
     )
     (_WORK / f"{corpus}_{tag}_latency.json").write_text(
         json.dumps(
-            {"corpus": corpus, "model": args.model, "per_query_ms": round(per_query_ms, 2)},
+            {
+                "corpus": corpus,
+                "model": args.model,
+                "per_query_ms": round(per_query_ms, 2),
+            },
             indent=2,
         )
         + "\n",
