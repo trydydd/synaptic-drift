@@ -6,7 +6,7 @@ import pytest
 # installed alongside fastembed only where the matrix prototype runs.
 np = pytest.importorskip("numpy")
 
-from tests.evals.l1_rrf_matrix import rrf_fuse  # noqa: E402
+from tests.evals.l1_rrf_matrix import rrf_fuse
 
 pytestmark = pytest.mark.evals
 

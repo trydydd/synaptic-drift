@@ -158,7 +158,7 @@ def main() -> None:
         "model": _MODEL,
         "max_length": _MAX_LEN,
         "batch_size": _BATCH,
-        "n_chunks": int(len(chunk_ids)),
+        "n_chunks": len(chunk_ids),
         "chunk_encode_secs": round(chunk_secs, 2),
         "n_queries": len(q_keys),
         "query_encode_secs": round(q_secs, 2),

@@ -42,8 +42,46 @@ _KEYWORD_MAX_TERMS = 4
 
 # Small stopword set for the cross-persona vocabulary-overlap warning only.
 _STOPWORDS = frozenset(
-    "a an and are as at be but by can do for from how i in is it my of on or "
-    "s set setting that the this to up use using want what when where with you".split()
+    [
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "but",
+        "by",
+        "can",
+        "do",
+        "for",
+        "from",
+        "how",
+        "i",
+        "in",
+        "is",
+        "it",
+        "my",
+        "of",
+        "on",
+        "or",
+        "s",
+        "set",
+        "setting",
+        "that",
+        "the",
+        "this",
+        "to",
+        "up",
+        "use",
+        "using",
+        "want",
+        "what",
+        "when",
+        "where",
+        "with",
+        "you",
+    ]
 )
 
 

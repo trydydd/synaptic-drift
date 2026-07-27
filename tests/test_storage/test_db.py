@@ -1,16 +1,16 @@
 import sqlite3
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 import pytest
 
 from synd.errors import ImportError_
 from synd.storage.db import Database
-from synd.storage.models import Pack, Page, Chunk
+from synd.storage.models import Chunk, Pack, Page
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _make_pack(

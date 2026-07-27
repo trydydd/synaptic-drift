@@ -1,8 +1,7 @@
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
-import tomllib
 
 from synd.errors import PolicyError
 

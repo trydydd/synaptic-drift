@@ -44,7 +44,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -52,10 +52,10 @@ import pytest
 
 import synd
 from synd.builder.build import build_pack
-from synd.storage.db import Database
-from synd.storage.models import Pack
 from synd.server import fetch_docs as _fetch_docs
 from synd.server import search_docs as _search_docs
+from synd.storage.db import Database
+from synd.storage.models import Pack
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 RESULTS_DIR = Path(__file__).parent / "results"
@@ -76,7 +76,7 @@ def _git_commit() -> str:
         return subprocess.check_output(
             ["git", "rev-parse", "--short", "HEAD"], text=True
         ).strip()
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         return "unknown"
 
 
@@ -117,8 +117,9 @@ def bench_db(tmp_path_factory: pytest.TempPathFactory) -> Database:
     db = Database(db_path)
     db.create_schema()
 
-    import zipfile
     import json as _json
+    import zipfile
+
     from synd.storage.models import Chunk, Page
 
     with zipfile.ZipFile(ctx_path) as zf:
@@ -135,7 +136,7 @@ def bench_db(tmp_path_factory: pytest.TempPathFactory) -> Database:
         version=manifest["version"],
         lifecycle_state=manifest["lifecycle_state"],
         doc_version_status=manifest["doc_version_status"],
-        indexed_at=datetime.now(timezone.utc).isoformat(),
+        indexed_at=datetime.now(UTC).isoformat(),
         pack_digest=manifest["pack_digest"],
         normalized_content_hash=manifest["normalized_content_hash"],
         source_url=manifest.get("source_url", ""),
@@ -282,7 +283,7 @@ def test_webfetch_vs_synd(bench_db: Database) -> None:
     # Results payload
     # ------------------------------------------------------------------
     results_payload: dict[str, Any] = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "git_commit": _git_commit(),
         "synd_version": synd.__version__,
         "token_counter": "len_div_4",

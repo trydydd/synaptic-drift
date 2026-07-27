@@ -23,7 +23,7 @@ import math
 import tempfile
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -56,7 +56,7 @@ def _load_pack_into_db(ctx_path: Path, db: Database) -> int:
         version=str(manifest["version"]),
         lifecycle_state=str(manifest["lifecycle_state"]),
         doc_version_status=str(manifest.get("doc_version_status", "unknown")),
-        indexed_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        indexed_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         policy_profile=str(manifest.get("policy_profile", "")),
         pack_digest=str(manifest["pack_digest"]),
         normalized_content_hash=str(manifest["normalized_content_hash"]),

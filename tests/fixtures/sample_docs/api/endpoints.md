@@ -13,6 +13,7 @@ Returns billing info. Use GET /api/billing to retrieve billing details.
 ```python
 import requests
 
+
 def get_billing(account_id: str) -> dict:
     return requests.get(f"/api/billing/{account_id}")
 ```

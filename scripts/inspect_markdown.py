@@ -27,7 +27,7 @@ CHECKS: list[tuple[str, re.Pattern[str]]] = [
         "Stray HTML block tag",
         re.compile(
             r"^<(div|span|p|section|aside|nav|header|footer|script|style|iframe|html|head|body)\b",
-            re.I,
+            re.IGNORECASE,
         ),
     ),
     ("Bare JSX / curly expression", re.compile(r"^\{[^`]")),

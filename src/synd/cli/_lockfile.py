@@ -8,7 +8,7 @@ and ``synd sync`` call ``write_lockfile``; ``synd sync`` also calls
 from __future__ import annotations
 
 import tomllib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from synd.errors import LockfileError
@@ -30,7 +30,7 @@ def write_lockfile(db: Database, lock_path: Path = LOCK_FILE) -> None:
       recorded in the lockfile.
     """
     packs = db.get_packages()
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
         "[meta]",
         "schema_version = 2",

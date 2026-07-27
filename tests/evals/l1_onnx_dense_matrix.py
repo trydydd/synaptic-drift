@@ -24,14 +24,14 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from synd.storage.db import Database  # noqa: E402
-from tests.evals.l1_bgem3_matrix import _DenseIndex, _load_dense_queries  # noqa: E402
-from tests.evals.l1_rrf_matrix import (  # noqa: E402
+from synd.storage.db import Database
+from tests.evals.l1_bgem3_matrix import _DenseIndex, _load_dense_queries
+from tests.evals.l1_rrf_matrix import (
     _FUSION_DEPTH,
     _bm25_ranked,
     rrf_fuse,
 )
-from tests.evals.retrieval_scoring import (  # noqa: E402
+from tests.evals.retrieval_scoring import (
     aggregate,
     load_hash_to_ids,
     metric_names,

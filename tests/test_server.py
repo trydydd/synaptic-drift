@@ -5,13 +5,12 @@ from typing import Any
 
 import pytest
 
-from synd.storage.db import Database
-from synd.storage.models import Chunk, Pack, Page
 from synd.server import (
     fetch_docs,
     search_docs,
 )
-
+from synd.storage.db import Database
+from synd.storage.models import Chunk, Pack, Page
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -411,6 +410,7 @@ def test_http_does_not_bind_external() -> None:
     NEG: Server binds to '0.0.0.0', '', or any non-loopback address.
     """
     import inspect
+
     import synd.server as srv
 
     assert srv._HTTP_HOST == "127.0.0.1", "_HTTP_HOST must be 127.0.0.1"

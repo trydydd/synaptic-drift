@@ -19,7 +19,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
+from click.testing import CliRunner, Result
 
 from synd.builder.manifest import compute_pack_digest
 from synd.cli.main import cli  # type: ignore[import-untyped]
@@ -27,8 +27,6 @@ from synd.policy.engine import Policy  # type: ignore[import-untyped]
 from synd.search.fts import search  # type: ignore[import-untyped]
 from synd.storage.db import Database  # type: ignore[import-untyped]
 from synd.validator.verify import verify  # type: ignore[import-untyped]
-from click.testing import Result
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -111,13 +109,15 @@ def _tamper_with_valid_digest(src: Path, content_replacements: dict[int, str]) -
 
     # Step 3: Rewrite with the real digest
     buf = io.BytesIO()
-    with zipfile.ZipFile(result, "r") as zf_in:
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zf:
-            for item in zf_in.infolist():
-                data = zf_in.read(item.filename)
-                if item.filename == "manifest.json":
-                    data = json.dumps(manifest, indent=2, sort_keys=True).encode()
-                out_zf.writestr(item, data)
+    with (
+        zipfile.ZipFile(result, "r") as zf_in,
+        zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zf,
+    ):
+        for item in zf_in.infolist():
+            data = zf_in.read(item.filename)
+            if item.filename == "manifest.json":
+                data = json.dumps(manifest, indent=2, sort_keys=True).encode()
+            out_zf.writestr(item, data)
     result.write_bytes(buf.getvalue())
 
     return result

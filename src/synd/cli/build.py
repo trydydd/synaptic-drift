@@ -10,9 +10,9 @@ from rich.console import Console
 
 from synd.builder.build import build_pack, build_pack_from_url
 from synd.builder.chunking import (
-    RawChunk,
     _DEFAULT_MAX_CHUNK_TOKENS,
     _DEFAULT_MIN_CHUNK_TOKENS,
+    RawChunk,
 )
 from synd.builder.crawler import DEFAULT_MAX_PAGES
 from synd.builder.manifest import load_manifest

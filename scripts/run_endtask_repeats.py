@@ -56,7 +56,7 @@ import re
 import statistics
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -286,7 +286,7 @@ def main() -> None:
 
     repeats_dir = BASE_REPEATS_DIR / _safe_dirname(client.model)  # type: ignore[attr-defined]
     repeats_dir.mkdir(parents=True, exist_ok=True)  # reused if already present
-    run_timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    run_timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     if args.thinking:
         run_timestamp += "_thinking-on"
 
@@ -336,7 +336,7 @@ def main() -> None:
 
     summary = {
         "meta": {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "runs": args.runs,
             "max_turns": args.max_turns,
             **header,

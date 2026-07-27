@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import zipfile
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import patch
 
 import pytest
@@ -356,12 +357,12 @@ class TestBuildCommand:
 class TestBuildCommandUrlSource:
     """Tests for 'synd build' with a URL --source."""
 
-    _FAKE_PAGES = [
+    _FAKE_PAGES: ClassVar[list[tuple[str, str]]] = [
         ("https://docs.example.com/intro.md", "# Introduction\n\nWelcome.\n"),
         ("https://docs.example.com/api.md", "# API\n\nDetails.\n"),
     ]
 
-    _FAKE_FULL_PAGES = [
+    _FAKE_FULL_PAGES: ClassVar[list[LlmsFullPage]] = [
         LlmsFullPage(
             url="https://docs.example.com/intro.md", content="# Intro\n\nWelcome.\n"
         ),

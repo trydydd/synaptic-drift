@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import zipfile
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -13,7 +13,7 @@ import pytest
 from synd.builder.build import build_pack
 from synd.builder.manifest import load_manifest
 from synd.storage.db import Database
-from synd.storage.models import Chunk, Page, Pack
+from synd.storage.models import Chunk, Pack, Page
 
 EVAL_CORPUS_DIR = Path(__file__).parent / "fixtures" / "corpus"
 EVAL_PACKAGE = "evalcorpus"
@@ -28,7 +28,7 @@ def load_ctx_into_db(ctx_path: Path, db: Database) -> int:
         version=str(manifest["version"]),
         lifecycle_state=str(manifest["lifecycle_state"]),
         doc_version_status=str(manifest.get("doc_version_status", "unknown")),
-        indexed_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        indexed_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         policy_profile=str(manifest.get("policy_profile", "")),
         pack_digest=str(manifest["pack_digest"]),
         normalized_content_hash=str(manifest["normalized_content_hash"]),

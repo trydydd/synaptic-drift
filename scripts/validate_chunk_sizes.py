@@ -25,8 +25,11 @@ from urllib.parse import urlparse
 # Allow running from repo root without installing the package
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from synd.builder.build import build_pack_from_url  # noqa: E402
-from synd.builder.chunking import _DEFAULT_MAX_CHUNK_TOKENS, _DEFAULT_MIN_CHUNK_TOKENS  # noqa: E402
+from synd.builder.build import build_pack_from_url
+from synd.builder.chunking import (
+    _DEFAULT_MAX_CHUNK_TOKENS,
+    _DEFAULT_MIN_CHUNK_TOKENS,
+)
 
 _DEFAULT_URLS = [
     "https://modelcontextprotocol.io/llms-full.txt",
@@ -60,7 +63,7 @@ def _validate_url(
     label = _label(url)
     pkg = label.replace(".", "-").replace("/", "-")
     print(f"\nFetching {url} ...", flush=True)
-    ctx_path, oversized = build_pack_from_url(
+    ctx_path, _oversized = build_pack_from_url(
         package=pkg,
         version="validate",
         source_url=url,
@@ -152,7 +155,7 @@ def main() -> None:
                     abort_above=args.abort_above,
                 )
                 results.append(r)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 — one bad URL must not abort the batch
                 print(f"  ERROR: {exc}", file=sys.stderr)
                 results.append({"source": _label(url), "error": str(exc)})
 

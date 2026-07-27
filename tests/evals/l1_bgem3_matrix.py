@@ -38,13 +38,13 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from synd.storage.db import Database  # noqa: E402
-from tests.evals.l1_rrf_matrix import (  # noqa: E402
+from synd.storage.db import Database
+from tests.evals.l1_rrf_matrix import (
     _FUSION_DEPTH,
     _bm25_ranked,
     rrf_fuse,
 )
-from tests.evals.retrieval_scoring import (  # noqa: E402
+from tests.evals.retrieval_scoring import (
     aggregate,
     load_hash_to_ids,
     metric_names,
@@ -143,7 +143,7 @@ def run_matrix(corpus: str) -> dict[str, Any]:
         ("bgem3-dense", bgem3_dense.ids),
         ("bgem3-sparse", bgem3_sparse.ids),
     ):
-        if set(int(i) for i in ids) != db_ids:
+        if {int(i) for i in ids} != db_ids:
             raise SystemExit(f"{corpus}: {name} id space differs from the BM25 DB")
 
     hash_to_ids = load_hash_to_ids(db_bm25)

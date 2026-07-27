@@ -41,14 +41,62 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 
+from synd.errors import SearchError
 from synd.search.fts import search_relaxed
 from synd.storage.db import Database
 
-
 _STOPWORDS = frozenset(
-    "a an the is are was were be been being have has had do does did will would "
-    "could should of in on at to for with by from as this that these those it its "
-    "i we they he she you my our their his her your its".split()
+    [
+        "a",
+        "an",
+        "the",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "of",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "with",
+        "by",
+        "from",
+        "as",
+        "this",
+        "that",
+        "these",
+        "those",
+        "it",
+        "its",
+        "i",
+        "we",
+        "they",
+        "he",
+        "she",
+        "you",
+        "my",
+        "our",
+        "their",
+        "his",
+        "her",
+        "your",
+        "its",
+    ]
 )
 
 _MIN_KW_LEN = 3
@@ -93,7 +141,7 @@ def _fts5_rank(
             detail="summary",
             limit=limit,
         )
-    except Exception:
+    except SearchError:
         return None
     for rank, r in enumerate(results, 1):
         if r.chunk_id == gold_chunk_id:

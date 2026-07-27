@@ -62,6 +62,7 @@ _JSX_UNWRAP_RE = re.compile(
     re.DOTALL,
 )
 
+
 def unwrap_jsx_blocks(text: str) -> str:
     text = _FRAME_IMAGE_RE.sub("", text)
     for _ in range(5):
@@ -219,6 +220,7 @@ def test_tab_title_injected_as_heading() -> None:
     assert "### Implementing tool execution" not in result
     assert "Some content." in result
 
+
 def test_tab_title_no_headings_in_body() -> None:
     raw = '<Tab title="Python">\n    Just some prose.\n</Tab>'
     result = unwrap_jsx_blocks(raw)
@@ -226,12 +228,14 @@ def test_tab_title_no_headings_in_body() -> None:
     assert "### Python" in result
     assert "Just some prose." in result
 
+
 def test_tab_without_title_falls_back_to_dedent() -> None:
-    raw = '<Tab>\n    ### Some section\n\n    Content.\n</Tab>'
+    raw = "<Tab>\n    ### Some section\n\n    Content.\n</Tab>"
     result = unwrap_jsx_blocks(raw)
     # No title attribute → plain dedent, no injected heading
     assert "## " not in result
     assert "### Some section" in result
+
 
 def test_tabs_container_not_affected() -> None:
     # The outer <Tabs> wrapper should never inject a heading
@@ -242,14 +246,15 @@ def test_tabs_container_not_affected() -> None:
     assert "## A" in result
     assert "#### Section" in result
 
+
 def test_multi_tab_heading_paths_disambiguated() -> None:
     # The core regression: two tabs with identical section names must
     # produce different heading contexts after unwrapping.
     raw = (
-        '<Tabs>\n'
+        "<Tabs>\n"
         '<Tab title="Python">\n    ### Setup\n\n    pip install.\n</Tab>\n'
         '<Tab title="TypeScript">\n    ### Setup\n\n    npm install.\n</Tab>\n'
-        '</Tabs>'
+        "</Tabs>"
     )
     result = unwrap_jsx_blocks(raw)
     assert "## Python" in result
@@ -258,8 +263,9 @@ def test_multi_tab_heading_paths_disambiguated() -> None:
     assert result.count("#### Setup") == 2
     assert "### Setup" not in result
 
+
 def test_note_block_unaffected_by_tab_logic() -> None:
-    raw = '<Note>\n    Some warning text.\n</Note>'
+    raw = "<Note>\n    Some warning text.\n</Note>"
     result = unwrap_jsx_blocks(raw)
     assert "Some warning text." in result
     # No spurious heading injected

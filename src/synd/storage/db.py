@@ -3,7 +3,6 @@ from pathlib import Path
 
 from synd.storage.models import Chunk, Pack, Page
 
-
 _CREATE_SCHEMA = """\
 CREATE TABLE IF NOT EXISTS packages (
     name                    TEXT NOT NULL,
@@ -84,7 +83,7 @@ class Database:
         try:
             self._conn.execute("ALTER TABLE packages ADD COLUMN pack_source TEXT")
             self._conn.commit()
-        except Exception:
+        except sqlite3.OperationalError:
             pass  # Column already exists
         self._migrate_fts_tokenizer()
 

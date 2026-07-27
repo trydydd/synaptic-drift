@@ -1,12 +1,12 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 import pytest
 
 from synd.errors import SearchError
-from synd.search.fts import search, search_relaxed, get_chunks_by_id, _preprocess_query
+from synd.search.fts import _preprocess_query, get_chunks_by_id, search, search_relaxed
 from synd.storage.db import Database
-from synd.storage.models import Chunk, Page, Pack
+from synd.storage.models import Chunk, Pack, Page
 
 
 def _make_db() -> Database:
@@ -656,7 +656,7 @@ def test_search_relaxed_stopwords_only_raises() -> None:
 
 def test_search_relaxed_empty_string_returns_empty() -> None:
     db = _make_relaxed_db()
-    results, effective = search_relaxed(db, "")
+    results, _effective = search_relaxed(db, "")
     assert results == []
 
 

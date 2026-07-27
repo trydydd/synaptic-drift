@@ -48,9 +48,33 @@ _MATPLOTLIB_UA = (
 # fastapi.tiangolo.com serves full translated copies of the docs under
 # two-letter (plus em/zh-hant) path prefixes. Without excluding them the
 # 500-page budget fills up with duplicate pages in other languages.
-_FASTAPI_LANGS = (
-    "az bn de em es fa fr he hi hu id it ja ko nl pl pt ru tr uk ur vi yo zh zh-hant"
-).split()
+_FASTAPI_LANGS = [
+    "az",
+    "bn",
+    "de",
+    "em",
+    "es",
+    "fa",
+    "fr",
+    "he",
+    "hi",
+    "hu",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "nl",
+    "pl",
+    "pt",
+    "ru",
+    "tr",
+    "uk",
+    "ur",
+    "vi",
+    "yo",
+    "zh",
+    "zh-hant",
+]
 _FASTAPI_EXCLUDES = [
     flag for lang in _FASTAPI_LANGS for flag in ("--exclude-url-pattern", lang)
 ]
@@ -129,7 +153,7 @@ or the crawl will truncate far below useful coverage."""
 def _find_synd() -> str:
     for candidate in (".venv/bin/synd", "synd"):
         try:
-            subprocess.run([candidate, "--help"], capture_output=True)
+            subprocess.run([candidate, "--help"], capture_output=True, check=False)
             return candidate
         except FileNotFoundError:
             pass
@@ -267,6 +291,7 @@ def main() -> None:
                 ],
                 capture_output=True,
                 text=True,
+                check=False,
             )
             if build.returncode != 0 or not pack_path.exists():
                 detail = (build.stdout + build.stderr).strip().splitlines()
@@ -276,7 +301,10 @@ def main() -> None:
             print(f"skip   {spec:<28} already built")
 
         verify = subprocess.run(
-            [synd, "verify", str(pack_path)], capture_output=True, text=True
+            [synd, "verify", str(pack_path)],
+            capture_output=True,
+            text=True,
+            check=False,
         )
         stats = _pack_stats(pack_path)
         verdict = "verify OK" if verify.returncode == 0 else "VERIFY FAILED"
@@ -289,10 +317,12 @@ def main() -> None:
         rows.append(
             (
                 spec,
-                f"{verdict}  pages={stats['pages']} "
-                f"crawled={stats['crawl_pages_fetched']} "
-                f"truncated={stats['truncated']} chunks={stats['chunks']}"
-                f"{enrich}{note}",
+                (
+                    f"{verdict}  pages={stats['pages']} "
+                    f"crawled={stats['crawl_pages_fetched']} "
+                    f"truncated={stats['truncated']} chunks={stats['chunks']}"
+                    f"{enrich}{note}"
+                ),
             )
         )
 

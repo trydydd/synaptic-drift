@@ -8,8 +8,8 @@ import pytest
 
 from synd.storage.db import Database
 from synd.storage.models import Chunk, Pack, Page
-from tests.evals.eval_errors import EvalDatasetError
 from tests.evals.dataset import GoldRef, load_dataset, resolve_gold_refs
+from tests.evals.eval_errors import EvalDatasetError
 
 _HERMETIC_PATH = Path("tests/evals/datasets/hermetic.json")
 

@@ -17,9 +17,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP(name="MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, {name}!"
+
 
 if __name__ == "__main__":
     mcp.run()
@@ -44,9 +46,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, {name}!"
+
 
 if __name__ == "__main__":
     mcp.run()  # Uses STDIO transport by default
@@ -72,9 +76,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, {name}!"
+
 
 if __name__ == "__main__":
     # Start an HTTP server on port 8000
@@ -178,12 +184,15 @@ import asyncio
 
 mcp = FastMCP(name="MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, {name}!"
 
+
 async def main():
     await mcp.run_async(transport="http", port=8000)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -202,13 +211,16 @@ from starlette.responses import PlainTextResponse
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request: Request) -> PlainTextResponse:
     return PlainTextResponse("OK")
 
+
 @mcp.tool
 def process(data: str) -> str:
     return f"Processed: {data}"
+
 
 if __name__ == "__main__":
     mcp.run(transport="http")
@@ -225,6 +237,7 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def process(data: str) -> str:
     return f"Processed: {data}"
@@ -237,6 +250,7 @@ For ASGI deployment with Uvicorn or similar:
 ```python
 from fastmcp import FastMCP
 
+
 def create_app():
     mcp = FastMCP("MyServer")
 
@@ -245,6 +259,7 @@ def create_app():
         return f"Processed: {data}"
 
     return mcp.http_app()
+
 
 app = create_app()
 ```

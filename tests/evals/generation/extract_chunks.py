@@ -31,7 +31,6 @@ import re
 import zipfile
 from pathlib import Path
 
-
 _CONTENT_TRUNCATE = 2000
 _MIN_CONTENT_LEN = 100
 
