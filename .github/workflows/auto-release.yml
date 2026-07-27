@@ -6,8 +6,13 @@ name: Auto Release
 # dependency bump or config tweak that doesn't touch the version field exits
 # in seconds without running tests or building anything.
 #
-# Creates the GitHub release (and its tag) via the GitHub API, so release.yml
-# (triggered by git tag push) does not double-fire.
+# Creates the GitHub release (and its tag) via the GitHub API. This is the
+# single release engine; there is deliberately no tag-triggered workflow, since
+# a GITHUB_TOKEN-created tag would not fire `on: push: tags` anyway.
+#
+# PyPI publishing (deferred to v0.3.0): append an OIDC `publish` job here with
+# `permissions: id-token: write` and `environment: name: pypi`, consuming the
+# dist/ built below. Do NOT reintroduce a separate tag-triggered workflow.
 
 on:
   push:
@@ -70,8 +75,12 @@ jobs:
         if: steps.version.outputs.changed == 'true'
         run: python -m build
 
+      # Best-effort: a docs-site outage should degrade the release (no pack
+      # attached) rather than fail it. The wheel/sdist are the load-bearing
+      # artifacts; the fastmcp pack is a convenience extra.
       - name: Build packs
         if: steps.version.outputs.changed == 'true'
+        continue-on-error: true
         run: |
           mkdir -p source packs
           curl -sf --max-time 120 -o source/llms-full.md https://gofastmcp.com/llms-full.txt
@@ -83,6 +92,10 @@ jobs:
           VERSION="${{ steps.version.outputs.new }}"
           awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" \
               CHANGELOG.md > release_notes.md
+          if [ ! -s release_notes.md ]; then
+            echo "::error::CHANGELOG.md has no '## [$VERSION]' section. Cut Release should have rolled it — aborting rather than shipping empty notes."
+            exit 1
+          fi
 
       - name: Create GitHub release
         if: steps.version.outputs.changed == 'true'

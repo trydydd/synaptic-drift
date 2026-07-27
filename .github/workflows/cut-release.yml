@@ -1,11 +1,16 @@
 name: Cut Release
 
-# Manually trigger a version bump from the GitHub Actions UI.
-# Runs pre-flight checks, bumps pyproject.toml, commits, pushes to a
-# release/vX.Y.Z branch, and opens a PR against main.
+# Manually triggered from the Actions UI. Always operates on `develop`.
 #
-# Merging that PR triggers auto-release.yml, which detects the version change
-# and creates the GitHub release. No branch-protection bypass needed.
+# Prepares a release without touching main: bumps the version (pyproject.toml +
+# src/synd/__init__.py), rolls CHANGELOG "[Unreleased]" into a dated version
+# section, and opens a PR back into develop. Merging that PR makes develop
+# release-ready; promote.yml then opens the develop -> main PR, and merging THAT
+# triggers auto-release.yml (tag + GitHub release).
+#
+# Cutting on develop — not main — is the whole point: the version bump reaches
+# main only through the normal develop -> main promotion, so main stays a clean
+# ancestor of develop and the two branches never diverge.
 
 on:
   workflow_dispatch:
@@ -30,6 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: develop          # always cut from develop, regardless of dispatch ref
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -40,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: pip install -e ".[all]" bump-my-version -q
 
-      # ── pre-flight checks (mirrors CI) ───────────────────────────────────
+      # ── pre-flight checks (mirror ci.yml) ────────────────────────────────
       - name: ruff check
         run: ruff check .
 
@@ -53,25 +59,96 @@ jobs:
       - name: pytest
         run: pytest tests/
 
-      # ── bump, branch, PR ──────────────────────────────────────────────────
+      # ── guard: the three version strings must agree before bumping ───────
+      # bump-my-version rewrites each by literal match, so a drifted
+      # src/synd/__init__.py (or config) aborts the bump mid-flight. Fail here
+      # with an actionable message instead.
+      - name: Check version consistency
+        run: |
+          PYPROJECT=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          BUMPCFG=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['tool']['bumpversion']['current_version'])")
+          INIT=$(grep -oP '__version__ = "\K[^"]+' src/synd/__init__.py)
+          echo "pyproject=$PYPROJECT  bumpversion.current_version=$BUMPCFG  __init__=$INIT"
+          if [ "$PYPROJECT" != "$BUMPCFG" ] || [ "$PYPROJECT" != "$INIT" ]; then
+            echo "::error::Version strings are out of sync (pyproject=$PYPROJECT, bumpversion.current_version=$BUMPCFG, __init__=$INIT). Make all three match before cutting a release."
+            exit 1
+          fi
+
+      # ── bump version (files only; commit happens on the release branch) ──
+      - name: Bump version
+        run: bump-my-version bump ${{ inputs.bump }} --no-commit --no-tag
+
+      - name: Read new version
+        id: ver
+        run: |
+          NEW=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "new=$NEW" | tee -a "$GITHUB_OUTPUT"
+
+      # ── finalize CHANGELOG: [Unreleased] -> [X.Y.Z] - <date>, reseed empty ──
+      - name: Roll CHANGELOG
+        env:
+          NEW: ${{ steps.ver.outputs.new }}
+        run: |
+          python3 - <<'PY'
+          import os, datetime, pathlib
+          new = os.environ["NEW"]
+          date = datetime.date.today().isoformat()
+          path = pathlib.Path("CHANGELOG.md")
+          text = path.read_text()
+          marker = "## [Unreleased]"
+          if marker not in text:
+              raise SystemExit("CHANGELOG.md has no '## [Unreleased]' section to roll.")
+          i = text.index(marker)
+          # Keep a fresh empty Unreleased on top; move pending entries under the new version.
+          replacement = f"## [Unreleased]\n\n## [{new}] - {date}"
+          text = text[:i] + replacement + text[i + len(marker):]
+          path.write_text(text)
+          print(f"Rolled CHANGELOG: [Unreleased] -> [{new}] - {date}")
+          PY
+
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump version (commit only — auto-release tags on merge)
-        run: bump-my-version bump ${{ inputs.bump }} --no-tag
-
-      - name: Push release branch and open PR
+      - name: Push release branch and open PR into develop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW: ${{ steps.ver.outputs.new }}
         run: |
-          NEW=$(bump-my-version show current_version)
           BRANCH="release/v${NEW}"
           git checkout -b "$BRANCH"
-          git push origin "$BRANCH"
-          gh pr create \
-            --title "chore: release v${NEW}" \
-            --body "Automated version bump to \`${NEW}\`. Merging will trigger the Auto Release workflow." \
-            --base main \
-            --head "$BRANCH"
+          git add pyproject.toml src/synd/__init__.py CHANGELOG.md
+          git commit -m "chore: release v${NEW}"
+          # Force-push: the release branch is ephemeral prep. A leftover branch
+          # from a failed prior run must not block the retry with a
+          # non-fast-forward rejection; force-updating also refreshes the head
+          # of an already-open release PR.
+          git push --force origin "$BRANCH"
+
+          # PR body: a short intro plus the rolled CHANGELOG section for this
+          # version, so reviewers see the release notes without opening the diff.
+          # awk mirrors auto-release.yml's extractor: capture between the
+          # "## [NEW]" heading and the next "## [" heading.
+          BODY_FILE="${RUNNER_TEMP:-/tmp}/release_pr_body.md"
+          {
+            echo "Version bump to \`${NEW}\`, produced by Cut Release. Merging into develop makes it release-ready; the \`develop → main\` promotion PR then opens automatically and triggers Auto Release on merge."
+            echo
+            echo "## Release notes — \`${NEW}\`"
+            echo
+            awk "/^## \[${NEW}\]/{f=1; next} f && /^## \[/{exit} f{print}" CHANGELOG.md
+          } > "$BODY_FILE"
+
+          # Idempotent PR: refresh an already-open release PR (title + body)
+          # instead of failing with "a pull request already exists" on a re-run.
+          EXISTING=$(gh pr list --base develop --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --title "chore: release v${NEW}" --body-file "$BODY_FILE"
+            echo "Refreshed release PR #$EXISTING for $BRANCH (head updated by the force-push)."
+          else
+            gh pr create \
+              --title "chore: release v${NEW}" \
+              --body-file "$BODY_FILE" \
+              --base develop \
+              --head "$BRANCH"
+          fi
