@@ -45,11 +45,20 @@ jobs:
           NEW: ${{ steps.version.outputs.new }}
         run: |
           TITLE="Release v${NEW}"
-          BODY="Promotes develop to main for the v${NEW} release. Merging triggers Auto Release: it tags v${NEW} and publishes the GitHub release with wheel, sdist, and packs."
+          # PR body: intro + the CHANGELOG section for this version, so the final
+          # release review shows the notes. Same extractor as auto-release.yml.
+          BODY_FILE="${RUNNER_TEMP:-/tmp}/promote_pr_body.md"
+          {
+            echo "Promotes develop to main for the **v${NEW}** release. Merging triggers Auto Release: it tags \`v${NEW}\` and publishes the GitHub release (wheel, sdist, packs)."
+            echo
+            echo "## Release notes — \`${NEW}\`"
+            echo
+            awk "/^## \[${NEW}\]/{f=1; next} f && /^## \[/{exit} f{print}" CHANGELOG.md
+          } > "$BODY_FILE"
           EXISTING=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
           if [ -n "$EXISTING" ]; then
-            gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
+            gh pr edit "$EXISTING" --title "$TITLE" --body-file "$BODY_FILE"
             echo "Refreshed existing promotion PR #$EXISTING"
           else
-            gh pr create --base main --head develop --title "$TITLE" --body "$BODY"
+            gh pr create --base main --head develop --title "$TITLE" --body-file "$BODY_FILE"
           fi

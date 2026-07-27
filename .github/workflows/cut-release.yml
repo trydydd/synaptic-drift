@@ -125,15 +125,30 @@ jobs:
           # non-fast-forward rejection; force-updating also refreshes the head
           # of an already-open release PR.
           git push --force origin "$BRANCH"
-          # Idempotent PR: reuse an already-open release PR instead of failing
-          # with "a pull request already exists" on a re-run.
+
+          # PR body: a short intro plus the rolled CHANGELOG section for this
+          # version, so reviewers see the release notes without opening the diff.
+          # awk mirrors auto-release.yml's extractor: capture between the
+          # "## [NEW]" heading and the next "## [" heading.
+          BODY_FILE="${RUNNER_TEMP:-/tmp}/release_pr_body.md"
+          {
+            echo "Version bump to \`${NEW}\`, produced by Cut Release. Merging into develop makes it release-ready; the \`develop → main\` promotion PR then opens automatically and triggers Auto Release on merge."
+            echo
+            echo "## Release notes — \`${NEW}\`"
+            echo
+            awk "/^## \[${NEW}\]/{f=1; next} f && /^## \[/{exit} f{print}" CHANGELOG.md
+          } > "$BODY_FILE"
+
+          # Idempotent PR: refresh an already-open release PR (title + body)
+          # instead of failing with "a pull request already exists" on a re-run.
           EXISTING=$(gh pr list --base develop --head "$BRANCH" --state open --json number --jq '.[0].number')
           if [ -n "$EXISTING" ]; then
-            echo "Release PR #$EXISTING already open for $BRANCH; its head was updated by the force-push."
+            gh pr edit "$EXISTING" --title "chore: release v${NEW}" --body-file "$BODY_FILE"
+            echo "Refreshed release PR #$EXISTING for $BRANCH (head updated by the force-push)."
           else
             gh pr create \
               --title "chore: release v${NEW}" \
-              --body "Version bump to \`${NEW}\` + CHANGELOG. Merging into develop makes it release-ready; the develop → main promotion PR opens automatically and triggers Auto Release on merge." \
+              --body-file "$BODY_FILE" \
               --base develop \
               --head "$BRANCH"
           fi

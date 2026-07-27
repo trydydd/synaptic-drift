@@ -11,6 +11,7 @@ from fastmcp import FastMCP, Context
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool()
 async def process(items: list[str], ctx: Context) -> str:
     await ctx.info(f"processing {len(items)} items")

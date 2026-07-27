@@ -10,9 +10,9 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 
 from synd.builder.chunking import (
-    RawChunk,
     _DEFAULT_MAX_CHUNK_TOKENS,
     _DEFAULT_MIN_CHUNK_TOKENS,
+    RawChunk,
     chunk_content,
     chunk_file,
     discover_files,
@@ -21,11 +21,6 @@ from synd.builder.chunking import (
 from synd.builder.crawler import DEFAULT_MAX_PAGES, CrawlResult, crawl
 from synd.builder.fetch import DEFAULT_USER_AGENT, html_to_markdown
 from synd.builder.llms_full import LlmsFullPage, fetch_llms_full_pages, fetch_pages
-from synd.builder.url_filter import (
-    DEFAULT_CRAWL_NOISE_URL_PATTERNS,
-    DEFAULT_NOISE_URL_PATTERNS,
-    filter_page_urls,
-)
 from synd.builder.manifest import (
     build_manifest,
     compute_normalized_content_hash,
@@ -36,6 +31,11 @@ from synd.builder.summarize import (
     CURRENT_PROMPT_VERSION,
     LlmSummarizerConfig,
     generate_summaries,
+)
+from synd.builder.url_filter import (
+    DEFAULT_CRAWL_NOISE_URL_PATTERNS,
+    DEFAULT_NOISE_URL_PATTERNS,
+    filter_page_urls,
 )
 from synd.errors import BuildError, FetchError, SchemaValidationError, SummarizerError
 from synd.schemas import validate_chunk, validate_manifest, validate_pages
@@ -72,8 +72,7 @@ def build_pack(
 
     # Determine source_url: normalize the source path, strip leading "./"
     source_url = Path(source).as_posix()
-    if source_url.startswith("./"):
-        source_url = source_url[2:]
+    source_url = source_url.removeprefix("./")
 
     # Build pages and raw chunks
     raw_chunks: list[RawChunk] = []
@@ -81,8 +80,7 @@ def build_pack(
 
     for page_id, file_path in enumerate(files, start=1):
         file_source_url = Path(os.path.relpath(file_path, source.parent)).as_posix()
-        if file_source_url.startswith("./"):
-            file_source_url = file_source_url[2:]
+        file_source_url = file_source_url.removeprefix("./")
 
         # Read and normalize the full file content for page hash.
         # HTML files are converted to markdown so that the hash and title

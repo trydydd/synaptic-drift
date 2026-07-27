@@ -55,7 +55,7 @@ def _make_handler(stub: _StubState) -> type[http.server.BaseHTTPRequestHandler]:
             payload = body if isinstance(body, str) else json.dumps(body)
             self.wfile.write(payload.encode("utf-8"))
 
-        def log_message(self, format: str, *args: object) -> None:  # noqa: A002
+        def log_message(self, format: str, *args: object) -> None:
             pass  # silence default stderr request logging
 
     return Handler

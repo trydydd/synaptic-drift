@@ -12,10 +12,12 @@ from fastmcp import FastMCP, Client
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers."""
     return a + b
+
 
 @pytest.mark.asyncio
 async def test_add():

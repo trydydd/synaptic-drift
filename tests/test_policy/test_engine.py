@@ -1,9 +1,11 @@
-from pathlib import Path
 import tempfile
 import textwrap
+from pathlib import Path
+
 import pytest
-from synd.policy.engine import Policy
+
 from synd.errors import PolicyError
+from synd.policy.engine import Policy
 
 
 def _write_toml(path: Path, content: str) -> Path:

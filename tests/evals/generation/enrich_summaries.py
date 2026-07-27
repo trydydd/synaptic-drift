@@ -179,27 +179,29 @@ def main() -> None:
             "summary": summary,
         }
 
-    with args.output.open("a", encoding="utf-8") as out:
-        with ThreadPoolExecutor(max_workers=_CONCURRENCY) as pool:
-            futures = {pool.submit(_one, row): row for row in todo}
-            for future in as_completed(futures):
-                row = futures[future]
-                try:
-                    record = future.result()
-                except Exception as exc:  # noqa: BLE001 — log and continue
-                    failures += 1
-                    print(f"  FAIL chunk {row['id']}: {exc}", file=sys.stderr)
-                    continue
-                out.write(json.dumps(record, ensure_ascii=False) + "\n")
-                out.flush()
-                completed += 1
-                if completed % 200 == 0:
-                    rate = completed / (time.monotonic() - started)
-                    remaining = (len(todo) - completed) / rate if rate else 0
-                    print(
-                        f"  {completed}/{len(todo)} "
-                        f"({rate:.1f}/s, ~{remaining / 60:.0f}m left)"
-                    )
+    with (
+        args.output.open("a", encoding="utf-8") as out,
+        ThreadPoolExecutor(max_workers=_CONCURRENCY) as pool,
+    ):
+        futures = {pool.submit(_one, row): row for row in todo}
+        for future in as_completed(futures):
+            row = futures[future]
+            try:
+                record = future.result()
+            except Exception as exc:  # noqa: BLE001 — log and continue
+                failures += 1
+                print(f"  FAIL chunk {row['id']}: {exc}", file=sys.stderr)
+                continue
+            out.write(json.dumps(record, ensure_ascii=False) + "\n")
+            out.flush()
+            completed += 1
+            if completed % 200 == 0:
+                rate = completed / (time.monotonic() - started)
+                remaining = (len(todo) - completed) / rate if rate else 0
+                print(
+                    f"  {completed}/{len(todo)} "
+                    f"({rate:.1f}/s, ~{remaining / 60:.0f}m left)"
+                )
 
     print(f"done: {completed} generated, {failures} failed")
     if failures:

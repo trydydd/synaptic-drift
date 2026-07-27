@@ -86,14 +86,29 @@ This is achieved by moving all model-related work to build time:
 ### Publisher (build time)
 
 - **`fastembed`** — ONNX-based embedding library, no PyTorch. ~50MB runtime plus
-  ~80–400MB model download depending on the chosen model. Lightweight by embedding
+  ~80MB–1.2GB model download depending on the chosen model. Lightweight by embedding
   library standards.
-- A small ONNX model such as `all-MiniLM-L6-v2` (384 dimensions, ~90MB).
+- **`BAAI/bge-large-en-v1.5`** (1024 dimensions, ~1.2GB ONNX, ~30ms/query on CPU) —
+  recommended encoder as of S15 (decisions.md D33). `BAAI/bge-base-en-v1.5`
+  (768 dimensions, ~0.21GB quantized ONNX, ~10ms/query) is the lighter fallback
+  when the extra ~1GB matters more than the last few points of recall.
+  `all-MiniLM-L6-v2` (384 dimensions, ~90MB) was the original D30 prototype
+  candidate; bge-large/bge-base measurably beat it on both gold corpora at a
+  still-modest size (D33) and are the current recommendation.
 
 Ruled out:
 - **`sentence-transformers`** — pulls in PyTorch (~2GB). Too heavy for a CLI tool.
 - **API embeddings** — violates the "no outbound network calls at query time" constraint.
   Also couples build correctness to an external service.
+- **`BAAI/bge-m3`** (dense + learned-sparse + ColBERT) — evaluated in S15 and
+  rejected. No PyTorch-free path exists (reference implementation requires
+  `torch` + `FlagEmbedding`; a full eval venv measured at 1.4GB with a further
+  4.3GB of model weights, against bge-large's PyTorch-free 1.2GB). Its dense
+  leg's quality lift is real but is fully captured by the PyTorch-free
+  bge-large encoder above; its learned-sparse leg — the reason BGE-M3 was
+  considered in the first place — actively underperforms plain BM25+MiniLM
+  fusion on the vocabulary-mismatch tier it was meant to fix, while taxing the
+  direct tier hard (html direct recall@5 0.972 → 0.804 standalone). See D33.
 
 ### Consumer (query time)
 
@@ -103,13 +118,15 @@ Ruled out:
 
 ## File size
 
-At 384 dimensions (float32), each chunk's embedding is ~1.5KB.
+At bge-large's 1024 dimensions (float32), each chunk's embedding is ~4KB
+(bge-base at 768 dimensions: ~3KB; the original MiniLM prototype at 384
+dimensions: ~1.5KB).
 
-| Corpus size | Embedding overhead |
-|---|---|
-| 100 chunks | ~150KB |
-| 1,000 chunks | ~1.5MB |
-| 10,000 chunks | ~15MB |
+| Corpus size | bge-large overhead | bge-base overhead |
+|---|---|---|
+| 100 chunks | ~400KB | ~300KB |
+| 1,000 chunks | ~4MB | ~3MB |
+| 10,000 chunks | ~40MB | ~30MB |
 
 Whether this is acceptable depends on how packs are distributed. For local builds where
 the publisher and consumer are the same person, it is a non-issue. For a future registry

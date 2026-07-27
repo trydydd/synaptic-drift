@@ -5,7 +5,6 @@ from synd.builder.mdx import (
     unwrap_jsx_blocks,
 )
 
-
 # --- strip_mdx ---
 
 
@@ -194,7 +193,7 @@ def test_extract_code_fences_normalises_indented_closer() -> None:
     from synd.builder.mdx import _extract_code_fences
 
     raw = "    ```python\n    code line\n    ```"
-    masked, fences = _extract_code_fences(raw)
+    _masked, fences = _extract_code_fences(raw)
     assert len(fences) == 1
     # Closing ``` must be at column 0 in the stored fence
     closing_line = fences[0].splitlines()[-1]

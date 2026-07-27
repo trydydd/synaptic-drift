@@ -212,10 +212,10 @@ def test_endtask_eval_live() -> None:
     import json as json_module
     from pathlib import Path
 
+    from synd.builder.build import build_pack
     from tests.evals.conftest import EVAL_CORPUS_DIR, EVAL_VERSION, load_ctx_into_db
     from tests.evals.model_client import client_from_env
     from tests.evals.tasks import load_tasks
-    from synd.builder.build import build_pack
 
     client = client_from_env()
 

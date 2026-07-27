@@ -157,7 +157,9 @@ from prefab_ui.actions import SetState, ToggleState, AppendState, PopState, Show
 
 SetState("count", 42)
 ToggleState("expanded")
-AppendState("items", )
+AppendState(
+    "items",
+)
 PopState("items", 0)
 ShowToast("Done!", variant="success")
 ```
@@ -223,12 +225,14 @@ with Form(
 from typing import Literal
 from pydantic import BaseModel, Field
 
+
 class BugReport(BaseModel):
     title: str = Field(title="Bug Title")
     severity: Literal["low", "medium", "high", "critical"] = Field(
         title="Severity", default="medium"
     )
     description: str = Field(title="Description")
+
 
 @app.ui()
 def report_bug() -> PrefabApp:
@@ -242,6 +246,7 @@ def report_bug() -> PrefabApp:
             ),
         )
     return PrefabApp(view=view)
+
 
 @app.tool()
 def create_bug(data: BugReport) -> str:
@@ -427,23 +432,24 @@ result = await generate_prefab_ui(
  This lets the model use data from earlier in the conversation to build visualizations. ## Configuration `GenerativeUI` takes options for customizing tool names: 
 ```python
 GenerativeUI(
-    tool_name="generate_prefab_ui",           # default
+    tool_name="generate_prefab_ui",  # default
     components_tool_name="search_prefab_components",  # default
-    include_components_tool=True,              # default
+    include_components_tool=True,  # default
 )
 ```
  ## Requirements Generative UI needs `fastmcp[apps]`, which pulls in `prefab-ui`. The server-side Pyodide sandbox (for final validation) requires Deno — it installs automatically on first use. The streaming renderer loads Pyodide from CDN in the browser. The CSP is configured automatically by the provider — no manual setup. ## Sandbox limitations The Pyodide sandbox includes the Python standard library and Prefab. External packages (NumPy, pandas, requests, etc.) are **not available** — the LLM's code must work with only built-in Python and Prefab. If the LLM imports something unavailable, the sandbox raises `ImportError`. ## Next steps * **[Interactive Tools](/apps/prefab)** — the component building blocks the LLM will use * **[Prefab component reference](https://prefab.prefect.io/docs/components)** — full component library * **[Development](/apps/development)** — preview generative tools locally with `fastmcp dev apps` # Custom HTML Apps Source: https://gofastmcp.com/apps/low-level Build apps with your own HTML, CSS, and JavaScript using the MCP Apps extension directly. Everything on this page is for when you want full control: your own HTML, your own JavaScript framework, a map library, a 3D viewer, custom video playback. [Interactive Tools](/apps/prefab) wrap the MCP Apps extension so you never have to think about it — this page is what you reach for when you need to think about it. You'll be working with two things: the [`@modelcontextprotocol/ext-apps`](https://github.com/modelcontextprotocol/ext-apps) JavaScript SDK for host communication, and FastMCP's `AppConfig` for resources and CSP. ## How it works An MCP App has two parts: 1. A **tool** that does the work and returns data 2. A **`ui://` resource** containing the HTML that renders that data The tool declares which resource to use via `AppConfig`. When the host calls the tool, it also fetches the linked resource, renders it in a sandboxed iframe, and pushes the tool result into the app via `postMessage`. The app can also call tools back, enabling interactive workflows. 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.apps import AppConfig, ResourceCSP
 
 mcp = FastMCP("My App Server")
 
+
 # The tool does the work
 @mcp.tool(app=AppConfig(resource_uri="ui://my-app/view.html"))
 def generate_chart(data: list[float]) -> str:
     return json.dumps()
+
 
 # The resource provides the UI
 @mcp.resource("ui://my-app/view.html")
@@ -506,6 +512,7 @@ def my_view() -> str:
 ```python
 from fastmcp.apps import AppConfig, ResourceCSP
 
+
 @mcp.resource(
     "ui://my-app/view.html",
     app=AppConfig(
@@ -536,7 +543,6 @@ def my_view() -> str:
 ```
  Hosts may or may not grant these permissions. Your app should use JavaScript feature detection as a fallback. ## Example: a QR code server This example creates a tool that generates QR codes and an app that renders them as images. It's based on the [official MCP Apps example](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/qr-server). Requires the `qrcode[pil]` package. 
 ```python
-
 from mcp import types
 
 from fastmcp import FastMCP
@@ -546,6 +552,7 @@ from fastmcp.tools import ToolResult
 mcp = FastMCP("QR Code Server")
 
 VIEW_URI = "ui://qr-server/view.html"
+
 
 @mcp.tool(app=AppConfig(resource_uri=VIEW_URI))
 def generate_qr(text: str = "https://gofastmcp.com") -> ToolResult:
@@ -562,6 +569,7 @@ def generate_qr(text: str = "https://gofastmcp.com") -> ToolResult:
     return ToolResult(
         content=[types.ImageContent(type="image", data=b64, mimeType="image/png")]
     )
+
 
 @mcp.resource(
     VIEW_URI,
@@ -609,6 +617,7 @@ def view() -> str:
 ```python
 from fastmcp import Context
 from fastmcp.apps import AppConfig, UI_EXTENSION_ID
+
 
 @mcp.tool(app=AppConfig(resource_uri="ui://my-app/view.html"))
 async def my_tool(ctx: Context) -> str:
@@ -824,15 +833,18 @@ def regional_sales() -> PrefabApp:
 ```python
 from fastmcp.apps import PrefabAppConfig, ResourceCSP
 
-@mcp.tool(app=PrefabAppConfig(
-    csp=ResourceCSP(frame_domains=["https://example.com"]),
-))
-def dashboard_with_embed() -> PrefabApp:
-    ...
+
+@mcp.tool(
+    app=PrefabAppConfig(
+        csp=ResourceCSP(frame_domains=["https://example.com"]),
+    )
+)
+def dashboard_with_embed() -> PrefabApp: ...
 ```
  `PrefabAppConfig()` with no arguments is equivalent to `app=True`. ## Giving the LLM context By default, the LLM sees `"[Rendered Prefab UI]"` as the tool result. If the model needs to reason about the data, return a `ToolResult` with a text summary alongside the UI: 
 ```python
 from fastmcp.tools import ToolResult
+
 
 @mcp.tool(app=True)
 def sales_overview(year: int) -> ToolResult:
@@ -863,12 +875,12 @@ mcp.add_provider(Approval())
  Approval is an advisory gate, not an enforcement mechanism. The conversation isn't blocked while the card is open — the user can keep typing, and a determined LLM could proceed without waiting. Think of it as a strong UX signal that encourages confirmation, not a security boundary. For hard enforcement, implement approval logic server-side in your tool implementations. ## Configuration The constructor sets defaults; the LLM can override all of these per-call via tool arguments. 
 ```python
 Approval(
-    name="Approval",              # App name
-    title="Approval Required",    # Card heading
-    approve_text="Approve",       # Approve button label
-    reject_text="Reject",         # Reject button label
-    approve_variant="default",    # "default", "destructive", "success", "info"
-    reject_variant="outline",     # same options plus "outline"
+    name="Approval",  # App name
+    title="Approval Required",  # Card heading
+    approve_text="Approve",  # Approve button label
+    reject_text="Reject",  # Reject button label
+    approve_variant="default",  # "default", "destructive", "success", "info"
+    reject_variant="outline",  # same options plus "outline"
 )
 ```
  The LLM can customize each invocation: 
@@ -897,9 +909,9 @@ mcp.add_provider(Choice())
  This is an advisory interaction, not an enforcement mechanism. The conversation isn't blocked while the card is open — the user can keep typing, and the LLM could proceed without waiting. The tool description instructs the LLM to stop and wait for the "I selected:" response, but for hard enforcement, implement selection logic server-side. ## Configuration The constructor sets defaults; the LLM can override `title` per-call. 
 ```python
 Choice(
-    name="Choice",             # App name
+    name="Choice",  # App name
     title="Choose an Option",  # Default card heading
-    variant="outline",         # Button style for all options
+    variant="outline",  # Button style for all options
 )
 ```
  The LLM provides the options per-call: 
@@ -921,16 +933,17 @@ mcp.add_provider(FileUpload())
  This registers four tools: | Tool | Visibility | Purpose | | -------------- | ---------- | -------------------------------------------- | | `file_manager` | Model | Opens the drag-and-drop upload UI | | `store_files` | App only | Called by the UI when the user clicks Upload | | `list_files` | Model | Returns metadata for all uploaded files | | `read_file` | Model | Returns a file's contents by name | The LLM sees `file_manager`, `list_files`, and `read_file`. It calls `file_manager` to show the upload interface, then uses `list_files` and `read_file` to work with whatever the user uploaded. `store_files` is app-only — the UI calls it directly and the LLM never needs to know about it. ## Configuration 
 ```python
 FileUpload(
-    name="Files",                    # App name (used in tool routing)
+    name="Files",  # App name (used in tool routing)
     max_file_size=10 * 1024 * 1024,  # 10 MB default, enforced server-side
-    title="File Upload",             # Heading shown in the UI
+    title="File Upload",  # Heading shown in the UI
     description="Drop files to...",  # Description text below the heading
-    drop_label="Drop files here",    # Label inside the drop zone
+    drop_label="Drop files here",  # Label inside the drop zone
 )
 ```
  The `max_file_size` limit is enforced both in the UI (the DropZone rejects oversized files) and on the server (the `store_files` tool validates before calling `on_store`). ## Storage scoping By default, files are stored in memory and scoped by MCP session ID. Each session gets its own isolated file store — files uploaded in one conversation aren't visible in another. This works with **stdio**, **SSE**, and **stateful HTTP** transports, where sessions persist across requests. In **stateless HTTP** mode, each request creates a new session object with a new ID. Files stored during one request (e.g. the UI upload) will be invisible to the next request (e.g. the LLM calling `list_files`). You **must** override `_get_scope_key` to use a stable identifier like a user ID from your auth token. For stateless deployments, override `_get_scope_key` to return a stable identifier. For example, to scope files by authenticated user: 
 ```python
 from fastmcp.apps.file_upload import FileUpload
+
 
 class UserScopedUpload(FileUpload):
     def _get_scope_key(self, ctx):
@@ -944,8 +957,8 @@ class SharedUpload(FileUpload):
 ```
  ## Custom storage The default implementation stores files in memory for the lifetime of the server process. For persistent storage, subclass `FileUpload` and override three methods. Each receives the current `Context`, giving you access to session IDs, auth tokens, and request metadata for partitioning and authorization. 
 ```python
-
 from fastmcp.apps.file_upload import FileUpload
+
 
 class S3Upload(FileUpload):
     def on_store(self, files, ctx):
@@ -1009,18 +1022,19 @@ def save_report(report: BugReport) -> str:
     db.insert(report.model_dump())
     return f"Bug # filed: "
 
+
 mcp.add_provider(FormInput(model=BugReport, on_submit=save_report))
 ```
  The callback receives a validated model instance and returns a string that becomes the tool result. ## Configuration 
 ```python
 FormInput(
-    model=BugReport,             # Required: the Pydantic model
-    name="BugTracker",           # App name (default: model name)
-    title="File a Bug",          # Card heading (default: model name)
-    tool_name="file_bug",        # Tool name (default: collect_)
-    submit_text="Submit Report", # Button label (default: "Submit")
-    on_submit=save_report,       # Optional callback
-    send_message=True,           # Push result as a chat message
+    model=BugReport,  # Required: the Pydantic model
+    name="BugTracker",  # App name (default: model name)
+    title="File a Bug",  # Card heading (default: model name)
+    tool_name="file_bug",  # Tool name (default: collect_)
+    submit_text="Submit Report",  # Button label (default: "Submit")
+    on_submit=save_report,  # Optional callback
+    send_message=True,  # Push result as a chat message
 )
 ```
  Set `send_message=True` to push the result back into the conversation via `SendMessage`, triggering the LLM's next turn. Without it, the result is just the tool return value. ## Multiple forms Add multiple providers for different models — each gets its own tool: 
@@ -1172,7 +1186,7 @@ Authorization: Bearer <token>
 from fastmcp import Client
 
 async with Client(
-    "https://your-server.fastmcp.app/mcp", 
+    "https://your-server.fastmcp.app/mcp",
     auth="<your-token>",
 ) as client:
     await client.ping()
@@ -1183,7 +1197,7 @@ from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
 
 transport = StreamableHttpTransport(
-    "http://your-server.fastmcp.app/mcp", 
+    "http://your-server.fastmcp.app/mcp",
     auth="<your-token>",
 )
 
@@ -1196,7 +1210,7 @@ from fastmcp import Client
 from fastmcp.client.auth import BearerAuth
 
 async with Client(
-    "https://your-server.fastmcp.app/mcp", 
+    "https://your-server.fastmcp.app/mcp",
     auth=BearerAuth(token="<your-token>"),
 ) as client:
     await client.ping()
@@ -1278,7 +1292,7 @@ from cryptography.fernet import Fernet
 # Create encrypted disk storage
 encrypted_storage = FernetEncryptionWrapper(
     key_value=DiskStore(directory="~/.fastmcp/oauth-tokens"),
-    fernet=Fernet(os.environ["OAUTH_STORAGE_ENCRYPTION_KEY"])
+    fernet=Fernet(os.environ["OAUTH_STORAGE_ENCRYPTION_KEY"]),
 )
 
 oauth = OAuth(token_storage=encrypted_storage)
@@ -1319,7 +1333,6 @@ oauth = OAuth(client_id="my-public-client-id")
 ```
  When using pre-registered credentials, the client will not attempt Dynamic Client Registration. If the server rejects the credentials, the error is surfaced immediately rather than falling back to DCR. # The FastMCP Client Source: https://gofastmcp.com/clients/client Programmatic client for interacting with MCP servers through a well-typed, Pythonic interface. The `fastmcp.Client` class provides a programmatic interface for interacting with any MCP server. It handles protocol details and connection management automatically, letting you focus on the operations you want to perform. The FastMCP Client is designed for deterministic, controlled interactions rather than autonomous behavior, making it ideal for testing MCP servers during development, building deterministic applications that need reliable MCP interactions, and creating the foundation for agentic or LLM-based clients with structured, type-safe operations. This is a programmatic client that requires explicit function calls and provides direct control over all MCP operations. Use it as a building block for higher-level systems. ## Creating a Client You provide a server source and the client automatically infers the appropriate transport mechanism. 
 ```python
-
 from fastmcp import Client, FastMCP
 
 # In-memory server (ideal for testing)
@@ -1332,6 +1345,7 @@ client = Client("https://example.com/mcp")
 # Local Python script
 client = Client("my_mcp_server.py")
 
+
 async def main():
     async with client:
         # Basic server interaction
@@ -1343,8 +1357,11 @@ async def main():
         prompts = await client.list_prompts()
 
         # Execute operations
-        result = await client.call_tool("example_tool", )
+        result = await client.call_tool(
+            "example_tool",
+        )
         print(result)
+
 
 asyncio.run(main())
 ```
@@ -1375,13 +1392,8 @@ client = Client("https://api.example.com/mcp")
 ```python
 config = {
     "mcpServers": {
-        "weather": {
-            "url": "https://weather-api.example.com/mcp"
-        },
-        "assistant": {
-            "command": "python",
-            "args": ["./assistant_server.py"]
-        }
+        "weather": {"url": "https://weather-api.example.com/mcp"},
+        "assistant": {"command": "python", "args": ["./assistant_server.py"]},
     }
 }
 
@@ -1389,8 +1401,12 @@ client = Client(config)
 
 async with client:
     # Tools are prefixed with server names
-    weather_data = await client.call_tool("weather_get_forecast", )
-    response = await client.call_tool("assistant_answer_question", )
+    weather_data = await client.call_tool(
+        "weather_get_forecast",
+    )
+    response = await client.call_tool(
+        "assistant_answer_question",
+    )
 
     # Resources use prefixed URIs
     icons = await client.read_resource("weather://weather/icons/sunny")
@@ -1401,10 +1417,12 @@ from fastmcp import Client, FastMCP
 
 mcp = FastMCP(name="MyServer", instructions="Use the greet tool to say hello!")
 
+
 @mcp.tool
 def greet(name: str) -> str:
     """Greet a user by name."""
     return f"Hello, !"
+
 
 async with Client(mcp) as client:
     # Initialization already happened automatically
@@ -1434,7 +1452,9 @@ async with client:
 ```python
 async with client:
     tools = await client.list_tools()
-    result = await client.call_tool("multiply", )
+    result = await client.call_tool(
+        "multiply",
+    )
     print(result.data)  # 15
 ```
  See [Tools](/clients/tools) for detailed documentation including version selection, error handling, and structured output. **Resources** are data sources that the client can read, either static or templated. Access them with `read_resource()` using URIs. 
@@ -1448,7 +1468,9 @@ async with client:
 ```python
 async with client:
     prompts = await client.list_prompts()
-    messages = await client.get_prompt("analyze_data", )
+    messages = await client.get_prompt(
+        "analyze_data",
+    )
     print(messages.messages)
 ```
  See [Prompts](/clients/prompts) for detailed documentation including argument serialization. ## Callback Handlers The client supports callback handlers for advanced server interactions. These let you respond to server-initiated requests and receive notifications. 
@@ -1456,22 +1478,26 @@ async with client:
 from fastmcp import Client
 from fastmcp.client.logging import LogMessage
 
+
 async def log_handler(message: LogMessage):
     print(f"Server log: ")
+
 
 async def progress_handler(progress: float, total: float | None, message: str | None):
     print(f"Progress: / - ")
 
+
 async def sampling_handler(messages, params, context):
     # Integrate with your LLM service here
     return "Generated response"
+
 
 client = Client(
     "my_mcp_server.py",
     log_handler=log_handler,
     progress_handler=progress_handler,
     sampling_handler=sampling_handler,
-    timeout=30.0
+    timeout=30.0,
 )
 ```
  Each handler type has its own documentation: * **[Sampling](/clients/sampling)** - Respond to server LLM requests * **[Elicitation](/clients/elicitation)** - Handle server requests for user input * **[Progress](/clients/progress)** - Monitor long-running operations * **[Logging](/clients/logging)** - Handle server log messages * **[Roots](/clients/roots)** - Provide local context to servers The FastMCP Client is designed as a foundational tool. Use it directly for deterministic operations, or build higher-level agentic systems on top of its reliable, type-safe interface. # Client-Only Package Source: https://gofastmcp.com/clients/client-only-package Use FastMCP's client without installing the full server framework. FastMCP's full `fastmcp` package includes everything needed to build and run MCP servers, apps, proxies, and clients. If you are only embedding an MCP client in another framework, building your own LLM host, or testing MCP servers, you can install the smaller client-only package instead. 
@@ -1498,13 +1524,7 @@ stdio_client = Client("my_server.py")
 ```python
 from fastmcp import Client
 
-config = {
-    "mcpServers": {
-        "weather": {
-            "url": "https://weather.example.com/mcp"
-        }
-    }
-}
+config = {"mcpServers": {"weather": {"url": "https://weather.example.com/mcp"}}}
 
 client = Client(config)
 ```
@@ -1530,11 +1550,12 @@ client = Client(server)
 from fastmcp import Client
 from fastmcp.client.elicitation import ElicitResult, ElicitRequestParams, RequestContext
 
+
 async def elicitation_handler(
     message: str,
     response_type: type | None,
     params: ElicitRequestParams,
-    context: RequestContext
+    context: RequestContext,
 ) -> ElicitResult | object:
     """
     Handle server requests for user input.
@@ -1558,6 +1579,7 @@ async def elicitation_handler(
     # Create response using the provided dataclass type
     return response_type(value=user_input)
 
+
 client = Client(
     "my_mcp_server.py",
     elicitation_handler=elicitation_handler,
@@ -1573,6 +1595,7 @@ async def elicitation_handler(message, response_type, params, context):
 ```python
 from fastmcp.client.elicitation import ElicitResult
 
+
 async def elicitation_handler(message, response_type, params, context):
     user_input = input(f": ")
 
@@ -1580,17 +1603,15 @@ async def elicitation_handler(message, response_type, params, context):
         return ElicitResult(action="decline")  # User declined
 
     if user_input == "cancel":
-        return ElicitResult(action="cancel")   # Cancel entire operation
+        return ElicitResult(action="cancel")  # Cancel entire operation
 
-    return ElicitResult(
-        action="accept",
-        content=response_type(value=user_input)
-    )
+    return ElicitResult(action="accept", content=response_type(value=user_input))
 ```
  **Action types:** * **`accept`**: User provided valid input. Include the data in the `content` field. * **`decline`**: User chose not to provide the requested information. Omit `content`. * **`cancel`**: User cancelled the entire operation. Omit `content`. ## Example A file management tool might ask which directory to create: 
 ```python
 from fastmcp import Client
 from fastmcp.client.elicitation import ElicitResult
+
 
 async def elicitation_handler(message, response_type, params, context):
     print(f"Server asks: ")
@@ -1603,32 +1624,30 @@ async def elicitation_handler(message, response_type, params, context):
     # Use the response_type dataclass to create a properly structured response
     return response_type(value=user_response)
 
-client = Client(
-    "my_mcp_server.py",
-    elicitation_handler=elicitation_handler
-)
+
+client = Client("my_mcp_server.py", elicitation_handler=elicitation_handler)
 ```
  # Server Logging Source: https://gofastmcp.com/clients/logging Receive and handle log messages from MCP servers. Use this when you need to capture or process log messages sent by the server. MCP servers can emit log messages to clients. The client handles these through a log handler callback. ## Log Handler Provide a `log_handler` function when creating the client: 
 ```python
-
 from fastmcp import Client
 from fastmcp.client.logging import LogMessage
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
 LOGGING_LEVEL_MAP = logging.getLevelNamesMapping()
 
+
 async def log_handler(message: LogMessage):
     """Forward MCP server logs to Python's logging system."""
-    msg = message.data.get('msg')
-    extra = message.data.get('extra')
+    msg = message.data.get("msg")
+    extra = message.data.get("extra")
 
     level = LOGGING_LEVEL_MAP.get(message.level.upper(), logging.INFO)
     logger.log(level, msg, extra=extra)
+
 
 client = Client(
     "my_mcp_server.py",
@@ -1638,8 +1657,8 @@ client = Client(
  The handler receives a `LogMessage` object: The log level The logger name (may be None) The log payload, containing `msg` and `extra` keys ## Structured Logs The `message.data` attribute is a dictionary containing the log payload. This enables structured logging with rich contextual information. 
 ```python
 async def detailed_log_handler(message: LogMessage):
-    msg = message.data.get('msg')
-    extra = message.data.get('extra')
+    msg = message.data.get("msg")
+    extra = message.data.get("extra")
 
     if message.level == "error":
         print(f"ERROR:  | Details: ")
@@ -1660,9 +1679,10 @@ async with client:
 ```python
 from fastmcp import Client
 
+
 async def message_handler(message):
     """Handle MCP notifications from the server."""
-    if hasattr(message, 'root'):
+    if hasattr(message, "root"):
         method = message.root.method
 
         if method == "notifications/tools/list_changed":
@@ -1671,6 +1691,7 @@ async def message_handler(message):
             print("Resources have changed")
         elif method == "notifications/prompts/list_changed":
             print("Prompts have changed")
+
 
 client = Client(
     "my_mcp_server.py",
@@ -1681,6 +1702,7 @@ client = Client(
 ```python
 from fastmcp import Client
 from fastmcp.client.messages import MessageHandler
+
 
 class MyMessageHandler(MessageHandler):
     async def on_tool_list_changed(
@@ -1701,6 +1723,7 @@ class MyMessageHandler(MessageHandler):
         """Handle prompt list changes."""
         print("Prompt list changed")
 
+
 client = Client(
     "my_mcp_server.py",
     message_handler=MyMessageHandler(),
@@ -1710,14 +1733,13 @@ client = Client(
 ```python
 from fastmcp.client.messages import MessageHandler
 
+
 class MyMessageHandler(MessageHandler):
     async def on_message(self, message) -> None:
         """Called for ALL messages (requests and notifications)."""
         pass
 
-    async def on_notification(
-        self, notification: mcp.types.ServerNotification
-    ) -> None:
+    async def on_notification(self, notification: mcp.types.ServerNotification) -> None:
         """Called for notifications (fire-and-forget)."""
         pass
 
@@ -1739,9 +1761,7 @@ class MyMessageHandler(MessageHandler):
         """Called when the server's prompt list changes."""
         pass
 
-    async def on_progress(
-        self, notification: mcp.types.ProgressNotification
-    ) -> None:
+    async def on_progress(self, notification: mcp.types.ProgressNotification) -> None:
         """Called for progress updates during long-running operations."""
         pass
 
@@ -1756,6 +1776,7 @@ class MyMessageHandler(MessageHandler):
 from fastmcp import Client
 from fastmcp.client.messages import MessageHandler
 
+
 class ToolCacheHandler(MessageHandler):
     def __init__(self):
         self.cached_tools = []
@@ -1767,16 +1788,16 @@ class ToolCacheHandler(MessageHandler):
         print("Tools changed - clearing cache")
         self.cached_tools = []  # Force refresh on next access
 
+
 client = Client("server.py", message_handler=ToolCacheHandler())
 ```
  ## Server Requests While the message handler receives server-initiated requests, you should use dedicated callback parameters for most interactive scenarios: * **Sampling requests**: Use [`sampling_handler`](/clients/sampling) * **Elicitation requests**: Use [`elicitation_handler`](/clients/elicitation) * **Progress updates**: Use [`progress_handler`](/clients/progress) * **Log messages**: Use [`log_handler`](/clients/logging) The message handler is primarily for monitoring and handling notifications rather than responding to requests. # Progress Monitoring Source: https://gofastmcp.com/clients/progress Handle progress notifications from long-running server operations. Use this when you need to track progress of long-running operations. MCP servers can report progress during operations. The client receives these updates through a progress handler. ## Progress Handler Set a handler when creating the client: 
 ```python
 from fastmcp import Client
 
+
 async def progress_handler(
-    progress: float,
-    total: float | None,
-    message: str | None
+    progress: float, total: float | None, message: str | None
 ) -> None:
     if total is not None:
         percentage = (progress / total) * 100
@@ -1784,10 +1805,8 @@ async def progress_handler(
     else:
         print(f"Progress:  - ")
 
-client = Client(
-    "my_mcp_server.py",
-    progress_handler=progress_handler
-)
+
+client = Client("my_mcp_server.py", progress_handler=progress_handler)
 ```
  The handler receives three parameters: Current progress value Expected total value (may be None if unknown) Optional status message ## Per-Call Handler Override the client-level handler for specific tool calls: 
 ```python
@@ -1813,10 +1832,9 @@ async with client:
  Pass arguments to customize the prompt: 
 ```python
 async with client:
-    result = await client.get_prompt("user_greeting", {
-        "name": "Alice",
-        "role": "administrator"
-    })
+    result = await client.get_prompt(
+        "user_greeting", {"name": "Alice", "role": "administrator"}
+    )
 
     for message in result.messages:
         print(f"Generated message: ")
@@ -1841,7 +1859,9 @@ async with client:
  The client handles serialization using `pydantic_core.to_json()` for consistent formatting. FastMCP servers automatically deserialize these JSON strings back to the expected types. ## Working with Results The `get_prompt()` method returns a `GetPromptResult` containing a list of messages: 
 ```python
 async with client:
-    result = await client.get_prompt("conversation_starter", )
+    result = await client.get_prompt(
+        "conversation_starter",
+    )
 
     for i, message in enumerate(result.messages):
         print(f"Message :")
@@ -1851,10 +1871,10 @@ async with client:
  Prompts can generate different message types. System messages configure LLM behavior: 
 ```python
 async with client:
-    result = await client.get_prompt("system_configuration", {
-        "role": "helpful assistant",
-        "expertise": "python programming"
-    })
+    result = await client.get_prompt(
+        "system_configuration",
+        {"role": "helpful assistant", "expertise": "python programming"},
+    )
 
     # Access the returned messages
     message = result.messages[0]
@@ -1863,10 +1883,10 @@ async with client:
  Conversation templates generate multi-turn flows: 
 ```python
 async with client:
-    result = await client.get_prompt("interview_template", {
-        "candidate_name": "Alice",
-        "position": "Senior Developer"
-    })
+    result = await client.get_prompt(
+        "interview_template",
+        {"candidate_name": "Alice", "position": "Senior Developer"},
+    )
 
     # Multiple messages for a conversation flow
     for message in result.messages:
@@ -1884,13 +1904,19 @@ async with client:
  See [Metadata](/servers/versioning#version-discovery) for how to discover available versions. ## Multi-Server Clients When using multi-server clients, prompts are accessible directly without prefixing: 
 ```python
 async with client:  # Multi-server client
-    result1 = await client.get_prompt("weather_prompt", )
-    result2 = await client.get_prompt("assistant_prompt", )
+    result1 = await client.get_prompt(
+        "weather_prompt",
+    )
+    result2 = await client.get_prompt(
+        "assistant_prompt",
+    )
 ```
  ## Raw Protocol Access For complete control, use `get_prompt_mcp()` which returns the full MCP protocol object: 
 ```python
 async with client:
-    result = await client.get_prompt_mcp("example_prompt", )
+    result = await client.get_prompt_mcp(
+        "example_prompt",
+    )
     # result -> mcp.types.GetPromptResult
 ```
  # Reading Resources Source: https://gofastmcp.com/clients/resources Access static and templated data sources from MCP servers. Use this when you need to read data from server-exposed resources like configuration files, generated content, or external data sources. Resources are data sources exposed by MCP servers. They can be static files with fixed content, or dynamic templates that generate content based on parameters in the URI. ## Reading Resources Read a resource using its URI: 
@@ -1900,11 +1926,11 @@ async with client:
     # content -> list[TextResourceContents | BlobResourceContents]
 
     # Access text content
-    if hasattr(content[0], 'text'):
+    if hasattr(content[0], "text"):
         print(content[0].text)
 
     # Access binary content
-    if hasattr(content[0], 'blob'):
+    if hasattr(content[0], "blob"):
         print(f"Binary data:  bytes")
 ```
  Resource templates generate content based on URI parameters. The template defines a pattern like `weather://{}/current`, and you fill in the parameters when reading: 
@@ -1920,7 +1946,7 @@ async with client:
     content = await client.read_resource("resource://config/settings.json")
 
     for item in content:
-        if hasattr(item, 'text'):
+        if hasattr(item, "text"):
             print(f"Text content: ")
             print(f"MIME type: ")
 ```
@@ -1930,7 +1956,7 @@ async with client:
     content = await client.read_resource("resource://images/logo.png")
 
     for item in content:
-        if hasattr(item, 'blob'):
+        if hasattr(item, "blob"):
             print(f"Binary content:  bytes")
             print(f"MIME type: ")
 
@@ -1963,34 +1989,29 @@ async with client:
 ```python
 from fastmcp import Client
 
-client = Client(
-    "my_mcp_server.py",
-    roots=["/path/to/root1", "/path/to/root2"]
-)
+client = Client("my_mcp_server.py", roots=["/path/to/root1", "/path/to/root2"])
 ```
  ## Dynamic Roots Use a callback to compute roots dynamically when the server requests them: 
 ```python
 from fastmcp import Client
 from fastmcp.client.roots import RequestContext
 
+
 async def roots_callback(context: RequestContext) -> list[str]:
     print(f"Server requested roots (Request ID: )")
     return ["/path/to/root1", "/path/to/root2"]
 
-client = Client(
-    "my_mcp_server.py",
-    roots=roots_callback
-)
+
+client = Client("my_mcp_server.py", roots=roots_callback)
 ```
  # LLM Sampling Source: https://gofastmcp.com/clients/sampling Handle server-initiated LLM completion requests. Use this when you need to respond to server requests for LLM completions. MCP servers can request LLM completions from clients during tool execution. This enables servers to delegate AI reasoning to the client, which controls which LLM is used and how requests are made. ## Handler Template 
 ```python
 from fastmcp import Client
 from fastmcp.client.sampling import SamplingMessage, SamplingParams, RequestContext
 
+
 async def sampling_handler(
-    messages: list[SamplingMessage],
-    params: SamplingParams,
-    context: RequestContext
+    messages: list[SamplingMessage], params: SamplingParams, context: RequestContext
 ) -> str:
     """
     Handle server requests for LLM completions.
@@ -2006,7 +2027,11 @@ async def sampling_handler(
     # Extract message content
     conversation = []
     for message in messages:
-        content = message.content.text if hasattr(message.content, 'text') else str(message.content)
+        content = (
+            message.content.text
+            if hasattr(message.content, "text")
+            else str(message.content)
+        )
         conversation.append(f": ")
 
     # Use the system prompt if provided
@@ -2014,6 +2039,7 @@ async def sampling_handler(
 
     # Integrate with your LLM service here
     return "Generated response based on the messages"
+
 
 client = Client(
     "my_mcp_server.py",
@@ -2124,17 +2150,21 @@ await task.cancel()
 def on_status_change(status):
     print(f"Task :  - ")
 
+
 task.on_status_change(on_status_change)
+
 
 # Async callbacks work too
 async def on_status_async(status):
     await log_status(status)
+
 
 task.on_status_change(on_status_async)
 ```
  ### Handler Template 
 ```python
 from fastmcp import Client
+
 
 def status_handler(status):
     """
@@ -2152,6 +2182,7 @@ def status_handler(status):
         print("Task completed")
     elif status.status == "failed":
         print(f"Task failed: ")
+
 
 task.on_status_change(status_handler)
 ```
@@ -2200,7 +2231,9 @@ asyncio.run(main())
  See [Server Background Tasks](/servers/tasks) for how to enable background task support on the server side. # Calling Tools Source: https://gofastmcp.com/clients/tools Execute server-side tools and handle structured results. Use this when you need to execute server-side functions and process their results. Tools are executable functions exposed by MCP servers. The client's `call_tool()` method executes a tool by name with arguments and returns structured results. ## Basic Execution 
 ```python
 async with client:
-    result = await client.call_tool("add", )
+    result = await client.call_tool(
+        "add",
+    )
     # result -> CallToolResult with structured and unstructured data
 
     # Access structured data (automatically deserialized)
@@ -2232,7 +2265,9 @@ from datetime import datetime
 from uuid import UUID
 
 async with client:
-    result = await client.call_tool("get_weather", )
+    result = await client.call_tool(
+        "get_weather",
+    )
 
     # FastMCP reconstructs complete Python objects
     weather = result.data
@@ -2248,13 +2283,15 @@ async with client:
  Fully hydrated Python objects with complex type support (datetimes, UUIDs, custom classes). FastMCP exclusive. Standard MCP content blocks (`TextContent`, `ImageContent`, `AudioContent`, etc.). Standard MCP structured JSON data as sent by the server. Boolean indicating if the tool execution failed. For tools without output schemas or when deserialization fails, `.data` will be `None`. Fall back to content blocks in that case: 
 ```python
 async with client:
-    result = await client.call_tool("legacy_tool", )
+    result = await client.call_tool(
+        "legacy_tool",
+    )
 
     if result.data is not None:
         print(f"Structured: ")
     else:
         for content in result.content:
-            if hasattr(content, 'text'):
+            if hasattr(content, "text"):
                 print(f"Text result: ")
 ```
  FastMCP servers automatically wrap primitive results (like `int`, `str`, `bool`) in a `` structure. FastMCP clients automatically unwrap this, so you get the original value in `.data`. ## Error Handling By default, `call_tool()` raises a `ToolError` if the tool execution fails: 
@@ -2263,7 +2300,9 @@ from fastmcp.exceptions import ToolError
 
 async with client:
     try:
-        result = await client.call_tool("potentially_failing_tool", )
+        result = await client.call_tool(
+            "potentially_failing_tool",
+        )
         print("Tool succeeded:", result.data)
     except ToolError as e:
         print(f"Tool failed: ")
@@ -2287,21 +2326,16 @@ async with client:
 async with client:
     result = await client.call_tool(
         name="send_email",
-        arguments={
-            "to": "user@example.com",
-            "subject": "Hello",
-            "body": "Welcome!"
-        },
-        meta={
-            "trace_id": "abc-123",
-            "request_source": "mobile_app"
-        }
+        arguments={"to": "user@example.com", "subject": "Hello", "body": "Welcome!"},
+        meta={"trace_id": "abc-123", "request_source": "mobile_app"},
     )
 ```
  See [Client Metadata](/servers/context#client-metadata) to learn how servers access this data. ## Raw Protocol Access For complete control, use `call_tool_mcp()` which returns the raw MCP protocol object: 
 ```python
 async with client:
-    result = await client.call_tool_mcp("my_tool", )
+    result = await client.call_tool_mcp(
+        "my_tool",
+    )
     # result -> mcp.types.CallToolResult
 
     if result.isError:
@@ -2356,12 +2390,15 @@ from fastmcp.client.transports import StdioTransport
 transport = StdioTransport(command="python", args=["server.py"])
 client = Client(transport)
 
+
 async def efficient_multiple_operations():
     async with client:
         await client.ping()
 
     async with client:  # Reuses the same subprocess
-        await client.call_tool("process_data", )
+        await client.call_tool(
+            "process_data",
+        )
 ```
  For complete isolation between connections, disable session persistence: 
 ```python
@@ -2374,10 +2411,7 @@ from fastmcp.client.transports import StreamableHttpTransport
 
 transport = StreamableHttpTransport(
     url="https://api.example.com/mcp",
-    headers={
-        "Authorization": "Bearer your-token-here",
-        "X-Custom-Header": "value"
-    }
+    headers={"Authorization": "Bearer your-token-here", "X-Custom-Header": "value"},
 )
 client = Client(transport)
 ```
@@ -2386,10 +2420,7 @@ client = Client(transport)
 from fastmcp import Client
 from fastmcp.client.auth import BearerAuth
 
-client = Client(
-    "https://api.example.com/mcp",
-    auth=BearerAuth("your-token-here")
-)
+client = Client("https://api.example.com/mcp", auth=BearerAuth("your-token-here"))
 ```
  ### SSL Verification By default, HTTPS connections verify the server's SSL certificate. You can customize this behavior with the `verify` parameter, which accepts the same values as [httpx](https://www.python-httpx.org/advanced/ssl/): 
 ```python
@@ -2433,15 +2464,19 @@ from fastmcp import FastMCP, Client
 
 mcp = FastMCP("TestServer")
 
+
 @mcp.tool
 def greet(name: str) -> str:
     prefix = os.environ.get("GREETING_PREFIX", "Hello")
     return f", !"
 
+
 client = Client(mcp)
 
 async with client:
-    result = await client.call_tool("greet", )
+    result = await client.call_tool(
+        "greet",
+    )
 ```
  Unlike STDIO transports, in-memory servers share the same memory space and environment variables as your client code. ## Multi-Server Configuration Connect to multiple servers defined in a configuration dictionary: 
 ```python
@@ -2484,9 +2519,9 @@ config = {
                             "default": "Miami",
                             "hide": True,
                         }
-                    }
+                    },
                 }
-            }
+            },
         }
     }
 }
@@ -2497,7 +2532,7 @@ config = {
     "mcpServers": {
         "weather": {
             "url": "https://weather.example.com/mcp",
-            "include_tags": ["forecast"]  # Only tools with this tag
+            "include_tags": ["forecast"],  # Only tools with this tag
         }
     }
 }
@@ -2508,10 +2543,12 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("My Server")
 
+
 @mcp.tool
 def process_data(input: str) -> str:
     """Process data on the server"""
     return f"Processed: "
+
 
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=8000)
@@ -2526,10 +2563,12 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("My Server")
 
+
 @mcp.tool
 def process_data(input: str) -> str:
     """Process data on the server"""
     return f"Processed: "
+
 
 # Create ASGI application
 app = mcp.http_app()
@@ -2549,6 +2588,7 @@ app = mcp.http_app(path="/api/mcp/")
  Now your server is accessible at `http://localhost:8000/api/mcp/`. ### Authentication Authentication is **highly recommended** for remote MCP servers. Some LLM clients require authentication for remote servers and will refuse to connect without it. FastMCP supports multiple authentication methods to secure your remote server. See the [Authentication Overview](/servers/auth/authentication) for complete configuration options including Bearer tokens, JWT, and OAuth. If you're mounting an authenticated server under a path prefix, see [Mounting Authenticated Servers](#mounting-authenticated-servers) below for important routing considerations. ### Health Checks Health check endpoints are essential for monitoring your deployed server and ensuring it's responding correctly. FastMCP allows you to add custom routes alongside your MCP endpoints, making it easy to implement health checks that work with both deployment approaches. 
 ```python
 from starlette.responses import JSONResponse
+
 
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
@@ -2609,6 +2649,7 @@ from fastmcp.server.event_store import EventStore
 
 mcp = FastMCP("My Server")
 
+
 @mcp.tool
 async def long_running_task(ctx: Context) -> str:
     """A task that takes several minutes to complete."""
@@ -2623,6 +2664,7 @@ async def long_running_task(ctx: Context) -> str:
         await do_expensive_work()
 
     return "Done!"
+
 
 # Configure with EventStore for resumability
 event_store = EventStore()
@@ -2655,12 +2697,14 @@ from starlette.routing import Mount
 # Create your FastMCP server
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def analyze(data: str) -> dict:
     return {"result": f"Analyzed: "}
 
+
 # Create the ASGI app
-mcp_app = mcp.http_app(path='/mcp')
+mcp_app = mcp.http_app(path="/mcp")
 
 # Create a Starlette app and mount the MCP server
 app = Starlette(
@@ -2681,7 +2725,7 @@ from starlette.routing import Mount
 mcp = FastMCP("MyServer")
 
 # Create the ASGI app
-mcp_app = mcp.http_app(path='/mcp')
+mcp_app = mcp.http_app(path="/mcp")
 
 # Create nested application structure
 inner_app = Starlette(routes=[Mount("/inner", app=mcp_app)])
@@ -2698,10 +2742,12 @@ from fastmcp import FastMCP
 # Create your MCP server
 mcp = FastMCP("API Tools")
 
+
 @mcp.tool
 def query_database(query: str) -> dict:
     """Run a database query"""
-    return 
+    return
+
 
 # Create the MCP ASGI app with path="/" since we'll mount at /mcp
 mcp_app = mcp.http_app(path="/")
@@ -2709,9 +2755,11 @@ mcp_app = mcp.http_app(path="/")
 # Create FastAPI app with MCP lifespan (required for session management)
 api = FastAPI(lifespan=mcp_app.lifespan)
 
+
 @api.get("/api/status")
 def status():
-    return 
+    return
+
 
 # Mount MCP at /mcp
 api.mount("/mcp", mcp_app)
@@ -2732,16 +2780,16 @@ api.mount("/mcp", mcp_app)
      ```
  Follow the configuration instructions below to set up mounting correctly. **CORS Middleware Conflicts:** If you're integrating FastMCP into an existing application with its own CORS middleware, be aware that layering CORS middleware can cause conflicts (such as 404 errors on `.well-known` routes or OPTIONS requests). FastMCP and the MCP SDK already handle CORS for OAuth routes. If you need CORS on your own application routes, consider using the sub-app pattern: mount FastMCP and your routes as separate apps, each with their own middleware, rather than adding application-wide CORS middleware. ### Route Types OAuth-protected MCP servers expose two categories of routes: **Operational routes** handle the OAuth flow and MCP protocol: * `/authorize` - OAuth authorization endpoint * `/token` - Token exchange endpoint * `/auth/callback` - OAuth callback handler * `/mcp` - MCP protocol endpoint **Discovery routes** provide metadata for OAuth clients: * `/.well-known/oauth-authorization-server` - Authorization server metadata * `/.well-known/oauth-protected-resource/*` - Protected resource metadata When you mount your MCP app under a prefix, operational routes move with it, but discovery routes must stay at root level for RFC compliance. ### Configuration Parameters Three parameters control where routes are located and how they combine: **`base_url`** tells clients where to find operational endpoints. This includes any Starlette `Mount()` path prefix (e.g., `/api`): 
 ```python
-base_url="http://localhost:8000/api"  # Includes mount prefix
+base_url = "http://localhost:8000/api"  # Includes mount prefix
 ```
  **`mcp_path`** is the internal FastMCP endpoint path, which gets appended to `base_url`: 
 ```python
-mcp_path="/mcp"  # Internal MCP path, NOT the mount prefix
+mcp_path = "/mcp"  # Internal MCP path, NOT the mount prefix
 ```
  **`issuer_url`** (optional) controls the authorization server identity for OAuth discovery. Defaults to `base_url`. 
 ```python
 # Usually not needed - just set base_url and it works
-issuer_url="http://localhost:8000"  # Only if you want root-level discovery
+issuer_url = "http://localhost:8000"  # Only if you want root-level discovery
 ```
  When `issuer_url` has a path (either explicitly or by defaulting from `base_url`), FastMCP creates path-aware discovery routes per RFC 8414. For example, if `base_url` is `http://localhost:8000/api`, the authorization server metadata will be at `/.well-known/oauth-authorization-server/api`. **Key Invariant:** `base_url + mcp_path = actual externally-accessible MCP URL` Example: * `base_url`: `http://localhost:8000/api` (mount prefix `/api`) * `mcp_path`: `/mcp` (internal path) * Result: `http://localhost:8000/api/mcp` (final MCP endpoint) Note that the mount prefix (`/api` from `Mount("/api", ...)`) goes in `base_url`, while `mcp_path` is just the internal MCP route. Don't include the mount prefix in both places or you'll get `/api/api/mcp`. ### Mounting Strategy When mounting an OAuth-protected server under a path prefix, declare your URLs upfront to make the relationships clear: 
 ```python
@@ -2806,9 +2854,11 @@ auth = GitHubProvider(
 # Create MCP server
 mcp = FastMCP("Protected Server", auth=auth)
 
+
 @mcp.tool
 def analyze(data: str) -> dict:
     return {"result": f"Analyzed: "}
+
 
 # Create MCP app
 mcp_app = mcp.http_app(path=MCP_PATH)
@@ -2842,9 +2892,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("My Server")
 
+
 @mcp.tool
 def process(data: str) -> str:
     return f"Processed: "
+
 
 app = mcp.http_app(stateless_http=True)
 ```
@@ -2889,9 +2941,9 @@ auth = GitHubProvider(
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(host="redis.example.com", port=6379),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
     ),
-    base_url="https://your-server.com"  # use HTTPS
+    base_url="https://your-server.com",  # use HTTPS
 )
 ```
  Both parameters are required for production. Without an explicit signing key, keys are signed using a key derived from the client\_secret, which will cause invalidation upon rotation of the client secret. Without persistent storage, tokens are local to the server and won't be trusted across hosts. **Wrap your storage backend in `FernetEncryptionWrapper` to encrypt sensitive OAuth tokens at rest** - without encryption, tokens are stored in plaintext. For more details on the token architecture and key management, see [OAuth Proxy Key and Storage Management](/servers/auth/oauth-proxy#key-and-storage-management). ## Reverse Proxy (nginx) In production, you'll typically run your FastMCP server behind a reverse proxy like nginx. A reverse proxy provides TLS termination, domain-based routing, static file serving, and an additional layer of security between the internet and your application. ### Running FastMCP as a Linux Service Before configuring nginx, you need your FastMCP server running as a background service. A systemd unit file ensures your server starts automatically and restarts on failure. Create a file at `/etc/systemd/system/fastmcp.service`: 
@@ -2984,6 +3036,7 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, !"
@@ -2998,9 +3051,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP(name="MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, !"
+
 
 if __name__ == "__main__":
     mcp.run()
@@ -3011,9 +3066,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, !"
+
 
 if __name__ == "__main__":
     mcp.run()  # Uses STDIO transport by default
@@ -3024,9 +3081,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, !"
+
 
 if __name__ == "__main__":
     # Start an HTTP server on port 8000
@@ -3082,13 +3141,16 @@ from fastmcp import FastMCP
 
 mcp = FastMCP(name="MyServer")
 
+
 @mcp.tool
 def hello(name: str) -> str:
     return f"Hello, !"
 
+
 async def main():
     # Use run_async() in async contexts
     await mcp.run_async(transport="http", port=8000)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -3101,13 +3163,16 @@ from starlette.responses import PlainTextResponse
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request: Request) -> PlainTextResponse:
     return PlainTextResponse("OK")
 
+
 @mcp.tool
 def process(data: str) -> str:
     return f"Processed: "
+
 
 if __name__ == "__main__":
     mcp.run(transport="http")  # Health check at http://localhost:8000/health
@@ -3119,9 +3184,11 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("MyServer")  # CLI looks for 'mcp', 'server', or 'app'
 
+
 @mcp.tool
 def process(data: str) -> str:
     return f"Processed: "
+
 
 # No if __name__ block needed - CLI will find and run 'mcp'
 ```
@@ -3130,14 +3197,16 @@ def process(data: str) -> str:
 # app.py
 from fastmcp import FastMCP
 
+
 def create_app():
     mcp = FastMCP("MyServer")
-    
+
     @mcp.tool
     def process(data: str) -> str:
         return f"Processed: "
-    
+
     return mcp.http_app()
+
 
 app = create_app()  # Uvicorn will use this
 ```
@@ -3195,6 +3264,7 @@ auth = JWTVerifier(
 
 mcp = FastMCP("Sandbox Tools", auth=auth)
 
+
 @mcp.tool(auth=require_scopes("write:summary"))
 def write_summary(content: str) -> str:
     return f"Stored summary with  characters"
@@ -3205,10 +3275,12 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("Sandbox Tools")
 
+
 @mcp.tool
 def write_summary(content: str) -> str:
     """Store the final summary for the current run."""
     return f"Stored summary with  characters"
+
 
 @mcp.tool
 def publish_review_comment(pr_number: int, body: str) -> str:
@@ -3611,35 +3683,40 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("My MCP Server")
 
+
 @mcp.tool
 def greet(name: str) -> str:
     return f"Hello, !"
 ```
  ## Run the Server The simplest way to run your FastMCP server is to call its `run()` method. You can choose between different transports, like `stdio` for local servers, or `http` for remote access: 
 ```python
-  from fastmcp import FastMCP
+from fastmcp import FastMCP
 
-  mcp = FastMCP("My MCP Server")
+mcp = FastMCP("My MCP Server")
 
-  @mcp.tool
-  def greet(name: str) -> str:
-      return f"Hello, !"
 
-  if __name__ == "__main__":
-      mcp.run()
+@mcp.tool
+def greet(name: str) -> str:
+    return f"Hello, !"
+
+
+if __name__ == "__main__":
+    mcp.run()
   ```
  
 ```python
-  from fastmcp import FastMCP
+from fastmcp import FastMCP
 
-  mcp = FastMCP("My MCP Server")
+mcp = FastMCP("My MCP Server")
 
-  @mcp.tool
-  def greet(name: str) -> str:
-      return f"Hello, !"
 
-  if __name__ == "__main__":
-      mcp.run(transport="http", port=8000)
+@mcp.tool
+def greet(name: str) -> str:
+    return f"Hello, !"
+
+
+if __name__ == "__main__":
+    mcp.run(transport="http", port=8000)
   ```
  This lets us run the server with `python my_server.py`. The stdio transport is the traditional way to connect MCP servers to clients, while the HTTP transport enables remote connections. Why do we need the `if __name__ == "__main__":` block? The `__main__` block is recommended for consistency and compatibility, ensuring your server works with all MCP clients that execute your server file as a script. Users who will exclusively run their server with the FastMCP CLI can omit it, as the CLI imports the server object directly. ### Using the FastMCP CLI You can also use the `fastmcp run` command to start your server. Note that the FastMCP CLI **does not** execute the `__main__` block of your server file. Instead, it imports your server object and runs it with whatever transport and options you provide. For example, to run this server with the default stdio transport (no matter how you called `mcp.run()`), you can use the following command: 
 ```bash
@@ -3651,15 +3728,18 @@ fastmcp run my_server.py:mcp --transport http --port 8000
 ```
  ## Call Your Server Once your server is running with HTTP transport, you can connect to it with a FastMCP client or any LLM client that supports the MCP protocol: 
 ```python
-
 from fastmcp import Client
 
 client = Client("http://localhost:8000/mcp")
 
+
 async def call_tool(name: str):
     async with client:
-        result = await client.call_tool("greet", )
+        result = await client.call_tool(
+            "greet",
+        )
         print(result)
+
 
 asyncio.run(call_tool("Ford"))
 ```
@@ -3670,6 +3750,7 @@ from prefab_ui.components import Column, Heading, Text, Badge, Row
 from fastmcp import FastMCP
 
 mcp = FastMCP("My MCP Server")
+
 
 @mcp.tool(app=True)
 def greet(name: str) -> PrefabApp:
@@ -3688,10 +3769,12 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("Demo 🚀")
 
+
 @mcp.tool
 def add(a: int, b: int) -> int:
     """Add two numbers"""
     return a + b
+
 
 if __name__ == "__main__":
     mcp.run()
@@ -3719,14 +3802,15 @@ from fastmcp.server.auth.providers.auth0 import Auth0Provider
 # The Auth0Provider utilizes Auth0 OIDC configuration
 auth_provider = Auth0Provider(
     config_url="https://.../.well-known/openid-configuration",  # Your Auth0 configuration URL
-    client_id="tv2ObNgaZAWWhhycr7Bz1LU2mxlnsmsB",               # Your Auth0 application Client ID
-    client_secret="vPYqbjemq...",                               # Your Auth0 application Client Secret
-    audience="https://...",                                     # Your Auth0 API audience
-    base_url="http://localhost:8000",                           # Must match your application configuration
+    client_id="tv2ObNgaZAWWhhycr7Bz1LU2mxlnsmsB",  # Your Auth0 application Client ID
+    client_secret="vPYqbjemq...",  # Your Auth0 application Client Secret
+    audience="https://...",  # Your Auth0 API audience
+    base_url="http://localhost:8000",  # Must match your application configuration
     # redirect_path="/auth/callback"                            # Default value, customize if needed
 )
 
 mcp = FastMCP(name="Auth0 Secured App", auth=auth_provider)
+
 
 # Add a protected tool to test authentication
 @mcp.tool
@@ -3739,7 +3823,7 @@ async def get_token_info() -> dict:
     return {
         "issuer": token.claims.get("iss"),
         "audience": token.claims.get("aud"),
-        "scope": token.claims.get("scope")
+        "scope": token.claims.get("scope"),
     }
 ```
  ## Testing ### Running the Server Start your FastMCP server with HTTP transport to enable OAuth flows: 
@@ -3749,6 +3833,7 @@ fastmcp run server.py --transport http --port 8000
  Your server is now running and protected by Auth0 authentication. ### Testing with a Client Create a test client that authenticates with your Auth0-protected server: 
 ```python
 from fastmcp import Client
+
 
 async def main():
     # The client will automatically handle Auth0 OAuth flows
@@ -3760,12 +3845,12 @@ async def main():
         result = await client.call_tool("get_token_info")
         print(f"Auth0 audience: ")
 
+
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to Auth0's authorization page 2. After you authorize the app, you'll be redirected back 3. The client receives the token and can make authenticated requests ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key`, and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.auth0 import Auth0Provider
 from key_value.aio.stores.redis import RedisStore
@@ -3779,16 +3864,14 @@ auth_provider = Auth0Provider(
     client_secret="vPYqbjemq...",
     audience="https://...",
     base_url="https://your-production-domain.com",
-
     # Production token management
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production Auth0 App", auth=auth_provider)
@@ -3827,7 +3910,6 @@ if __name__ == "__main__":
 ```
  ## Production Configuration For production deployments, load sensitive configuration from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.workos import AuthKitProvider
 
@@ -3847,15 +3929,16 @@ from fastmcp.server.dependencies import get_access_token
 
 # The AWSCognitoProvider handles JWT validation and user claims
 auth_provider = AWSCognitoProvider(
-    user_pool_id="eu-central-1_XXXXXXXXX",   # Your AWS Cognito user pool ID
-    aws_region="eu-central-1",               # AWS region (defaults to eu-central-1)
-    client_id="your-app-client-id",          # Your app client ID
+    user_pool_id="eu-central-1_XXXXXXXXX",  # Your AWS Cognito user pool ID
+    aws_region="eu-central-1",  # AWS region (defaults to eu-central-1)
+    client_id="your-app-client-id",  # Your app client ID
     client_secret="your-app-client-secret",  # Your app client Secret
-    base_url="http://localhost:8000",        # Must match your callback URL
+    base_url="http://localhost:8000",  # Must match your callback URL
     # redirect_path="/auth/callback"         # Default value, customize if needed
 )
 
 mcp = FastMCP(name="AWS Cognito Secured App", auth=auth_provider)
+
 
 # Add a protected tool to test authentication
 @mcp.tool
@@ -3876,6 +3959,7 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     # The client will automatically handle AWS Cognito OAuth
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
@@ -3891,12 +3975,12 @@ async def main():
         print(f"- username: ")
         print(f"- cognito:groups: ")
 
+
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to AWS Cognito's hosted UI login page 2. After you sign in (or sign up), you'll be redirected back to your MCP server 3. The client receives the JWT token and can make authenticated requests The client caches tokens locally, so you won't need to re-authenticate for subsequent runs unless the token expires or you explicitly clear the cache. ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key`, and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.aws import AWSCognitoProvider
 from key_value.aio.stores.redis import RedisStore
@@ -3910,16 +3994,14 @@ auth_provider = AWSCognitoProvider(
     client_id="your-app-client-id",
     client_secret="your-app-client-secret",
     base_url="https://your-production-domain.com",
-
     # Production token management
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production AWS Cognito App", auth=auth_provider)
@@ -3927,6 +4009,7 @@ mcp = FastMCP(name="Production AWS Cognito App", auth=auth_provider)
  Parameters (`jwt_signing_key` and `client_storage`) work together to ensure tokens and client registrations survive server restarts. **Wrap your storage in `FernetEncryptionWrapper` to encrypt sensitive OAuth tokens at rest** - without it, tokens are stored in plaintext. Store secrets in environment variables and use a persistent storage backend like Redis for distributed deployments. For complete details on these parameters, see the [OAuth Proxy documentation](/servers/auth/oauth-proxy#configuration-parameters). ## Features ### JWT Token Validation The AWS Cognito provider includes robust JWT token validation: * **Signature Verification**: Validates tokens against AWS Cognito's public keys (JWKS) * **Expiration Checking**: Automatically rejects expired tokens * **Issuer Validation**: Ensures tokens come from your specific AWS Cognito user pool * **Scope Enforcement**: Verifies required OAuth scopes are present ### User Claims and Groups Access rich user information from AWS Cognito JWT tokens: 
 ```python
 from fastmcp.server.dependencies import get_access_token
+
 
 @mcp.tool
 async def admin_only_tool() -> str:
@@ -3953,10 +4036,12 @@ from fastmcp.server.auth.providers.azure import AzureProvider
 # The AzureProvider handles Azure's token format and validation
 auth_provider = AzureProvider(
     client_id="835f09b6-0f0f-40cc-85cb-f32c5829a149",  # Your Azure App Client ID
-    client_secret="your-client-secret",                 # Your Azure App Client Secret
-    tenant_id="08541b6e-646d-43de-a0eb-834e6713d6d5", # Your Azure Tenant ID (REQUIRED)
-    base_url="http://localhost:8000",                   # Must match your App registration
-    required_scopes=["your-scope"],                 # At least one scope REQUIRED - name of scope from your App
+    client_secret="your-client-secret",  # Your Azure App Client Secret
+    tenant_id="08541b6e-646d-43de-a0eb-834e6713d6d5",  # Your Azure Tenant ID (REQUIRED)
+    base_url="http://localhost:8000",  # Must match your App registration
+    required_scopes=[
+        "your-scope"
+    ],  # At least one scope REQUIRED - name of scope from your App
     # identifier_uri defaults to api://
     # identifier_uri="api://your-api-id",
     # Optional: request additional upstream scopes in the authorize request
@@ -3967,12 +4052,13 @@ auth_provider = AzureProvider(
 
 mcp = FastMCP(name="Azure Secured App", auth=auth_provider)
 
+
 # Add a protected tool to test authentication
 @mcp.tool
 async def get_user_info() -> dict:
     """Returns information about the authenticated Azure user."""
     from fastmcp.server.dependencies import get_access_token
-    
+
     token = get_access_token()
     # The AzureProvider stores user data in token claims
     return {
@@ -3980,7 +4066,7 @@ async def get_user_info() -> dict:
         "email": token.claims.get("email"),
         "name": token.claims.get("name"),
         "job_title": token.claims.get("job_title"),
-        "office_location": token.claims.get("office_location")
+        "office_location": token.claims.get("office_location"),
     }
 ```
  **Important**: The `tenant_id` parameter is **REQUIRED**. Azure no longer supports using "common" for new applications due to security requirements. You must use one of: * **Your specific tenant ID**: Found in Azure Portal (e.g., `08541b6e-646d-43de-a0eb-834e6713d6d5`) * **"organizations"**: For work and school accounts only * **"consumers"**: For personal Microsoft accounts only Using your specific tenant ID is recommended for better security and control. **Important**: The `required_scopes` parameter is **REQUIRED** and must include at least one scope. Azure's OAuth API requires the `scope` parameter in all authorization requests - you cannot authenticate without specifying at least one scope. Use the unprefixed scope names from your Azure App registration (e.g., `["read", "write"]`). These scopes must be created under **Expose an API** in your App registration. ### Scope Handling FastMCP automatically prefixes `required_scopes` with your `identifier_uri` (e.g., `api://your-client-id`) since these are your custom API scopes. Scopes in `additional_authorize_scopes` are sent as-is since they target external resources like Microsoft Graph. **`required_scopes`** — Your custom API scopes, defined in Azure "Expose an API": | You write | Sent to Azure | Validated on tokens | | ---------------- | -------------------- | ------------------- | | `mcp-read` | `api://xxx/mcp-read` | ✓ | | `my.scope` | `api://xxx/my.scope` | ✓ | | `openid` | `openid` | ✗ (OIDC scope) | | `api://xxx/read` | `api://xxx/read` | ✓ | **`additional_authorize_scopes`** — External scopes (e.g., Microsoft Graph) for server-side use: | You write | Sent to Azure | Validated on tokens | | ----------- | ------------- | ------------------- | | `User.Read` | `User.Read` | ✗ | | `Mail.Send` | `Mail.Send` | ✗ | `offline_access` is automatically included to obtain refresh tokens. FastMCP manages token refreshing automatically. **Why aren't `additional_authorize_scopes` validated?** Azure issues separate tokens per resource. The access token FastMCP receives is for *your API*—Graph scopes aren't in its `scp` claim. To call Graph APIs, your server uses the upstream Azure token in an on-behalf-of (OBO) flow. OIDC scopes (`openid`, `profile`, `email`, `offline_access`) are never prefixed and excluded from validation because Azure doesn't include them in access token `scp` claims. ## Testing ### Running the Server Start your FastMCP server with HTTP transport to enable OAuth flows: 
@@ -3991,23 +4077,24 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     # The client will automatically handle Azure OAuth
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         # First-time connection will open Azure login in your browser
         print("✓ Authenticated with Azure!")
-        
+
         # Test the protected tool
         result = await client.call_tool("get_user_info")
         print(f"Azure user: ")
         print(f"Name: ")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to Microsoft's authorization page 2. Sign in with your Microsoft account (work, school, or personal based on your tenant configuration) 3. Grant the requested permissions 4. After authorization, you'll be redirected back 5. The client receives the token and can make authenticated requests The client caches tokens locally, so you won't need to re-authenticate for subsequent runs unless the token expires or you explicitly clear the cache. ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key` and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.azure import AzureProvider
 from key_value.aio.stores.redis import RedisStore
@@ -4021,16 +4108,14 @@ auth_provider = AzureProvider(
     tenant_id="08541b6e-646d-43de-a0eb-834e6713d6d5",
     base_url="https://your-production-domain.com",
     required_scopes=["your-scope"],
-
     # Production token management
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production Azure App", auth=auth_provider)
@@ -4054,9 +4139,7 @@ verifier = AzureJWTVerifier(
 
 auth = RemoteAuthProvider(
     token_verifier=verifier,
-    authorization_servers=[
-        AnyHttpUrl(f"https://login.microsoftonline.com//v2.0")
-    ],
+    authorization_servers=[AnyHttpUrl(f"https://login.microsoftonline.com//v2.0")],
     base_url="https://your-container-app.azurecontainerapps.io",
 )
 
@@ -4171,10 +4254,12 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("Demo Server")
 
+
 @mcp.tool
 def roll_dice(sides: int = 6) -> int:
     """Roll a dice with the specified number of sides."""
     return random.randint(1, sides)
+
 
 if __name__ == "__main__":
     mcp.run(transport="http", port=8000)
@@ -4191,10 +4276,12 @@ if __name__ == "__main__":
 ```python
 from mcp.types import ToolAnnotations
 
+
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True))
 def get_status() -> str:
     """Check system status."""
     return "All systems operational"
+
 
 @mcp.tool()  # No annotation - ChatGPT may ask for confirmation
 def delete_item(id: str) -> str:
@@ -4229,15 +4316,16 @@ def fetch(id: str) -> dict:
 ```
  ### Using Deep Research 1. Ensure your server is added to ChatGPT's connectors (same as Chat mode) 2. Start a new chat 3. Click **+** → **Deep Research** 4. Select your MCP server as a source 5. Ask research questions ChatGPT will use your `search` and `fetch` tools to find and cite relevant information. # Claude Code 🤝 FastMCP Source: https://gofastmcp.com/integrations/claude-code Install and use FastMCP servers in Claude Code [Claude Code](https://docs.anthropic.com/en/docs/claude-code) supports MCP servers through multiple transport methods including STDIO, SSE, and HTTP, allowing you to extend Claude's capabilities with custom tools, resources, and prompts from your FastMCP servers. ## Requirements This integration uses STDIO transport to run your FastMCP server locally. For remote deployments, you can run your FastMCP server with HTTP or SSE transport and configure it directly using Claude Code's built-in MCP management commands. ## Create a Server The examples in this guide will use the following simple dice-rolling server, saved as `server.py`. 
 ```python
-
 from fastmcp import FastMCP
 
 mcp = FastMCP(name="Dice Roller")
+
 
 @mcp.tool
 def roll_dice(n_dice: int) -> list[int]:
     """Roll `n_dice` 6-sided dice and return the results."""
     return [random.randint(1, 6) for _ in range(n_dice)]
+
 
 if __name__ == "__main__":
     mcp.run()
@@ -4319,15 +4407,16 @@ claude mcp add project-server -- uv run --project /path/to/project --with fastmc
 ```
  ## Using the Server Once your server is installed, you can start using your FastMCP server with Claude Code. Try asking Claude something like: > "Roll some dice for me" Claude will automatically detect your `roll_dice` tool and use it to fulfill your request, returning something like: > I'll roll some dice for you! Here are your results: \[4, 2, 6] > > You rolled three dice and got a 4, a 2, and a 6! Claude Code can now access all the tools, resources, and prompts you've defined in your FastMCP server. If your server provides resources, you can reference them with `@` mentions using the format `@server:protocol://resource/path`. If your server provides prompts, you can use them as slash commands with `/mcp__servername__promptname`. # Claude Desktop 🤝 FastMCP Source: https://gofastmcp.com/integrations/claude-desktop Connect FastMCP servers to Claude Desktop [Claude Desktop](https://www.claude.com/download) supports MCP servers through local STDIO connections and remote servers (beta), allowing you to extend Claude's capabilities with custom tools, resources, and prompts from your FastMCP servers. Remote MCP server support is currently in beta and available for users on Claude Pro, Max, Team, and Enterprise plans (as of June 2025). Most users will still need to use local STDIO connections. This guide focuses specifically on using FastMCP servers with Claude Desktop. For general Claude Desktop MCP setup and official examples, see the [official Claude Desktop quickstart guide](https://modelcontextprotocol.io/quickstart/user). ## Requirements Claude Desktop traditionally requires MCP servers to run locally using STDIO transport, where your server communicates with Claude through standard input/output rather than HTTP. However, users on certain plans now have access to remote server support as well. If you don't have access to remote server support or need to connect to remote servers, you can create a **proxy server** that runs locally via STDIO and forwards requests to remote HTTP servers. See the [Proxy Servers](#proxy-servers) section below. ## Create a Server The examples in this guide will use the following simple dice-rolling server, saved as `server.py`. 
 ```python
-
 from fastmcp import FastMCP
 
 mcp = FastMCP(name="Dice Roller")
+
 
 @mcp.tool
 def roll_dice(n_dice: int) -> list[int]:
     """Roll `n_dice` 6-sided dice and return the results."""
     return [random.randint(1, 6) for _ in range(n_dice)]
+
 
 if __name__ == "__main__":
     mcp.run()
@@ -4457,10 +4546,7 @@ fastmcp install claude-desktop server.py --server-name "Weather Server" --env-fi
 from fastmcp.server import create_proxy
 
 # Create a proxy to a remote server
-proxy = create_proxy(
-    "https://example.com/mcp/sse",
-    name="Remote Server Proxy"
-)
+proxy = create_proxy("https://example.com/mcp/sse", name="Remote Server Proxy")
 
 if __name__ == "__main__":
     proxy.run()  # Runs via STDIO for Claude Desktop
@@ -4473,8 +4559,7 @@ from fastmcp.server import create_proxy
 
 # Create authenticated client
 client = Client(
-    "https://api.example.com/mcp/sse",
-    auth=BearerAuth(token="your-access-token")
+    "https://api.example.com/mcp/sse", auth=BearerAuth(token="your-access-token")
 )
 
 # Create proxy using the authenticated client
@@ -4501,12 +4586,11 @@ from fastmcp.server.auth.providers.descope import DescopeProvider
 # and configures JWT token validation
 auth_provider = DescopeProvider(
     config_url="https://.../.well-known/openid-configuration",  # Your MCP Server .well-known URL
-    base_url=SERVER_URL,                                        # Your server's public URL
+    base_url=SERVER_URL,  # Your server's public URL
 )
 
 # Create FastMCP server with auth
 mcp = FastMCP(name="My Descope Protected Server", auth=auth_provider)
-
 ```
  ## Testing To test your server, you can use the `fastmcp` CLI to run it locally. Assuming you've saved the above code to `server.py` (after replacing the environment variables with your actual values!), you can run the following command: 
 ```bash
@@ -4516,23 +4600,24 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         assert await client.ping()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  ## Production Configuration For production deployments, load configuration from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.descope import DescopeProvider
 
 # Load configuration from environment variables
 auth = DescopeProvider(
     config_url=os.environ.get("DESCOPE_CONFIG_URL"),
-    base_url=os.environ.get("BASE_URL", "https://your-server.com")
+    base_url=os.environ.get("BASE_URL", "https://your-server.com"),
 )
 
 mcp = FastMCP(name="My Descope Protected Server", auth=auth)
@@ -4543,12 +4628,13 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.discord import DiscordProvider
 
 auth_provider = DiscordProvider(
-    client_id="12345",      # Your Discord Application Client ID
-    client_secret="your-client-secret",    # Your Discord OAuth Client Secret
-    base_url="http://localhost:8000",      # Must match your OAuth configuration
+    client_id="12345",  # Your Discord Application Client ID
+    client_secret="your-client-secret",  # Your Discord OAuth Client Secret
+    base_url="http://localhost:8000",  # Must match your OAuth configuration
 )
 
 mcp = FastMCP(name="Discord Secured App", auth=auth_provider)
+
 
 @mcp.tool
 async def get_user_info() -> dict:
@@ -4570,12 +4656,14 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         print("✓ Authenticated with Discord!")
 
         result = await client.call_tool("get_user_info")
         print(f"Discord user: ")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -4591,7 +4679,6 @@ auth_provider = DiscordProvider(
 ```
  ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key` and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.discord import DiscordProvider
 from key_value.aio.stores.redis import RedisStore
@@ -4602,15 +4689,13 @@ auth_provider = DiscordProvider(
     client_id="12345",
     client_secret=os.environ["DISCORD_CLIENT_SECRET"],
     base_url="https://your-production-domain.com",
-
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production Discord App", auth=auth_provider)
@@ -4658,10 +4743,12 @@ from eunomia_mcp import create_eunomia_middleware
 # Create your FastMCP server
 mcp = FastMCP("Secure MCP Server 🔒")
 
+
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers"""
     return a + b
+
 
 # Add middleware to your server
 middleware = create_eunomia_middleware(policy_file="mcp_policies.json")
@@ -4694,12 +4781,14 @@ python server.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+
 # Models
 class Product(BaseModel):
     name: str
     price: float
     category: str
     description: str | None = None
+
 
 class ProductResponse(BaseModel):
     id: int
@@ -4708,22 +4797,18 @@ class ProductResponse(BaseModel):
     category: str
     description: str | None = None
 
+
 # Create FastAPI app
 app = FastAPI(title="E-commerce API", version="1.0.0")
 
 # In-memory database
 products_db = {
-    1: ProductResponse(
-        id=1, name="Laptop", price=999.99, category="Electronics"
-    ),
-    2: ProductResponse(
-        id=2, name="Mouse", price=29.99, category="Electronics"
-    ),
-    3: ProductResponse(
-        id=3, name="Desk Chair", price=299.99, category="Furniture"
-    ),
+    1: ProductResponse(id=1, name="Laptop", price=999.99, category="Electronics"),
+    2: ProductResponse(id=2, name="Mouse", price=29.99, category="Electronics"),
+    3: ProductResponse(id=3, name="Desk Chair", price=299.99, category="Furniture"),
 }
 next_id = 4
+
 
 @app.get("/products", response_model=list[ProductResponse])
 def list_products(
@@ -4738,12 +4823,14 @@ def list_products(
         products = [p for p in products if p.price <= max_price]
     return products
 
+
 @app.get("/products/", response_model=ProductResponse)
 def get_product(product_id: int):
     """Get a specific product by ID."""
     if product_id not in products_db:
         raise HTTPException(status_code=404, detail="Product not found")
     return products_db[product_id]
+
 
 @app.post("/products", response_model=ProductResponse)
 def create_product(product: Product):
@@ -4753,6 +4840,7 @@ def create_product(product: Product):
     products_db[next_id] = product_response
     next_id += 1
     return product_response
+
 
 @app.put("/products/", response_model=ProductResponse)
 def update_product(product_id: int, product: Product):
@@ -4765,13 +4853,14 @@ def update_product(product_id: int, product: Product):
     )
     return products_db[product_id]
 
+
 @app.delete("/products/")
 def delete_product(product_id: int):
     """Delete a product."""
     if product_id not in products_db:
         raise HTTPException(status_code=404, detail="Product not found")
     del products_db[product_id]
-    return 
+    return
 ```
  All subsequent code examples in this guide assume you have the above FastAPI application code already defined. Each example builds upon this base application, `app`. ## Generating an MCP Server One of the most common ways to bootstrap an MCP server is to generate it from an existing FastAPI application. FastMCP will expose your FastAPI endpoints as MCP components (tools, by default) in order to expose your API to LLM clients. ### Basic Conversion Convert the FastAPI app to an MCP server with a single line: 
 ```python
@@ -4792,11 +4881,13 @@ from fastmcp import FastMCP
 # Convert to MCP server
 mcp = FastMCP.from_fastapi(app=app)
 
+
 # Add a new tool
 @mcp.tool
 def get_product(product_id: int) -> ProductResponse:
     """Get a product by ID."""
     return products_db[product_id]
+
 
 # Run the MCP server
 if __name__ == "__main__":
@@ -4811,12 +4902,13 @@ from fastmcp.client import Client
 # Convert to MCP server
 mcp = FastMCP.from_fastapi(app=app)
 
+
 async def demo():
     async with Client(mcp) as client:
         # List available tools
         tools = await client.list_tools()
         print(f"Available tools: ")
-        
+
         # Create a product
         result = await client.call_tool(
             "create_product_products_post",
@@ -4824,17 +4916,17 @@ async def demo():
                 "name": "Wireless Keyboard",
                 "price": 79.99,
                 "category": "Electronics",
-                "description": "Bluetooth mechanical keyboard"
-            }
+                "description": "Bluetooth mechanical keyboard",
+            },
         )
         print(f"Created product: ")
-        
+
         # List electronics under $100
         result = await client.call_tool(
             "list_products_products_get",
-            
         )
         print(f"Affordable electronics: ")
+
 
 if __name__ == "__main__":
     asyncio.run(demo())
@@ -4850,17 +4942,9 @@ mcp = FastMCP.from_fastapi(
     app=app,
     route_maps=[
         # GET with path params → ResourceTemplates
-        RouteMap(
-            methods=["GET"], 
-            pattern=r".*\.*", 
-            mcp_type=MCPType.RESOURCE_TEMPLATE
-        ),
+        RouteMap(methods=["GET"], pattern=r".*\.*", mcp_type=MCPType.RESOURCE_TEMPLATE),
         # Other GETs → Resources
-        RouteMap(
-            methods=["GET"], 
-            pattern=r".*", 
-            mcp_type=MCPType.RESOURCE
-        ),
+        RouteMap(methods=["GET"], pattern=r".*", mcp_type=MCPType.RESOURCE),
         # POST/PUT/DELETE → Tools (default)
     ],
 )
@@ -4881,18 +4965,21 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer()
 
+
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     if credentials.credentials != "secret-token":
         raise HTTPException(status_code=401, detail="Invalid authentication")
     return credentials.credentials
+
 
 # Add a protected endpoint
 @app.get("/admin/stats", dependencies=[Depends(verify_token)])
 def get_admin_stats():
     return {
         "total_products": len(products_db),
-        "categories": list(set(p.category for p in products_db.values()))
+        "categories": list(set(p.category for p in products_db.values())),
     }
+
 
 # Create MCP server with authentication headers
 mcp = FastMCP.from_fastapi(
@@ -4901,7 +4988,7 @@ mcp = FastMCP.from_fastapi(
         "headers": {
             "Authorization": "Bearer secret-token",
         }
-    }
+    },
 )
 ```
  ## Mounting an MCP Server In addition to generating servers, FastMCP can facilitate adding MCP servers to your existing FastAPI application. You can do this by mounting the MCP ASGI application. ### Basic Mounting To mount an MCP server, you can use the `http_app` method on your FastMCP instance. This will return an ASGI application that can be mounted to your FastAPI application. 
@@ -4912,13 +4999,14 @@ from fastapi import FastAPI
 # Create MCP server
 mcp = FastMCP("Analytics Tools")
 
+
 @mcp.tool
 def analyze_pricing(category: str) -> dict:
     """Analyze pricing for a category."""
     products = [p for p in products_db.values() if p.category == category]
     if not products:
         return {"error": f"No products in "}
-    
+
     prices = [p.price for p in products]
     return {
         "category": category,
@@ -4927,8 +5015,9 @@ def analyze_pricing(category: str) -> dict:
         "max": max(prices),
     }
 
+
 # Create ASGI app from MCP server
-mcp_app = mcp.http_app(path='/mcp')
+mcp_app = mcp.http_app(path="/mcp")
 
 # Key: Pass lifespan to FastAPI
 app = FastAPI(title="E-commerce API", lifespan=mcp_app.lifespan)
@@ -4948,14 +5037,14 @@ from fastapi import FastAPI
 mcp = FastMCP.from_fastapi(app=app, name="E-commerce MCP")
 
 # 2. Create the MCP's ASGI app
-mcp_app = mcp.http_app(path='/mcp')
+mcp_app = mcp.http_app(path="/mcp")
 
 # 3. Create a new FastAPI app that combines both sets of routes
 combined_app = FastAPI(
     title="E-commerce API with MCP",
     routes=[
         *mcp_app.routes,  # MCP routes
-        *app.routes,      # Original API routes
+        *app.routes,  # Original API routes
     ],
     lifespan=mcp_app.lifespan,
 )
@@ -4970,12 +5059,13 @@ combined_app = FastAPI(
 # Good - explicit operation_id
 @app.get("/users/", operation_id="get_user_by_id")
 def get_user(user_id: int):
-    return 
+    return
+
 
 # Less ideal - auto-generated name
 @app.get("/users/")
 def get_user(user_id: int):
-    return 
+    return
 ```
  ### Lifespan Management When mounting MCP servers, always pass the lifespan context: 
 ```python
@@ -4995,12 +5085,14 @@ from fastmcp import FastMCP
 from fastmcp.utilities.lifespan import combine_lifespans
 from contextlib import asynccontextmanager
 
+
 # Your existing lifespan
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
     print("Starting up the app...")
     yield
     print("Shutting down the app...")
+
 
 # Create MCP server
 mcp = FastMCP("Tools")
@@ -5018,25 +5110,26 @@ from fastmcp.server.auth.providers.github import GitHubProvider
 # The GitHubProvider handles GitHub's token format and validation
 auth_provider = GitHubProvider(
     client_id="Ov23liAbcDefGhiJkLmN",  # Your GitHub OAuth App Client ID
-    client_secret="github_pat_...",     # Your GitHub OAuth App Client Secret
-    base_url="http://localhost:8000",   # Must match your OAuth App configuration
+    client_secret="github_pat_...",  # Your GitHub OAuth App Client Secret
+    base_url="http://localhost:8000",  # Must match your OAuth App configuration
     # redirect_path="/auth/callback"   # Default value, customize if needed
 )
 
 mcp = FastMCP(name="GitHub Secured App", auth=auth_provider)
+
 
 # Add a protected tool to test authentication
 @mcp.tool
 async def get_user_info() -> dict:
     """Returns information about the authenticated GitHub user."""
     from fastmcp.server.dependencies import get_access_token
-    
+
     token = get_access_token()
     # The GitHubProvider stores user data in token claims
     return {
         "github_user": token.claims.get("login"),
         "name": token.claims.get("name"),
-        "email": token.claims.get("email")
+        "email": token.claims.get("email"),
     }
 ```
  ## Testing ### Running the Server Start your FastMCP server with HTTP transport to enable OAuth flows: 
@@ -5047,22 +5140,23 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     # The client will automatically handle GitHub OAuth
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         # First-time connection will open GitHub login in your browser
         print("✓ Authenticated with GitHub!")
-        
+
         # Test the protected tool
         result = await client.call_tool("get_user_info")
         print(f"GitHub user: ")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to GitHub's authorization page 2. After you authorize the app, you'll be redirected back 3. The client receives the token and can make authenticated requests The client caches tokens locally, so you won't need to re-authenticate for subsequent runs unless the token expires or you explicitly clear the cache. ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key` and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.github import GitHubProvider
 from key_value.aio.stores.redis import RedisStore
@@ -5074,16 +5168,14 @@ auth_provider = GitHubProvider(
     client_id="Ov23liAbcDefGhiJkLmN",
     client_secret="github_pat_...",
     base_url="https://your-production-domain.com",
-
     # Production token management
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production GitHub App", auth=auth_provider)
@@ -5096,9 +5188,9 @@ from fastmcp.server.auth.providers.google import GoogleProvider
 # The GoogleProvider handles Google's token format and validation
 auth_provider = GoogleProvider(
     client_id="123456789.apps.googleusercontent.com",  # Your Google OAuth Client ID
-    client_secret="GOCSPX-abc123...",                  # Your Google OAuth Client Secret
-    base_url="http://localhost:8000",                  # Must match your OAuth configuration
-    required_scopes=[                                  # Request user information
+    client_secret="GOCSPX-abc123...",  # Your Google OAuth Client Secret
+    base_url="http://localhost:8000",  # Must match your OAuth configuration
+    required_scopes=[  # Request user information
         "openid",
         "https://www.googleapis.com/auth/userinfo.email",
     ],
@@ -5107,12 +5199,13 @@ auth_provider = GoogleProvider(
 
 mcp = FastMCP(name="Google Secured App", auth=auth_provider)
 
+
 # Add a protected tool to test authentication
 @mcp.tool
 async def get_user_info() -> dict:
     """Returns information about the authenticated Google user."""
     from fastmcp.server.dependencies import get_access_token
-    
+
     token = get_access_token()
     # The GoogleProvider stores user data in token claims
     return {
@@ -5120,7 +5213,7 @@ async def get_user_info() -> dict:
         "email": token.claims.get("email"),
         "name": token.claims.get("name"),
         "picture": token.claims.get("picture"),
-        "locale": token.claims.get("locale")
+        "locale": token.claims.get("locale"),
     }
 ```
  ## Testing ### Running the Server Start your FastMCP server with HTTP transport to enable OAuth flows: 
@@ -5131,23 +5224,24 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     # The client will automatically handle Google OAuth
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         # First-time connection will open Google login in your browser
         print("✓ Authenticated with Google!")
-        
+
         # Test the protected tool
         result = await client.call_tool("get_user_info")
         print(f"Google user: ")
         print(f"Name: ")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to Google's authorization page 2. Sign in with your Google account and grant the requested permissions 3. After authorization, you'll be redirected back 4. The client receives the token and can make authenticated requests The client caches tokens locally, so you won't need to re-authenticate for subsequent runs unless the token expires or you explicitly clear the cache. ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key` and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.google import GoogleProvider
 from key_value.aio.stores.redis import RedisStore
@@ -5160,23 +5254,20 @@ auth_provider = GoogleProvider(
     client_secret="GOCSPX-abc123...",
     base_url="https://your-production-domain.com",
     required_scopes=["openid", "https://www.googleapis.com/auth/userinfo.email"],
-
     # Production token management
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production Google App", auth=auth_provider)
 ```
  Parameters (`jwt_signing_key` and `client_storage`) work together to ensure tokens and client registrations survive server restarts. **Wrap your storage in `FernetEncryptionWrapper` to encrypt sensitive OAuth tokens at rest** - without it, tokens are stored in plaintext. Store secrets in environment variables and use a persistent storage backend like Redis for distributed deployments. For complete details on these parameters, see the [OAuth Proxy documentation](/servers/auth/oauth-proxy#configuration-parameters). # Keycloak OAuth 🤝 FastMCP Source: https://gofastmcp.com/integrations/keycloak Secure your FastMCP server with Keycloak OAuth This guide shows you how to secure your FastMCP server using **Keycloak OAuth**. This integration uses the [**Remote OAuth**](/servers/auth/remote-oauth) pattern with Dynamic Client Registration (DCR), where Keycloak handles user login and your FastMCP server validates the tokens. **Keycloak 26.6.0 or later is required.** Earlier versions had a DCR incompatibility with MCP clients ([PR #45309](https://github.com/keycloak/keycloak/pull/45309)) that is fixed in 26.6.0. ## Configuration ### Prerequisites Before you begin, you will need: 1. A running **[Keycloak](https://keycloak.org/)** instance (e.g., `http://localhost:8080`) 2. A Keycloak realm with **Dynamic Client Registration** enabled and a trusted host policy that allows your server URL (e.g., `http://localhost:8000/*`) 3. Your FastMCP server's public URL (e.g., `http://localhost:8000`) ### FastMCP Configuration Create your FastMCP server and use `KeycloakAuthProvider` to handle OAuth: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.keycloak import KeycloakAuthProvider
 from fastmcp.server.dependencies import get_access_token
@@ -5188,6 +5279,7 @@ auth = KeycloakAuthProvider(
 )
 
 mcp = FastMCP("Keycloak Example Server", auth=auth)
+
 
 @mcp.tool
 async def get_access_token_claims() -> dict:
@@ -5205,8 +5297,8 @@ fastmcp run server.py --transport http --port 8000
 ```
  ### Testing with a Client 
 ```python
-
 from fastmcp import Client
+
 
 async def main():
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
@@ -5214,17 +5306,21 @@ async def main():
         result = await client.call_tool("get_access_token_claims")
         print(f"sub: ")
 
+
 asyncio.run(main())
 ```
  On first run, your browser will open to Keycloak's authorization page. After login, the client receives a token and caches it for subsequent runs. ## Features ### JWT Token Validation * **Signature Verification**: Validates tokens against Keycloak's JWKS endpoint * **Expiration Checking**: Automatically rejects expired tokens * **Issuer Validation**: Ensures tokens come from your specific Keycloak realm * **Scope Enforcement**: Verifies required OAuth scopes are present * **Audience Validation**: Optional validation that tokens target your server (configure `audience`) ### User Claims Access user information from Keycloak JWT tokens: 
 ```python
 from fastmcp.server.dependencies import get_access_token
 
+
 @mcp.tool
 async def admin_only_tool() -> str:
     """A tool only available to admin users."""
     token = get_access_token()
-    roles = token.claims.get("realm_access", ).get("roles", [])
+    roles = token.claims.get(
+        "realm_access",
+    ).get("roles", [])
     if "admin" not in roles:
         raise ValueError("This tool requires admin access")
     return "Admin access granted!"
@@ -5318,6 +5414,7 @@ python3 client.py
 ```python
 from fastmcp import Client
 
+
 async def main():
     # The client will automatically handle OCI OAuth flows
     async with Client("http://localhost:8000/mcp/", auth="oauth") as client:
@@ -5329,12 +5426,12 @@ async def main():
         for tool in tools:
             print(f"   - : ")
 
+
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to OCI IAM's login page 2. Sign in with your OCI account and grant the requested consent 3. After authorization, you'll be redirected back to the redirect path 4. The client receives the token and can make authenticated requests ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key`, and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.oci import OCIProvider
 
@@ -5349,36 +5446,31 @@ auth_provider = OCIProvider(
     client_id=os.environ.get("OCI_CLIENT_ID"),
     client_secret=os.environ.get("OCI_CLIENT_SECRET"),
     base_url=os.environ.get("BASE_URL", "https://your-production-domain.com"),
-
     # Production token management
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production OCI App", auth=auth_provider)
 ```
  Parameters (`jwt_signing_key` and `client_storage`) work together to ensure tokens and client registrations survive server restarts. **Wrap your storage in `FernetEncryptionWrapper` to encrypt sensitive OAuth tokens at Rest** - without it, tokens are stored in plaintext. Store secrets in environment variables and use a persistent storage backend like Redis for distributed deployments. For complete details on these parameters, see the [OAuth Proxy documentation](/servers/auth/oauth-proxy#configuration-parameters). The client caches tokens locally, so you won't need to re-authenticate for subsequent runs unless the token expires or you explicitly clear the cache. # OpenAPI 🤝 FastMCP Source: https://gofastmcp.com/integrations/openapi Generate MCP servers from any OpenAPI specification FastMCP can automatically generate an MCP server from any OpenAPI specification, allowing AI models to interact with existing APIs through the MCP protocol. Instead of manually creating tools and resources, you provide an OpenAPI spec and FastMCP intelligently converts API endpoints into the appropriate MCP components. Under the hood, OpenAPI integration uses OpenAPIProvider (v3.0.0+) to source tools from the specification. See [Providers](/servers/providers/overview) to understand how FastMCP sources components. Generating MCP servers from OpenAPI is a great way to get started with FastMCP, but in practice LLMs achieve **significantly better performance** with well-designed and curated MCP servers than with auto-converted OpenAPI servers. This is especially true for complex APIs with many endpoints and parameters. We recommend using the FastAPI integration for bootstrapping and prototyping, not for mirroring your API to LLM clients. See the post [Stop Converting Your REST APIs to MCP](https://www.jlowin.dev/blog/stop-converting-rest-apis-to-mcp) for more details. ## Create a Server To convert an OpenAPI specification to an MCP server, use the `FastMCP.from_openapi()` class method: 
 ```python
-
 from fastmcp import FastMCP
 
 # Create an HTTP client for your API
 client = httpx.AsyncClient(base_url="https://api.example.com")
 
-# Load your OpenAPI spec 
+# Load your OpenAPI spec
 openapi_spec = httpx.get("https://api.example.com/openapi.json").json()
 
 # Create the MCP server
 mcp = FastMCP.from_openapi(
-    openapi_spec=openapi_spec,
-    client=client,
-    name="My API Server"
+    openapi_spec=openapi_spec, client=client, name="My API Server"
 )
 
 if __name__ == "__main__":
@@ -5441,17 +5533,15 @@ mcp = FastMCP.from_openapi(
     route_maps=[
         # Analytics `GET` endpoints are tools
         RouteMap(
-            methods=["GET"], 
-            pattern=r"^/analytics/.*", 
+            methods=["GET"],
+            pattern=r"^/analytics/.*",
             mcp_type=MCPType.TOOL,
         ),
-
         # Exclude all admin endpoints
         RouteMap(
-            pattern=r"^/admin/.*", 
+            pattern=r"^/admin/.*",
             mcp_type=MCPType.EXCLUDE,
         ),
-
         # Exclude all routes tagged "internal"
         RouteMap(
             tags=internal,
@@ -5496,6 +5586,7 @@ from fastmcp import FastMCP
 from fastmcp.server.providers.openapi import RouteMap, MCPType
 from fastmcp.utilities.openapi import HTTPRoute
 
+
 def custom_route_mapper(route: HTTPRoute, mcp_type: MCPType) -> MCPType | None:
     """Advanced route type mapping."""
     # Convert all admin routes to tools regardless of HTTP method
@@ -5504,13 +5595,14 @@ def custom_route_mapper(route: HTTPRoute, mcp_type: MCPType) -> MCPType | None:
 
     elif "internal" in route.tags:
         return MCPType.EXCLUDE
-    
+
     # Convert user detail routes to templates even if they're POST
     elif route.path.startswith("/users/") and route.method == "POST":
         return MCPType.RESOURCE_TEMPLATE
-    
+
     # Use defaults for all other routes
     return None
+
 
 mcp = FastMCP.from_openapi(
     openapi_spec=spec,
@@ -5525,9 +5617,9 @@ mcp = FastMCP.from_openapi(
     client=client,
     mcp_names={
         "list_users__with_pagination": "user_list",
-        "create_user__admin_required": "create_user", 
+        "create_user__admin_required": "create_user",
         "get_user_details__admin_required": "user_detail",
-    }
+    },
 )
 ```
  Any `operationId` not found in `mcp_names` will use the default strategy (operationId up to the first `__`). ### Tags FastMCP provides several ways to add tags to your MCP components, allowing you to categorize and organize them for better discoverability and filtering. Tags are combined from multiple sources to create the final set of tags on each component. #### RouteMap Tags You can add custom tags to components created from specific routes using the `mcp_tags` parameter in `RouteMap`. These tags will be applied to all components created from routes that match that particular route map. 
@@ -5588,15 +5680,17 @@ mcp = FastMCP.from_openapi(
   ```
  
 ```python
-  async with client:
-      tools = await client.list_tools()
-      for tool in tools:
-          if tool.meta:
-              # OpenAPI tags are now available in fastmcp namespace!
-              fastmcp_meta = tool.meta.get('fastmcp', )
-              openapi_tags = fastmcp_meta.get('tags', [])
-              if 'users' in openapi_tags:
-                  print(f"Found user-related tool: ")
+async with client:
+    tools = await client.list_tools()
+    for tool in tools:
+        if tool.meta:
+            # OpenAPI tags are now available in fastmcp namespace!
+            fastmcp_meta = tool.meta.get(
+                "fastmcp",
+            )
+            openapi_tags = fastmcp_meta.get("tags", [])
+            if "users" in openapi_tags:
+                print(f"Found user-related tool: ")
   ```
  This makes it easy for clients to understand and organize API endpoints based on their original OpenAPI categorization. ### Advanced Customization By default, FastMCP creates MCP components using a variety of metadata from the OpenAPI spec, such as incorporating the OpenAPI description into the MCP component description. At times you may want to modify those MCP components in a variety of ways, such as adding LLM-specific instructions or tags. For fine-grained customization, you can provide a `mcp_component_fn` when creating the MCP server. After each MCP component has been created, this function is called on it and has the opportunity to modify it in-place. Your `mcp_component_fn` is expected to modify the component in-place, not to return a new component. The result of the function is ignored. 
 ```python
@@ -5607,20 +5701,22 @@ from fastmcp.server.providers.openapi import (
 )
 from fastmcp.utilities.openapi import HTTPRoute
 
+
 def customize_components(
-    route: HTTPRoute, 
+    route: HTTPRoute,
     component: OpenAPITool | OpenAPIResource | OpenAPIResourceTemplate,
 ) -> None:
     # Add custom tags to all components
     component.tags.add("openapi")
-    
+
     # Customize based on component type
     if isinstance(component, OpenAPITool):
         component.description = f"🔧  (via API)"
-    
+
     if isinstance(component, OpenAPIResource):
         component.description = f"📊 "
         component.tags.add("data")
+
 
 mcp = FastMCP.from_openapi(
     openapi_spec=spec,
@@ -5631,29 +5727,36 @@ mcp = FastMCP.from_openapi(
  ## Request Parameter Handling FastMCP intelligently handles different types of parameters in OpenAPI requests: ### Query Parameters By default, FastMCP only includes query parameters that have non-empty values. Parameters with `None` values or empty strings are automatically filtered out. 
 ```python
 # When calling this tool...
-await client.call_tool("search_products", {
-    "category": "electronics",  # ✅ Included
-    "min_price": 100,           # ✅ Included  
-    "max_price": None,          # ❌ Excluded
-    "brand": "",                # ❌ Excluded
-})
+await client.call_tool(
+    "search_products",
+    {
+        "category": "electronics",  # ✅ Included
+        "min_price": 100,  # ✅ Included
+        "max_price": None,  # ❌ Excluded
+        "brand": "",  # ❌ Excluded
+    },
+)
 
 # The HTTP request will be: GET /products?category=electronics&min_price=100
 ```
  ### Path Parameters Path parameters are typically required by REST APIs. FastMCP: * Filters out `None` values * Validates that all required path parameters are provided * Raises clear errors for missing required parameters 
 ```python
 # ✅ This works
-await client.call_tool("get_user", )
+await client.call_tool(
+    "get_user",
+)
 
 # ❌ This raises: "Missing required path parameters: user_id"
-await client.call_tool("get_user", )
+await client.call_tool(
+    "get_user",
+)
 ```
  ### Array Parameters FastMCP handles array parameters according to OpenAPI specifications: * **Query arrays**: Serialized based on the `explode` parameter (default: `True`) * **Path arrays**: Serialized as comma-separated values (OpenAPI 'simple' style) 
 ```python
 # Query array with explode=true (default)
 # ?tags=red&tags=blue&tags=green
 
-# Query array with explode=false  
+# Query array with explode=false
 # ?tags=red,blue,green
 
 # Path array (always comma-separated)
@@ -5709,21 +5812,25 @@ from permit_fastmcp.middleware.middleware import PermitMcpMiddleware
 
 mcp = FastMCP("Secure FastMCP Server 🔒")
 
+
 @mcp.tool
 def greet(name: str) -> str:
     """Greet a user by name"""
     return f"Hello, !"
+
 
 @mcp.tool
 def add(a: int, b: int) -> int:
     """Add two numbers"""
     return a + b
 
+
 # Add Permit.io authorization middleware
-mcp.add_middleware(PermitMcpMiddleware(
-    permit_pdp_url="http://localhost:7766",
-    permit_api_key="your-permit-api-key"
-))
+mcp.add_middleware(
+    PermitMcpMiddleware(
+        permit_pdp_url="http://localhost:7766", permit_api_key="your-permit-api-key"
+    )
+)
 
 if __name__ == "__main__":
     mcp.run(transport="http")
@@ -5763,15 +5870,15 @@ resource "permitio_role" "Admin" {
 ```
  You can also use the [Permit.io CLI](https://github.com/permitio/permit-cli), [API](https://api.permit.io/scalar) or [SDKs](https://github.com/permitio/permit-python) to manage policies, as well as writing policies directly in REGO (Open Policy Agent's policy language). For complete policy examples including ABAC and RBAC configurations, see [Example Policies](https://github.com/permitio/permit-fastmcp/tree/main/docs/example_policies). ### Identity Management The middleware supports multiple identity extraction modes: * **Fixed Identity**: Use a fixed identity for all requests * **Header-based**: Extract identity from HTTP headers * **JWT-based**: Extract and verify JWT tokens * **Source-based**: Use the MCP context source field For detailed identity mode configuration and environment variables, see [Identity Modes & Environment Variables](https://github.com/permitio/permit-fastmcp/blob/main/docs/identity-modes.md). #### JWT Authentication Example 
 ```python
-
 # Configure JWT identity extraction
 os.environ["PERMIT_MCP_IDENTITY_MODE"] = "jwt"
 os.environ["PERMIT_MCP_IDENTITY_JWT_SECRET"] = "your-jwt-secret"
 
-mcp.add_middleware(PermitMcpMiddleware(
-    permit_pdp_url="http://localhost:7766",
-    permit_api_key="your-permit-api-key"
-))
+mcp.add_middleware(
+    PermitMcpMiddleware(
+        permit_pdp_url="http://localhost:7766", permit_api_key="your-permit-api-key"
+    )
+)
 ```
  ### ABAC Policies with Tool Arguments The middleware supports Attribute-Based Access Control (ABAC) policies that can evaluate tool arguments as attributes. Tool arguments are automatically flattened as individual attributes (e.g., `arg_name`, `arg_number`) for granular policy conditions. *Example: Create dynamic resources with conditions like `resource.arg_number greater-than 10` to allow the `conditional-greet` tool only when the number argument exceeds 10.* #### Example: Conditional Access Create a dynamic resource with conditions like `resource.arg_number greater-than 10` to allow the `conditional-greet` tool only when the number argument exceeds 10. 
 ```python
@@ -5803,7 +5910,7 @@ middleware = PermitMcpMiddleware(
     permit_pdp_url="http://localhost:7766",
     permit_api_key="your-api-key",
     enable_audit_logging=True,
-    bypass_methods=["initialize", "ping", "health/*"]
+    bypass_methods=["initialize", "ping", "health/*"],
 )
 
 mcp.add_middleware(middleware)
@@ -5854,7 +5961,6 @@ SERVER_URL=http://localhost:8000                          # Your server's base U
 ```
  ### Step 3: FastMCP Configuration Create your FastMCP server file and use the PropelAuthProvider to handle all the OAuth integration automatically: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.propelauth import PropelAuthProvider
 
@@ -5863,7 +5969,7 @@ auth_provider = PropelAuthProvider(
     introspection_client_id=os.environ["PROPELAUTH_INTROSPECTION_CLIENT_ID"],
     introspection_client_secret=os.environ["PROPELAUTH_INTROSPECTION_CLIENT_SECRET"],
     base_url=os.environ["SERVER_URL"],
-    required_scopes=["read:user_data"],                          # Optional scope enforcement
+    required_scopes=["read:user_data"],  # Optional scope enforcement
 )
 
 mcp = FastMCP(name="My PropelAuth Protected Server", auth=auth_provider)
@@ -5876,16 +5982,17 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         assert await client.ping()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  ## Accessing User Information You can use `get_access_token()` inside your tools to identify the authenticated user: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.propelauth import PropelAuthProvider
 from fastmcp.server.dependencies import get_access_token
@@ -5900,18 +6007,18 @@ auth = PropelAuthProvider(
 
 mcp = FastMCP(name="My PropelAuth Protected Server", auth=auth)
 
+
 @mcp.tool
 def whoami() -> dict:
     """Return the authenticated user's ID."""
     token = get_access_token()
     if token is None:
-        return 
+        return
     user_id = token.claims.get("sub")
-    return 
+    return
 ```
  ## Advanced Configuration The `PropelAuthProvider` supports optional overrides for token introspection behavior, including caching and request timeouts: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.propelauth import PropelAuthProvider
 
@@ -5921,11 +6028,11 @@ auth = PropelAuthProvider(
     introspection_client_secret=os.environ["PROPELAUTH_INTROSPECTION_CLIENT_SECRET"],
     base_url=os.environ.get("BASE_URL", "https://your-server.com"),
     required_scopes=["read:user_data"],
-    resource="https://your-server.com/mcp",              # Restrict to tokens intended for this server (RFC 8707)
+    resource="https://your-server.com/mcp",  # Restrict to tokens intended for this server (RFC 8707)
     token_introspection_overrides={
-        "cache_ttl_seconds": 300,       # Cache introspection results for 5 minutes
-        "max_cache_size": 1000,         # Maximum cached tokens
-        "timeout_seconds": 15,          # HTTP request timeout
+        "cache_ttl_seconds": 300,  # Cache introspection results for 5 minutes
+        "max_cache_size": 1000,  # Maximum cached tokens
+        "timeout_seconds": 15,  # HTTP request timeout
     },
 )
 
@@ -5946,14 +6053,15 @@ from fastmcp.server.auth.providers.scalekit import ScalekitProvider
 
 # Discovers Scalekit endpoints and set up JWT token validation
 auth_provider = ScalekitProvider(
-    environment_url=SCALEKIT_ENVIRONMENT_URL,    # Scalekit environment URL
-    resource_id=SCALEKIT_RESOURCE_ID,            # Resource server ID
-    base_url=SERVER_URL,                         # Public MCP endpoint
-    required_scopes=["read"],                    # Optional scope enforcement
+    environment_url=SCALEKIT_ENVIRONMENT_URL,  # Scalekit environment URL
+    resource_id=SCALEKIT_RESOURCE_ID,  # Resource server ID
+    base_url=SERVER_URL,  # Public MCP endpoint
+    required_scopes=["read"],  # Optional scope enforcement
 )
 
 # Create FastMCP server with auth
 mcp = FastMCP(name="My Scalekit Protected Server", auth=auth_provider)
+
 
 @mcp.tool
 def auth_status() -> dict:
@@ -5962,9 +6070,8 @@ def auth_status() -> dict:
     return {
         "message": "This tool requires authentication via Scalekit",
         "authenticated": True,
-        "provider": "Scalekit"
+        "provider": "Scalekit",
     }
-
 ```
  Set `required_scopes` when you need tokens to carry specific permissions. Leave it unset to allow any token issued for the resource. ## Testing ### Start the MCP server 
 ```sh
@@ -5972,7 +6079,6 @@ uv run python server.py
 ```
  Use any MCP client (for example, mcp-inspector, Claude, VS Code, or Windsurf) to connect to the running serve. Verify that authentication succeeds and requests are authorized as expected. ## Production Configuration For production deployments, load configuration from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.scalekit import ScalekitProvider
 
@@ -5980,10 +6086,11 @@ from fastmcp.server.auth.providers.scalekit import ScalekitProvider
 auth = ScalekitProvider(
     environment_url=os.environ.get("SCALEKIT_ENVIRONMENT_URL"),
     resource_id=os.environ.get("SCALEKIT_RESOURCE_ID"),
-    base_url=os.environ.get("BASE_URL", "https://your-server.com")
+    base_url=os.environ.get("BASE_URL", "https://your-server.com"),
 )
 
 mcp = FastMCP(name="My Scalekit Protected Server", auth=auth)
+
 
 @mcp.tool
 def protected_action() -> str:
@@ -5992,7 +6099,6 @@ def protected_action() -> str:
 ```
  ## Capabilities Scalekit supports OAuth 2.1 with Dynamic Client Registration for MCP clients and enterprise SSO, and provides built‑in JWT validation and security controls. **OAuth 2.1/DCR**: clients self‑register, use PKCE, and work with the Remote OAuth pattern without pre‑provisioned credentials. **Validation and SSO**: tokens are verified (keys, RS256, issuer, audience, expiry), and SAML, OIDC, OAuth 2.0, ADFS, Azure AD, and Google Workspace are supported; use HTTPS in production and review auth logs as needed. ## Debugging Enable detailed logging to troubleshoot authentication issues: 
 ```python
-
 logging.basicConfig(level=logging.DEBUG)
 ```
  ### Token inspection You can inspect JWT tokens in your tools to understand the user context: 
@@ -6027,10 +6133,12 @@ auth = SupabaseProvider(
 
 mcp = FastMCP("Supabase Protected Server", auth=auth)
 
+
 @mcp.tool
 def protected_tool(message: str) -> str:
     """This tool requires authentication."""
     return f"Authenticated user says: "
+
 
 if __name__ == "__main__":
     mcp.run(transport="http", port=8000)
@@ -6043,19 +6151,22 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
+
 async def main():
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         print("Authenticated with Supabase!")
 
-        result = await client.call_tool("protected_tool", )
+        result = await client.call_tool(
+            "protected_tool",
+        )
         print(result)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to Supabase's authorization endpoint 2. After authenticating, Supabase redirects to your consent UI 3. After you approve, the client receives the token and can make authenticated requests ## Production Configuration For production deployments, load configuration from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.supabase import SupabaseProvider
 
@@ -6077,15 +6188,17 @@ auth = WorkOSProvider(
     client_secret="YOUR_CLIENT_SECRET",
     authkit_domain="https://your-app.authkit.app",
     base_url="http://localhost:8000",
-    required_scopes=["openid", "profile", "email"]
+    required_scopes=["openid", "profile", "email"],
 )
 
 mcp = FastMCP("WorkOS Protected Server", auth=auth)
+
 
 @mcp.tool
 def protected_tool(message: str) -> str:
     """This tool requires authentication."""
     return f"Authenticated user says: "
+
 
 if __name__ == "__main__":
     mcp.run(transport="http", port=8000)
@@ -6098,22 +6211,25 @@ fastmcp run server.py --transport http --port 8000
 ```python
 from fastmcp import Client
 
-async def main():    
+
+async def main():
     # The client will automatically handle WorkOS OAuth
     async with Client("http://localhost:8000/mcp", auth="oauth") as client:
         # First-time connection will open WorkOS login in your browser
         print("✓ Authenticated with WorkOS!")
-        
+
         # Test the protected tool
-        result = await client.call_tool("protected_tool", )
+        result = await client.call_tool(
+            "protected_tool",
+        )
         print(result)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
  When you run the client for the first time: 1. Your browser will open to WorkOS's authorization page 2. After you authorize the app, you'll be redirected back 3. The client receives the token and can make authenticated requests The client caches tokens locally, so you won't need to re-authenticate for subsequent runs unless the token expires or you explicitly clear the cache. ## Production Configuration For production deployments with persistent token management across server restarts, configure `jwt_signing_key`, and `client_storage`: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.workos import WorkOSProvider
 from key_value.aio.stores.redis import RedisStore
@@ -6127,16 +6243,14 @@ auth = WorkOSProvider(
     authkit_domain="https://your-app.authkit.app",
     base_url="https://your-production-domain.com",
     required_scopes=["openid", "profile", "email"],
-
     # Production token management
     jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
     client_storage=FernetEncryptionWrapper(
         key_value=RedisStore(
-            host=os.environ["REDIS_HOST"],
-            port=int(os.environ["REDIS_PORT"])
+            host=os.environ["REDIS_HOST"], port=int(os.environ["REDIS_PORT"])
         ),
-        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-    )
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
 )
 
 mcp = FastMCP(name="Production WorkOS App", auth=auth)
@@ -6148,8 +6262,8 @@ from fastmcp.server.auth.providers.jwt import JWTVerifier
 
 auth = JWTVerifier(
     jwks_uri="https://your-auth-system.com/.well-known/jwks.json",
-    issuer="https://your-auth-system.com", 
-    audience="your-mcp-server"
+    issuer="https://your-auth-system.com",
+    audience="your-mcp-server",
 )
 
 mcp = FastMCP(name="Protected Server", auth=auth)
@@ -6161,7 +6275,7 @@ from fastmcp.server.auth.providers.workos import AuthKitProvider
 
 auth = AuthKitProvider(
     authkit_domain="https://your-project.authkit.app",
-    base_url="https://your-fastmcp-server.com"
+    base_url="https://your-fastmcp-server.com",
 )
 
 mcp = FastMCP(name="Enterprise Server", auth=auth)
@@ -6174,7 +6288,7 @@ from fastmcp.server.auth.providers.github import GitHubProvider
 auth = GitHubProvider(
     client_id="Ov23li...",  # Your GitHub OAuth App ID
     client_secret="abc123...",  # Your GitHub OAuth App Secret
-    base_url="https://your-server.com"
+    base_url="https://your-server.com",
 )
 
 mcp = FastMCP(name="GitHub-Protected Server", auth=auth)
@@ -6218,7 +6332,6 @@ mcp = FastMCP("My Server", auth=auth)
 ```
  The server (if provided) owns all OAuth routes and metadata. Verifiers contribute only token verification logic. This keeps the MCP discovery surface clean while supporting multiple token sources. → **Complete guide**: [Multiple Auth Sources](/servers/auth/multi-auth) ## Configuration Authentication providers are configured programmatically by instantiating them directly in your code with their required parameters. This makes dependencies explicit and allows your IDE to provide helpful autocompletion and type checking. For production deployments, load sensitive values like client secrets from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.github import GitHubProvider
 
@@ -6226,7 +6339,7 @@ from fastmcp.server.auth.providers.github import GitHubProvider
 auth = GitHubProvider(
     client_id=os.environ.get("GITHUB_CLIENT_ID"),
     client_secret=os.environ.get("GITHUB_CLIENT_SECRET"),
-    base_url=os.environ.get("BASE_URL", "http://localhost:8000")
+    base_url=os.environ.get("BASE_URL", "http://localhost:8000"),
 )
 
 mcp = FastMCP(name="My Server", auth=auth)
@@ -6289,7 +6402,7 @@ from fastmcp.server.auth.providers.jwt import JWTVerifier
 token_verifier = JWTVerifier(
     jwks_uri="https://your-provider.com/.well-known/jwks.json",
     issuer="https://your-provider.com",
-    audience="your-app-id"
+    audience="your-app-id",
 )
 
 # Create the OAuth proxy
@@ -6297,17 +6410,13 @@ auth = OAuthProxy(
     # Provider's OAuth endpoints (from their documentation)
     upstream_authorization_endpoint="https://provider.com/oauth/authorize",
     upstream_token_endpoint="https://provider.com/oauth/token",
-
     # Your registered app credentials
     upstream_client_id="your-client-id",
     upstream_client_secret="your-client-secret",
-
     # Token validation (see Token Verification guide)
     token_verifier=token_verifier,
-
     # Your FastMCP server's public URL
     base_url="https://your-server.com",
-
     # Optional: customize the callback path (default is "/auth/callback")
     # redirect_path="/custom/callback",
 )
@@ -6323,10 +6432,10 @@ mcp = FastMCP(name="My Server", auth=auth)
     ```
  **When to set explicitly:** Set `issuer_url` to root level only if you want multiple MCP servers to share a single discovery endpoint: 
 ```python
-    auth = GitHubProvider(
-        base_url="http://localhost:8000/api",
-        issuer_url="http://localhost:8000"  # Shared root-level discovery
-    )
+auth = GitHubProvider(
+    base_url="http://localhost:8000/api",
+    issuer_url="http://localhost:8000",  # Shared root-level discovery
+)
     ```
  See the [HTTP Deployment guide](/deployment/http#mounting-authenticated-servers) for complete mounting examples. Optional URL to your service documentation Whether to forward PKCE (Proof Key for Code Exchange) to the upstream OAuth provider. When enabled and the client uses PKCE, the proxy generates its own PKCE parameters to send upstream while separately validating the client's PKCE. This ensures end-to-end PKCE security at both layers (client-to-proxy and proxy-to-upstream). - `True` (default): Forward PKCE for providers that support it (Google, Azure, AWS, GitHub, etc.) - `False`: Disable only if upstream provider doesn't support PKCE Whether to forward RFC 8707 `resource` parameters from MCP clients to the upstream OAuth provider. When enabled, the proxy includes the resource indicator in authorization requests, allowing providers that support RFC 8707 to scope tokens to specific resources. Disable for providers that reject unknown parameters. Token endpoint authentication method for the upstream OAuth server. Controls how the proxy authenticates when exchanging authorization codes and refresh tokens with the upstream provider. - `"client_secret_basic"`: Send credentials in Authorization header (most common) - `"client_secret_post"`: Send credentials in request body (required by some providers) - `"none"`: No authentication (for public clients) - `None` (default): Uses authlib's default (typically `"client_secret_basic"`) Set this if your provider requires a specific authentication method and the default doesn't work. List of allowed redirect URI patterns for MCP clients. Patterns support wildcards (e.g., `"http://localhost:*"`, `"https://*.example.com/*"`). - `None` (default): All redirect URIs allowed (for MCP/DCR compatibility) - Empty list `[]`: No redirect URIs allowed - Custom list: Only matching patterns allowed These patterns apply to MCP client loopback redirects, NOT the upstream OAuth app redirect URI. List of all possible valid scopes for the OAuth provider. These are advertised to clients through the `/.well-known` endpoints. Defaults to `required_scopes` from your TokenVerifier if not specified. Additional parameters to forward to the upstream authorization endpoint. Useful for provider-specific parameters that aren't part of the standard OAuth2 flow. For example, Auth0 requires an `audience` parameter to issue JWT tokens: 
 ```python
@@ -6338,18 +6447,18 @@ mcp = FastMCP(name="My Server", auth=auth)
     ```
  These parameters are included in all token requests to the upstream provider. Storage backend for persisting OAuth client registrations and upstream tokens. **Default behavior:** By default, clients are automatically persisted to an encrypted disk store, allowing them to survive server restarts as long as the filesystem remains accessible. This means MCP clients only need to register once and can reconnect seamlessly. The disk store is encrypted using a key derived from the JWT Signing Key (which is derived from the upstream client secret by default). For client registrations to survive upstream client secret rotation, you should provide a JWT Signing Key or your own client\_storage. For production deployments with multiple servers or cloud deployments, see [Storage Backends](/servers/storage-backends) for available options. **When providing custom storage**, wrap it in `FernetEncryptionWrapper` to encrypt sensitive OAuth tokens at rest: 
 ```python
-      from key_value.aio.stores.redis import RedisStore
-      from key_value.aio.wrappers.encryption import FernetEncryptionWrapper
-      from cryptography.fernet import Fernet
+from key_value.aio.stores.redis import RedisStore
+from key_value.aio.wrappers.encryption import FernetEncryptionWrapper
+from cryptography.fernet import Fernet
 
-      auth = OAuthProxy(
-          ...,
-          jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
-          client_storage=FernetEncryptionWrapper(
-              key_value=RedisStore(host="redis.example.com", port=6379),
-              fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-          )
-      )
+auth = OAuthProxy(
+    ...,
+    jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
+    client_storage=FernetEncryptionWrapper(
+        key_value=RedisStore(host="redis.example.com", port=6379),
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
+)
       ```
  Without encryption, upstream OAuth tokens are stored in plaintext. Testing with in-memory storage (unencrypted): 
 ```python
@@ -6360,34 +6469,35 @@ mcp = FastMCP(name="My Server", auth=auth)
     ```
  Secret used to sign FastMCP JWT tokens issued to clients. Accepts any string or bytes - will be derived into a proper 32-byte cryptographic key using HKDF. **Default behavior (`None`):** Derives a 32-byte key using PBKDF2 from the upstream client secret. **For production:** Provide an explicit secret (e.g., from environment variable) to use a fixed key instead of the key derived from the upstream client secret. This allows you to manage keys securely in cloud environments, allows keys to work across multiple instances, and allows you to rotate keys without losing client registrations. 
 ```python
-
-    auth = OAuthProxy(
-        ...,
-        jwt_signing_key=os.environ["JWT_SIGNING_KEY"],  # Any sufficiently complex string!
-        client_storage=RedisStore(...)  # Persistent storage
-    )
+auth = OAuthProxy(
+    ...,
+    jwt_signing_key=os.environ["JWT_SIGNING_KEY"],  # Any sufficiently complex string!
+    client_storage=RedisStore(...),  # Persistent storage
+)
     ```
  See [HTTP Deployment - OAuth Token Security](/deployment/http#oauth-token-security) for complete production setup. Consent screen behavior for authorization requests. The consent page displays which client is requesting access, defending against [confused deputy and AS-in-the-middle attacks](#confused-deputy-attacks) by requiring explicit user approval. **`True` (default) — always prompt:** Users see the consent screen on every authorization. Strongest protection against AS-in-the-middle attacks where a malicious MCP server redirects the victim's browser into a legitimate proxy and relies on a previously-remembered approval to silently complete the flow. **`"remember"` — silent consent on return:** Users see the consent screen on first authorization; subsequent flows from the same browser for the same `(client_id, redirect_uri)` are silently approved via a signed cookie. Cross-site navigations (detected via `Sec-Fetch-Site`) fall back to the prompt. `Sec-Fetch-Site` is a browser-level heuristic rather than a protocol guarantee: an attacker who finds a way to initiate a non-cross-site navigation (XSS on a sibling origin, a same-site redirect chain, etc.) can reach the silent-consent path. `True` does not depend on this signal. See [Confused Deputy Attacks](#confused-deputy-attacks) for the underlying attack class. **`"external"` — delegate to upstream:** Skip the built-in consent page; consent is collected by the upstream IdP or a custom login page referenced via `upstream_authorization_endpoint`. No security warning is logged. **`False` — disable entirely:** Authorization proceeds directly to the upstream provider without any consent UI. Logs a security warning. Only for local development or testing. 
 ```python
-    # Development/testing only - skip consent screen
-    auth = OAuthProxy(
-        ...,
-        require_authorization_consent=False  # ⚠️ Security warning: only for local/testing
-    )
+# Development/testing only - skip consent screen
+auth = OAuthProxy(
+    ...,
+    require_authorization_consent=False,  # ⚠️ Security warning: only for local/testing
+)
 
-    # Convenience mode - silent consent on return visits (less safe than True)
-    auth = OAuthProxy(
-        ...,
-        require_authorization_consent="remember",
-    )
+# Convenience mode - silent consent on return visits (less safe than True)
+auth = OAuthProxy(
+    ...,
+    require_authorization_consent="remember",
+)
     ```
  Disabling consent removes an important security layer. Only disable for local development or testing environments where you fully control all connecting clients. Content Security Policy for the consent page. * `None` (default): Uses the built-in CSP policy with appropriate directives for form submission * Empty string `""`: Disables CSP entirely (no meta tag rendered) * Custom string: Uses the provided value as the CSP policy This is useful for organizations that have their own CSP policies and need to override or disable FastMCP's built-in CSP directives. 
 ```python
-    # Disable CSP entirely (let org CSP policies apply)
-    auth = OAuthProxy(..., consent_csp_policy="")
+# Disable CSP entirely (let org CSP policies apply)
+auth = OAuthProxy(..., consent_csp_policy="")
 
-    # Use custom CSP policy
-    auth = OAuthProxy(..., consent_csp_policy="default-src 'self'; style-src 'unsafe-inline'")
+# Use custom CSP policy
+auth = OAuthProxy(
+    ..., consent_csp_policy="default-src 'self'; style-src 'unsafe-inline'"
+)
     ```
  ### Using Built-in Providers FastMCP includes pre-configured providers for common services: 
 ```python
@@ -6396,14 +6506,14 @@ from fastmcp.server.auth.providers.github import GitHubProvider
 auth = GitHubProvider(
     client_id="your-github-app-id",
     client_secret="your-github-app-secret",
-    base_url="https://your-server.com"
+    base_url="https://your-server.com",
 )
 
 mcp = FastMCP(name="My Server", auth=auth)
 ```
  Available providers include `GitHubProvider`, `GoogleProvider`, and others. These handle token verification automatically. ### Token Verification The OAuth proxy requires a compatible `TokenVerifier` to validate tokens from your provider. Different providers use different token formats: * **JWT tokens** (Google, Azure): Use `JWTVerifier` with the provider's JWKS endpoint * **Opaque tokens with RFC 7662 introspection** (Auth0, Okta, WorkOS): Use `IntrospectionTokenVerifier` * **Opaque tokens (provider-specific)** (GitHub, Discord): Use provider-specific verifiers like `GitHubTokenVerifier` See the [Token Verification guide](/servers/auth/token-verification) for detailed setup instructions for your provider. ### Scope Configuration OAuth scopes control what permissions your application requests from users. They're configured through your `TokenVerifier` (required for the OAuth proxy to validate tokens from your provider). Set `required_scopes` to automatically request the permissions your application needs: 
 ```python
-JWTVerifier(..., required_scopes = ["read:user", "write:data"])
+JWTVerifier(..., required_scopes=["read:user", "write:data"])
 ```
  Dynamic clients created by the proxy will automatically include these scopes in their authorization requests. See the [Token Verification](#token-verification) section below for detailed setup. ### Custom Parameters Some OAuth providers require additional parameters beyond the standard OAuth2 flow. Use `extra_authorize_params` and `extra_token_params` to pass provider-specific requirements. For example, Auth0 requires an `audience` parameter to issue JWT tokens instead of opaque tokens: 
 ```python
@@ -6463,7 +6573,7 @@ sequenceDiagram
 # Disable PKCE forwarding only if upstream doesn't support it
 auth = OAuthProxy(
     ...,
-    forward_pkce=False  # Default is True
+    forward_pkce=False,  # Default is True
 )
 ```
  ### Redirect URI Validation While the OAuth proxy accepts all redirect URIs by default (for DCR compatibility), you can restrict which clients can connect by specifying allowed patterns: 
@@ -6471,10 +6581,7 @@ auth = OAuthProxy(
 # Allow only localhost clients (common for development)
 auth = OAuthProxy(
     # ... other parameters ...
-    allowed_client_redirect_uris=[
-        "http://localhost:*",
-        "http://127.0.0.1:*"
-    ]
+    allowed_client_redirect_uris=["http://localhost:*", "http://127.0.0.1:*"]
 )
 
 # Allow specific known clients
@@ -6483,7 +6590,7 @@ auth = OAuthProxy(
     allowed_client_redirect_uris=[
         "http://localhost:*",
         "https://claude.ai/api/mcp/auth_callback",
-        "https://*.mycompany.com/auth/*"  # Wildcard patterns supported
+        "https://*.mycompany.com/auth/*",  # Wildcard patterns supported
     ]
 )
 ```
@@ -6506,7 +6613,6 @@ auth = OAuthProxy(
 ```
  ## Security ### Key and Storage Management The OAuth proxy requires cryptographic keys for JWT signing and storage encryption, plus persistent storage to maintain valid tokens across server restarts. **Default behavior (appropriate for development only):** * **Mac/Windows**: FastMCP automatically generates keys and stores them in your system keyring. Storage defaults to disk. Tokens survive server restarts. This is **only** suitable for development and local testing. * **Linux**: Keys are ephemeral (random salt at startup). Storage defaults to memory. Tokens become invalid on server restart. **For production:** Configure the following parameters together: provide a unique `jwt_signing_key` (for signing FastMCP JWTs), and a shared `client_storage` backend (for storing tokens). Both are required for production deployments. Use a network-accessible storage backend like Redis or DynamoDB rather than local disk storage. **Wrap your storage in `FernetEncryptionWrapper` to encrypt sensitive OAuth tokens at rest** (see the `client_storage` parameter documentation above for examples). The keys accept any secret string and derive proper cryptographic keys using HKDF. See [OAuth Token Security](/deployment/http#oauth-token-security) and [Storage Backends](/servers/storage-backends) for complete production setup. ### Confused Deputy Attacks A confused deputy attack allows a malicious client to steal your authorization by tricking you into granting it access under your identity. The OAuth proxy works by bridging DCR clients to traditional auth providers, which means that multiple MCP clients connect through a single upstream OAuth application. An attacker can exploit this shared application by registering a malicious client with their own redirect URI, then sending you an authorization link. When you click it, your browser goes through the OAuth flow—but since you may have already authorized this OAuth app before, the provider might auto-approve the request. The authorization code then gets sent to the attacker's redirect URI instead of a legitimate client, giving them access under your credentials. #### Mitigation FastMCP's OAuth proxy defends against confused deputy attacks with two layers of protection: **Consent screen.** Before any authorization happens, you see a consent page showing the client's details, redirect URI, and requested scopes. This gives you the opportunity to review and deny suspicious requests. By default (`require_authorization_consent=True`), the page is shown on every flow, which is the strongest protection. Setting `require_authorization_consent="remember"` approves previously-approved `(client_id, redirect_uri)` pairs silently on return visits, trading some protection for UX (see below). The consent mechanism is implemented with CSRF tokens and cryptographically signed cookies to prevent tampering. The consent page automatically displays your server's name, icon, and website URL, if available. These visual identifiers help users confirm they're authorizing the correct server. **Browser-session binding.** When you approve consent (or when a previously-approved client auto-approves), the proxy sets a cryptographically signed cookie that binds your browser session to the authorization flow. When the identity provider redirects back to the proxy's callback, the proxy verifies that this cookie is present and matches the expected transaction. A different browser — such as a victim who was sent the authorization URL by an attacker — won't have this cookie, and the callback will be rejected with a 403 error. This prevents the attack even when the identity provider skips the consent page for previously-authorized applications. #### AS-in-the-middle variant A related attack works even with browser-session binding in place: a malicious MCP server advertises its own authorization server, which redirects the victim's browser into the legitimate proxy's `/authorize` endpoint. Because the victim's browser carries both the prior-approval cookie and the newly-issued session-binding cookie throughout, both layers pass. The defense is the consent prompt itself: if consent is shown (`require_authorization_consent=True`), the victim sees the benign MCP server's name on the consent page — which doesn't match the malicious server they thought they were connecting to — and can deny. `require_authorization_consent="remember"` adds a `Sec-Fetch-Site` check to keep this path safe for legitimate return flows (the attack navigation lands as `cross-site` and falls back to the prompt), but this is a browser-level heuristic. For the strongest defense, leave `require_authorization_consent=True`. **Learn more:** * [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices#confused-deputy-problem) - Official specification guidance * [Confused Deputy Attacks Explained](https://den.dev/blog/mcp-confused-deputy-api-management/) - Detailed walkthrough by Den Delimarsky ### Token Passthrough [Token passthrough](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices#token-passthrough) occurs when an intermediary exposes upstream tokens to downstream clients, allowing those clients to impersonate the intermediary or access services they shouldn't reach. #### Client-facing mitigation The OAuth proxy's [token factory architecture](#token-architecture) prevents this by design. MCP clients only ever receive FastMCP-issued JWTs — the upstream provider token is never sent to the client. A FastMCP JWT is scoped to your server and cannot be used to access the upstream provider directly, even if intercepted. #### Calling downstream services When your MCP server needs to call other APIs on behalf of the authenticated user, avoid forwarding the upstream token directly — this reintroduces the token passthrough problem in the other direction. Instead, use a token exchange flow like [OAuth 2.0 Token Exchange (RFC 8693)](https://datatracker.ietf.org/doc/html/rfc8693) or your provider's equivalent (such as Azure's [On-Behalf-Of flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow)) to obtain a new token scoped to the downstream service. The upstream token is available in your tool functions via `get_access_token()` or the `CurrentAccessToken` dependency, which you can use as the assertion for a token exchange. The exchanged token will be scoped to the specific downstream service and identify your MCP server as the authorized intermediary, maintaining proper audience boundaries throughout the chain. ## Production Configuration For production deployments, load sensitive credentials from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.github import GitHubProvider
 
@@ -6514,15 +6620,17 @@ from fastmcp.server.auth.providers.github import GitHubProvider
 auth = GitHubProvider(
     client_id=os.environ.get("GITHUB_CLIENT_ID"),
     client_secret=os.environ.get("GITHUB_CLIENT_SECRET"),
-    base_url=os.environ.get("BASE_URL", "https://your-production-server.com")
+    base_url=os.environ.get("BASE_URL", "https://your-production-server.com"),
 )
 
 mcp = FastMCP(name="My Server", auth=auth)
+
 
 @mcp.tool
 def protected_tool(data: str) -> str:
     """This tool is now protected by OAuth."""
     return f"Processed: "
+
 
 if __name__ == "__main__":
     mcp.run(transport="http", port=8000)
@@ -6536,14 +6644,11 @@ from fastmcp.server.auth.oidc_proxy import OIDCProxy
 auth = OIDCProxy(
     # Provider's configuration URL
     config_url="https://provider.com/.well-known/openid-configuration",
-
     # Your registered app credentials
     client_id="your-client-id",
     client_secret="your-client-secret",
-
     # Your FastMCP server's public URL
     base_url="https://your-server.com",
-
     # Optional: customize the callback path (default is "/auth/callback")
     # redirect_path="/custom/callback",
 )
@@ -6559,18 +6664,18 @@ mcp = FastMCP(name="My Server", auth=auth)
     ```
  Production with encrypted Redis storage: 
 ```python
-    from key_value.aio.stores.redis import RedisStore
-    from key_value.aio.wrappers.encryption import FernetEncryptionWrapper
-    from cryptography.fernet import Fernet
+from key_value.aio.stores.redis import RedisStore
+from key_value.aio.wrappers.encryption import FernetEncryptionWrapper
+from cryptography.fernet import Fernet
 
-    auth = OIDCProxy(
-        ...,
-        jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
-        client_storage=FernetEncryptionWrapper(
-            key_value=RedisStore(host="redis.example.com", port=6379),
-            fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"])
-        )
-    )
+auth = OIDCProxy(
+    ...,
+    jwt_signing_key=os.environ["JWT_SIGNING_KEY"],
+    client_storage=FernetEncryptionWrapper(
+        key_value=RedisStore(host="redis.example.com", port=6379),
+        fernet=Fernet(os.environ["STORAGE_ENCRYPTION_KEY"]),
+    ),
+)
     ```
  Consent screen behavior for authorization requests. Accepts `True` (default; always prompt — strongest protection), `"remember"` (silent consent on return visits via signed cookie, gated by `Sec-Fetch-Site` to block AS-in-the-middle attacks), `"external"` (consent handled by upstream IdP or custom page), or `False` (disable entirely; local/testing only). See the [OAuthProxy documentation](/servers/auth/oauth-proxy) for full details on each mode and the security trade-offs. Content Security Policy for the consent page. * `None` (default): Uses the built-in CSP policy with appropriate directives for form submission * Empty string `""`: Disables CSP entirely (no meta tag rendered) * Custom string: Uses the provided value as the CSP policy This is useful for organizations that have their own CSP policies and need to override or disable FastMCP's built-in CSP directives. ### Using Built-in Providers FastMCP includes pre-configured OIDC providers for common services: 
 ```python
@@ -6581,14 +6686,13 @@ auth = Auth0Provider(
     client_id="your-auth0-client-id",
     client_secret="your-auth0-client-secret",
     audience="https://...",
-    base_url="https://localhost:8000"
+    base_url="https://localhost:8000",
 )
 
 mcp = FastMCP(name="My Server", auth=auth)
 ```
  Available providers include `Auth0Provider` at present. ### Scope Configuration OAuth scopes are configured with `required_scopes` to automatically request the permissions your application needs. Dynamic clients created by the proxy will automatically include these scopes in their authorization requests. ## CIMD Support The OIDC proxy inherits full CIMD (Client ID Metadata Document) support from `OAuthProxy`. Clients can use HTTPS URLs as their `client_id` instead of registering dynamically, and the proxy will fetch and validate their metadata document. See the [OAuth Proxy CIMD documentation](/servers/auth/oauth-proxy#cimd-support) for complete details on how CIMD works, including private key JWT authentication and security considerations. The CIMD-related parameters available on `OIDCProxy` are: Whether to accept CIMD URLs as client identifiers. ## Production Configuration For production deployments, load sensitive credentials from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.auth0 import Auth0Provider
 
@@ -6598,15 +6702,17 @@ auth = Auth0Provider(
     client_id=os.environ.get("AUTH0_CLIENT_ID"),
     client_secret=os.environ.get("AUTH0_CLIENT_SECRET"),
     audience=os.environ.get("AUTH0_AUDIENCE"),
-    base_url=os.environ.get("BASE_URL", "https://localhost:8000")
+    base_url=os.environ.get("BASE_URL", "https://localhost:8000"),
 )
 
 mcp = FastMCP(name="My Server", auth=auth)
+
 
 @mcp.tool
 def protected_tool(data: str) -> str:
     """This tool is now protected by OAuth."""
     return f"Processed: "
+
 
 if __name__ == "__main__":
     mcp.run(transport="http", port=8000)
@@ -6640,7 +6746,7 @@ from pydantic import AnyHttpUrl
 token_verifier = JWTVerifier(
     jwks_uri="https://auth.yourcompany.com/.well-known/jwks.json",
     issuer="https://auth.yourcompany.com",
-    audience="mcp-production-api"
+    audience="mcp-production-api",
 )
 
 # Create the remote auth provider
@@ -6649,7 +6755,7 @@ auth = RemoteAuthProvider(
     authorization_servers=[AnyHttpUrl("https://auth.yourcompany.com")],
     base_url="https://api.yourcompany.com",  # Your server base URL
     # Optional: restrict allowed client redirect URIs (defaults to all for DCR compatibility)
-    allowed_client_redirect_uris=["http://localhost:*", "http://127.0.0.1:*"]
+    allowed_client_redirect_uris=["http://localhost:*", "http://127.0.0.1:*"],
 )
 
 mcp = FastMCP(name="Company API", auth=auth)
@@ -6665,30 +6771,30 @@ auth = RemoteAuthProvider(
 ```
  When not set, `scopes_supported` defaults to the token verifier's `required_scopes`. For Azure AD specifically, see the [AzureJWTVerifier](/integrations/azure#token-verification-only-managed-identity) which handles this automatically. ### Custom Endpoints You can extend `RemoteAuthProvider` to add additional endpoints beyond the standard OAuth protected resource metadata. These don't have to be OAuth-specific - you can add any endpoints your authentication integration requires. 
 ```python
-
 from starlette.responses import JSONResponse
 from starlette.routing import Route
+
 
 class CompanyAuthProvider(RemoteAuthProvider):
     def __init__(self):
         token_verifier = JWTVerifier(
             jwks_uri="https://auth.yourcompany.com/.well-known/jwks.json",
             issuer="https://auth.yourcompany.com",
-            audience="mcp-production-api"
+            audience="mcp-production-api",
         )
-        
+
         super().__init__(
             token_verifier=token_verifier,
             authorization_servers=[AnyHttpUrl("https://auth.yourcompany.com")],
-            base_url="https://api.yourcompany.com"  # Your server base URL
+            base_url="https://api.yourcompany.com",  # Your server base URL
         )
-    
+
     def get_routes(self) -> list[Route]:
         """Add custom endpoints to the standard protected resource routes."""
-        
+
         # Get the standard OAuth protected resource routes
         routes = super().get_routes()
-        
+
         # Add authorization server metadata forwarding for client convenience
         async def authorization_server_metadata(request):
             async with httpx.AsyncClient() as client:
@@ -6697,12 +6803,15 @@ class CompanyAuthProvider(RemoteAuthProvider):
                 )
                 response.raise_for_status()
                 return JSONResponse(response.json())
-        
+
         routes.append(
-            Route("/.well-known/oauth-authorization-server", authorization_server_metadata)
+            Route(
+                "/.well-known/oauth-authorization-server", authorization_server_metadata
+            )
         )
-        
+
         return routes
+
 
 mcp = FastMCP(name="Company API", auth=CompanyAuthProvider())
 ```
@@ -6713,7 +6822,7 @@ from fastmcp.server.auth.providers.workos import AuthKitProvider
 
 auth = AuthKitProvider(
     authkit_domain="https://your-project.authkit.app",
-    base_url="https://your-mcp-server.com"
+    base_url="https://your-mcp-server.com",
 )
 
 mcp = FastMCP(name="Protected Application", auth=auth)
@@ -6727,7 +6836,7 @@ from fastmcp.server.auth.providers.jwt import JWTVerifier
 verifier = JWTVerifier(
     jwks_uri="https://auth.yourcompany.com/.well-known/jwks.json",
     issuer="https://auth.yourcompany.com",
-    audience="mcp-production-api"
+    audience="mcp-production-api",
 )
 
 mcp = FastMCP(name="Protected API", auth=verifier)
@@ -6742,7 +6851,7 @@ verifier = JWTVerifier(
     public_key="your-shared-secret-key-minimum-32-chars",  # Despite the name, this accepts symmetric secrets
     issuer="internal-auth-service",
     audience="mcp-internal-api",
-    algorithm="HS256"  # or HS384, HS512 for stronger security
+    algorithm="HS256",  # or HS384, HS512 for stronger security
 )
 
 mcp = FastMCP(name="Internal API", auth=verifier)
@@ -6760,7 +6869,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
 verifier = JWTVerifier(
     public_key=public_key_pem,
     issuer="https://auth.yourcompany.com",
-    audience="mcp-production-api"
+    audience="mcp-production-api",
 )
 
 mcp = FastMCP(name="Protected API", auth=verifier)
@@ -6775,7 +6884,7 @@ verifier = IntrospectionTokenVerifier(
     introspection_url="https://auth.yourcompany.com/oauth/introspect",
     client_id="mcp-resource-server",
     client_secret="your-client-secret",
-    required_scopes=["api:read", "api:write"]
+    required_scopes=["api:read", "api:write"],
 )
 
 mcp = FastMCP(name="Protected API", auth=verifier)
@@ -6788,7 +6897,7 @@ verifier = IntrospectionTokenVerifier(
     client_id="mcp-resource-server",
     client_secret="your-client-secret",
     client_auth_method="client_secret_post",
-    required_scopes=["api:read", "api:write"]
+    required_scopes=["api:read", "api:write"],
 )
 ```
  ## Development and Testing Development environments often need simpler token management without the complexity of full JWT infrastructure. FastMCP provides tools specifically designed for these scenarios. ### Static Token Verification Static token verification enables rapid development by accepting predefined tokens with associated claims. This approach eliminates the need for token generation infrastructure during development and testing. 
@@ -6801,14 +6910,11 @@ verifier = StaticTokenVerifier(
     tokens={
         "dev-alice-token": {
             "client_id": "alice@company.com",
-            "scopes": ["read:data", "write:data", "admin:users"]
+            "scopes": ["read:data", "write:data", "admin:users"],
         },
-        "dev-guest-token": {
-            "client_id": "guest-user",
-            "scopes": ["read:data"]
-        }
+        "dev-guest-token": {"client_id": "guest-user", "scopes": ["read:data"]},
     },
-    required_scopes=["read:data"]
+    required_scopes=["read:data"],
 )
 
 mcp = FastMCP(name="Development Server", auth=verifier)
@@ -6831,7 +6937,7 @@ from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 verifier = DebugTokenVerifier(
     validate=lambda token: token.startswith("dev-"),
     client_id="development-client",
-    scopes=["read", "write"]
+    scopes=["read", "write"],
 )
 
 mcp = FastMCP(name="Development Server", auth=verifier)
@@ -6840,15 +6946,15 @@ mcp = FastMCP(name="Development Server", auth=verifier)
 ```python
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 
+
 # Asynchronous validation - check against cache
 async def validate_token(token: str) -> bool:
     # Check if token exists in Redis, database, etc.
     return await redis.exists(f"valid_tokens:")
 
+
 verifier = DebugTokenVerifier(
-    validate=validate_token,
-    client_id="api-client",
-    scopes=["api:access"]
+    validate=validate_token, client_id="api-client", scopes=["api:access"]
 )
 
 mcp = FastMCP(name="Custom API", auth=verifier)
@@ -6864,22 +6970,21 @@ key_pair = RSAKeyPair.generate()
 verifier = JWTVerifier(
     public_key=key_pair.public_key,
     issuer="https://test.yourcompany.com",
-    audience="test-mcp-server"
+    audience="test-mcp-server",
 )
 
 # Generate a test token using the private key
 test_token = key_pair.create_token(
     subject="test-user-123",
-    issuer="https://test.yourcompany.com", 
+    issuer="https://test.yourcompany.com",
     audience="test-mcp-server",
-    scopes=["read", "write", "admin"]
+    scopes=["read", "write", "admin"],
 )
 
 print(f"Test token: ")
 ```
  This pattern enables comprehensive testing of JWT validation logic without depending on external token issuers. The generated tokens are cryptographically valid and will pass all standard JWT validation checks. ## HTTP Client Customization All token verifiers that make HTTP calls accept an optional `http_client` parameter. This lets you provide your own `httpx.AsyncClient` for connection pooling, custom TLS configuration, or proxy settings. ### Connection Pooling By default, each token verification call creates a fresh HTTP client. Under high load, this means repeated TCP connections and TLS handshakes. Providing a shared client enables connection pooling across calls: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.introspection import IntrospectionTokenVerifier
 
@@ -6910,29 +7015,30 @@ verifier = JWTVerifier(
 ```
  `JWTVerifier` does not support `http_client` when `ssrf_safe=True`. SSRF-safe mode requires a hardened transport that validates DNS resolution and connection targets, which cannot be guaranteed with a user-provided client. Attempting to use both will raise a `ValueError`. When you provide an `http_client`, you are responsible for its lifecycle. The verifier will not close it. Use the server's `lifespan` to manage client cleanup: 
 ```python
-  from contextlib import asynccontextmanager
-  from fastmcp import FastMCP
-  from fastmcp.server.auth.providers.introspection import IntrospectionTokenVerifier
+from contextlib import asynccontextmanager
+from fastmcp import FastMCP
+from fastmcp.server.auth.providers.introspection import IntrospectionTokenVerifier
 
-  http_client = httpx.AsyncClient(timeout=10)
+http_client = httpx.AsyncClient(timeout=10)
 
-  verifier = IntrospectionTokenVerifier(
-      introspection_url="https://auth.example.com/introspect",
-      client_id="my-service",
-      client_secret="secret",
-      http_client=http_client,
-  )
+verifier = IntrospectionTokenVerifier(
+    introspection_url="https://auth.example.com/introspect",
+    client_id="my-service",
+    client_secret="secret",
+    http_client=http_client,
+)
 
-  @asynccontextmanager
-  async def lifespan(app):
-      yield
-      await http_client.aclose()
 
-  mcp = FastMCP(name="My API", auth=verifier, lifespan=lifespan)
+@asynccontextmanager
+async def lifespan(app):
+    yield
+    await http_client.aclose()
+
+
+mcp = FastMCP(name="My API", auth=verifier, lifespan=lifespan)
   ```
  The convenience providers (`GitHubProvider`, `GoogleProvider`, `DiscordProvider`, `WorkOSProvider`, `AzureProvider`) also accept `http_client` and pass it through to their internal token verifier. ## Production Configuration For production deployments, load sensitive configuration from environment variables: 
 ```python
-
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import JWTVerifier
 
@@ -6954,6 +7060,7 @@ mcp = FastMCP(name="Production API", auth=verifier)
 ```python
 from fastmcp.server.auth import AuthContext
 
+
 def my_custom_check(ctx: AuthContext) -> bool:
     # ctx.token is AccessToken | None
     # ctx.component is the Tool, Resource, or Prompt being accessed
@@ -6966,10 +7073,12 @@ from fastmcp.server.auth import require_scopes
 
 mcp = FastMCP("Scoped Server")
 
+
 @mcp.tool(auth=require_scopes("admin"))
 def admin_operation() -> str:
     """Requires the 'admin' scope."""
     return "Admin action completed"
+
 
 @mcp.tool(auth=require_scopes("read", "write"))
 def read_write_operation() -> str:
@@ -6984,15 +7093,15 @@ from fastmcp.server.middleware import AuthMiddleware
 
 mcp = FastMCP(
     "Tagged Server",
-    middleware=[
-        AuthMiddleware(auth=restrict_tag("admin", scopes=["admin"]))
-    ]
+    middleware=[AuthMiddleware(auth=restrict_tag("admin", scopes=["admin"]))],
 )
+
 
 @mcp.tool(tags=admin)
 def admin_tool() -> str:
     """Tagged 'admin', so requires 'admin' scope."""
     return "Admin only"
+
 
 @mcp.tool(tags=public)
 def public_tool() -> str:
@@ -7006,6 +7115,7 @@ from fastmcp.server.auth import require_scopes
 
 mcp = FastMCP("Combined Auth Server")
 
+
 @mcp.tool(auth=[require_scopes("admin"), require_scopes("write")])
 def secure_admin_action() -> str:
     """Requires both 'admin' AND 'write' scopes."""
@@ -7018,25 +7128,31 @@ from fastmcp.server.auth import AuthContext
 
 mcp = FastMCP("Custom Auth Server")
 
+
 def require_premium_user(ctx: AuthContext) -> bool:
     """Check for premium user status in token claims."""
     if ctx.token is None:
         return False
     return ctx.token.claims.get("premium", False) is True
 
+
 def require_access_level(minimum_level: int):
     """Factory function for level-based authorization."""
+
     def check(ctx: AuthContext) -> bool:
         if ctx.token is None:
             return False
         user_level = ctx.token.claims.get("level", 0)
         return user_level >= minimum_level
+
     return check
+
 
 @mcp.tool(auth=require_premium_user)
 def premium_feature() -> str:
     """Only for premium users."""
     return "Premium content"
+
 
 @mcp.tool(auth=require_access_level(5))
 def advanced_feature() -> str:
@@ -7050,6 +7166,7 @@ from fastmcp.server.auth import AuthContext
 
 mcp = FastMCP("Async Auth Server")
 
+
 async def check_user_permissions(ctx: AuthContext) -> bool:
     """Async auth check that reads server state."""
     if ctx.token is None:
@@ -7059,6 +7176,7 @@ async def check_user_permissions(ctx: AuthContext) -> bool:
     permissions = await fetch_user_permissions(user_id)
     return "admin" in permissions
 
+
 @mcp.tool(auth=check_user_permissions)
 def admin_tool() -> str:
     return "Admin action completed"
@@ -7067,6 +7185,7 @@ def admin_tool() -> str:
 ```python
 from fastmcp.server.auth import AuthContext
 from fastmcp.exceptions import AuthorizationError
+
 
 def require_verified_email(ctx: AuthContext) -> bool:
     """Require verified email with explicit denial message."""
@@ -7083,15 +7202,18 @@ from fastmcp.server.auth import require_scopes
 
 mcp = FastMCP("Component Auth Server")
 
+
 @mcp.tool(auth=require_scopes("write"))
 def write_tool() -> str:
     """Only visible to users with 'write' scope."""
     return "Written"
 
+
 @mcp.resource("secret://data", auth=require_scopes("read"))
 def secret_resource() -> str:
     """Only visible to users with 'read' scope."""
     return "Secret data"
+
 
 @mcp.prompt(auth=require_scopes("admin"))
 def admin_prompt() -> str:
@@ -7105,9 +7227,9 @@ from fastmcp.server.auth import require_scopes
 from fastmcp.server.middleware import AuthMiddleware
 
 mcp = FastMCP(
-    "Enforced Auth Server",
-    middleware=[AuthMiddleware(auth=require_scopes("api"))]
+    "Enforced Auth Server", middleware=[AuthMiddleware(auth=require_scopes("api"))]
 )
+
 
 @mcp.tool
 def any_tool() -> str:
@@ -7122,10 +7244,9 @@ from fastmcp.server.middleware import AuthMiddleware
 
 mcp = FastMCP(
     "Layered Auth Server",
-    middleware=[
-        AuthMiddleware(auth=restrict_tag("admin", scopes=["admin"]))
-    ]
+    middleware=[AuthMiddleware(auth=restrict_tag("admin", scopes=["admin"]))],
 )
+
 
 # Requires "write" scope (component-level)
 # Also requires "admin" scope if tagged "admin" (middleware-level)
@@ -7133,6 +7254,7 @@ mcp = FastMCP(
 def admin_write() -> str:
     """Requires both 'write' AND 'admin' scopes."""
     return "Admin write"
+
 
 # Requires "write" scope (component-level only)
 @mcp.tool(auth=require_scopes("write"))
@@ -7151,18 +7273,21 @@ mcp = FastMCP(
     middleware=[
         AuthMiddleware(auth=restrict_tag("admin", scopes=["admin"])),
         AuthMiddleware(auth=restrict_tag("write", scopes=["write"])),
-    ]
+    ],
 )
+
 
 @mcp.tool(tags=admin)
 def delete_all_data() -> str:
     """Requires 'admin' scope."""
     return "Deleted"
 
+
 @mcp.tool(tags=write)
 def update_record(id: str, data: str) -> str:
     """Requires 'write' scope."""
     return f"Updated "
+
 
 @mcp.tool
 def read_record(id: str) -> str:
@@ -7176,6 +7301,7 @@ from fastmcp.server.dependencies import get_access_token
 
 mcp = FastMCP("Token Access Server")
 
+
 @mcp.tool
 def personalized_greeting() -> str:
     """Greet the user based on their token claims."""
@@ -7187,13 +7313,14 @@ def personalized_greeting() -> str:
     name = token.claims.get("name", "user")
     return f"Hello, !"
 
+
 @mcp.tool
 def user_dashboard() -> dict:
     """Return user-specific data based on token."""
     token = get_access_token()
 
     if token is None:
-        return 
+        return
 
     return {
         "client_id": token.client_id,
@@ -7205,6 +7332,7 @@ def user_dashboard() -> dict:
 ```python
 from fastmcp.server.auth import AuthContext
 
+
 def require_matching_tag(ctx: AuthContext) -> bool:
     """Require a scope matching each of the component's tags."""
     if ctx.token is None:
@@ -7215,12 +7343,12 @@ def require_matching_tag(ctx: AuthContext) -> bool:
  ### Imports 
 ```python
 from fastmcp.server.auth import (
-    AccessToken,       # Token with .token, .client_id, .scopes, .expires_at, .claims
-    AuthContext,       # Context with .token, .component
-    AuthCheck,         # Type alias: sync or async Callable[[AuthContext], bool]
-    require_scopes,    # Built-in: requires specific scopes
-    restrict_tag,      # Built-in: tag-based scope requirements
-    run_auth_checks,   # Utility: run checks with AND logic
+    AccessToken,  # Token with .token, .client_id, .scopes, .expires_at, .claims
+    AuthContext,  # Context with .token, .component
+    AuthCheck,  # Type alias: sync or async Callable[[AuthContext], bool]
+    require_scopes,  # Built-in: requires specific scopes
+    restrict_tag,  # Built-in: tag-based scope requirements
+    run_auth_checks,  # Utility: run checks with AND logic
 )
 
 from fastmcp.server.middleware import AuthMiddleware
@@ -7231,15 +7359,18 @@ from fastmcp import FastMCP
 
 weather = FastMCP("Weather")
 
+
 @weather.tool
 def get_forecast(city: str) -> str:
     """Get weather forecast for a city."""
     return f"Sunny in "
 
+
 @weather.resource("data://cities")
 def list_cities() -> list[str]:
     """List supported cities."""
     return ["London", "Paris", "Tokyo"]
+
 
 main = FastMCP("MainApp")
 main.mount(weather)
@@ -7271,7 +7402,7 @@ github_config = {
     "mcpServers": {
         "default": {
             "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-github"]
+            "args": ["-y", "@modelcontextprotocol/server-github"],
         }
     }
 }
@@ -7280,10 +7411,7 @@ mcp.mount(create_proxy(github_config), namespace="github")
 # Mount Python tool via config
 sqlite_config = {
     "mcpServers": {
-        "default": {
-            "command": "uvx",
-            "args": ["mcp-server-sqlite", "--db", "data.db"]
-        }
+        "default": {"command": "uvx", "args": ["mcp-server-sqlite", "--db", "data.db"]}
     }
 }
 mcp.mount(create_proxy(sqlite_config), namespace="db")
@@ -7298,11 +7426,13 @@ mcp = FastMCP("Orchestrator")
 
 mcp.mount(
     create_proxy(NpxStdioTransport(package="@modelcontextprotocol/server-github")),
-    namespace="github"
+    namespace="github",
 )
 mcp.mount(
-    create_proxy(UvxStdioTransport(tool_name="mcp-server-sqlite", tool_args=["--db", "data.db"])),
-    namespace="db"
+    create_proxy(
+        UvxStdioTransport(tool_name="mcp-server-sqlite", tool_args=["--db", "data.db"])
+    ),
+    namespace="db",
 )
 ```
  For advanced configuration, see [Proxying](/servers/providers/proxy). ## Namespacing When mounting multiple servers, use namespaces to avoid naming conflicts: 
@@ -7310,13 +7440,16 @@ mcp.mount(
 weather = FastMCP("Weather")
 calendar = FastMCP("Calendar")
 
+
 @weather.tool
 def get_data() -> str:
     return "Weather data"
 
+
 @calendar.tool
 def get_data() -> str:
     return "Calendar data"
+
 
 main = FastMCP("Main")
 main.mount(weather, namespace="weather")
@@ -7331,6 +7464,7 @@ main.mount(calendar, namespace="calendar")
 main = FastMCP("Main")
 main.mount(dynamic_server, namespace="dynamic")
 
+
 # Add a tool AFTER mounting - it's accessible through main
 @dynamic_server.tool
 def added_later() -> str:
@@ -7340,13 +7474,16 @@ def added_later() -> str:
 ```python
 api_server = FastMCP("API")
 
+
 @api_server.tool(tags=production)
 def prod_endpoint() -> str:
     return "Production data"
 
+
 @api_server.tool(tags=development)
 def dev_endpoint() -> str:
     return "Debug data"
+
 
 # Mount with production filter
 prod_app = FastMCP("Production")
@@ -7359,9 +7496,11 @@ prod_app.enable(tags=production, only=True)
 ```python
 subserver = FastMCP("Sub")
 
+
 @subserver.custom_route("/health", methods=["GET"])
 async def health_check():
-    return 
+    return
+
 
 main = FastMCP("Main")
 main.mount(subserver, namespace="sub")
@@ -7373,13 +7512,16 @@ main.mount(subserver, namespace="sub")
 server_a = FastMCP("A")
 server_b = FastMCP("B")
 
+
 @server_a.tool
 def shared_tool() -> str:
     return "From A"
 
+
 @server_b.tool
 def shared_tool() -> str:
     return "From B"
+
 
 main = FastMCP("Main")
 main.mount(server_a)
@@ -7395,6 +7537,7 @@ from fastmcp.server.context import Context
 
 mcp = FastMCP(name="Context Demo")
 
+
 @mcp.tool
 async def process_file(file_uri: str, ctx: Context = CurrentContext()) -> str:
     """Processes a file, using context for logging and resource access."""
@@ -7409,10 +7552,12 @@ from fastmcp.server.context import Context
 
 mcp = FastMCP(name="Context Demo")
 
+
 @mcp.resource("resource://user-data")
 async def get_user_data(ctx: Context = CurrentContext()) -> dict:
     await ctx.debug("Fetching user data")
-    return 
+    return
+
 
 @mcp.prompt
 async def data_analysis_request(dataset: str, ctx: Context = CurrentContext()) -> str:
@@ -7423,6 +7568,7 @@ async def data_analysis_request(dataset: str, ctx: Context = CurrentContext()) -
 from fastmcp import FastMCP, Context
 
 mcp = FastMCP(name="Context Demo")
+
 
 @mcp.tool
 async def process_file(file_uri: str, ctx: Context) -> str:
@@ -7437,11 +7583,13 @@ from fastmcp.server.dependencies import get_context
 
 mcp = FastMCP(name="Dependency Demo")
 
+
 # Utility function that needs context but doesn't receive it as a parameter
 async def process_data(data: list[float]) -> dict:
     # Get the active context - only works when called within a request
     ctx = get_context()
     await ctx.info(f"Processing  data points")
+
 
 @mcp.tool
 async def analyze_dataset(dataset_name: str) -> dict:
@@ -7452,7 +7600,7 @@ async def analyze_dataset(dataset_name: str) -> dict:
  **Important Notes:** * The `get_context()` function should only be used within the context of a server request. Calling it outside of a request will raise a `RuntimeError`. * The `get_context()` function is server-only and should not be used in client code. ## Context Capabilities FastMCP provides several advanced capabilities through the context object. Each capability has dedicated documentation with comprehensive examples and best practices: ### Logging Send debug, info, warning, and error messages back to the MCP client for visibility into function execution. 
 ```python
 await ctx.debug("Starting analysis")
-await ctx.info(f"Processing  items") 
+await ctx.info(f"Processing  items")
 await ctx.warning("Deprecated parameter used")
 await ctx.error("Processing failed")
 ```
@@ -7485,7 +7633,9 @@ content = content_list[0].content
 prompts = await ctx.list_prompts()
 
 # Get a specific prompt with arguments
-result = await ctx.get_prompt("analyze_data", )
+result = await ctx.get_prompt(
+    "analyze_data",
+)
 messages = result.messages
 ```
  **Method signatures:** * **`ctx.list_prompts() -> list[MCPPrompt]`**: Returns list of all available prompts * **`ctx.get_prompt(name: str, arguments: dict[str, Any] | None = None) -> GetPromptResult`**: Get a specific prompt with optional arguments ### Session State Store data that persists across multiple requests within the same MCP session. Session state is automatically keyed by the client's session, ensuring isolation between different clients. 
@@ -7494,12 +7644,14 @@ from fastmcp import FastMCP, Context
 
 mcp = FastMCP("stateful-app")
 
+
 @mcp.tool
 async def increment_counter(ctx: Context) -> int:
     """Increment a counter that persists across tool calls."""
     count = await ctx.get_state("counter") or 0
     await ctx.set_state("counter", count + 1)
     return count + 1
+
 
 @mcp.tool
 async def get_counter(ctx: Context) -> int:
@@ -7534,12 +7686,15 @@ parent = FastMCP("Parent")
 child = FastMCP("Child")
 parent.mount(child, namespace="child")
 
+
 class Stasher(Middleware):
     async def on_call_tool(self, context: MiddlewareContext, call_next):
         await context.fastmcp_context.set_state("user", "alice")
         return await call_next(context)
 
+
 parent.add_middleware(Stasher())
+
 
 @child.tool
 async def whoami(ctx: Context) -> str:
@@ -7556,7 +7711,6 @@ parent.mount(child, namespace="child")
 ```
  Alternatively, state set with `serializable=False` lives on the request context and is inherited by mounted children automatically — use it when the value is request-scoped and does not need to persist across tool calls. #### State During Initialization State set during `on_initialize` middleware persists to subsequent tool calls when using the same session object (STDIO, SSE, single-server HTTP). For distributed/serverless HTTP deployments where different machines handle init and tool calls, state is isolated by the `mcp-session-id` header. ### Session Visibility Tools can customize which components are visible to their current session using `ctx.enable_components()`, `ctx.disable_components()`, and `ctx.reset_visibility()`. These methods apply visibility rules that affect only the calling session, leaving other sessions unchanged. See [Per-Session Visibility](/servers/visibility#per-session-visibility) for complete documentation, filter criteria, and patterns like namespace activation. ### Change Notifications FastMCP automatically sends list change notifications when components (such as tools, resources, or prompts) are added, removed, enabled, or disabled. In rare cases where you need to manually trigger these notifications, you can use the context's notification methods: 
 ```python
-
 @mcp.tool
 async def custom_tool_management(ctx: Context) -> str:
     """Example of manual notification after custom tool changes."""
@@ -7579,6 +7733,7 @@ from fastmcp import FastMCP, Context
 
 mcp = FastMCP("example")
 
+
 @mcp.tool
 def connection_info(ctx: Context) -> str:
     if ctx.transport == "stdio":
@@ -7597,7 +7752,7 @@ async def request_info(ctx: Context) -> dict:
     """Return information about the current request."""
     return {
         "request_id": ctx.request_id,
-        "client_id": ctx.client_id or "Unknown client"
+        "client_id": ctx.client_id or "Unknown client",
     }
 ```
  **Available Properties:** * **`ctx.request_id -> str`**: Get the unique ID for the current MCP request * **`ctx.client_id -> str | None`**: Get the ID of the client making the request, if provided during initialization * **`ctx.session_id -> str`**: Get the MCP session ID for session-based data sharing. Raises `RuntimeError` if the MCP session is not yet established. #### Request Context Availability The `ctx.request_context` property provides access to the underlying MCP request context, but returns `None` when the MCP session has not been established yet. This typically occurs: * During middleware execution in the `on_request` hook before the MCP handshake completes * During the initialization phase of client connections The MCP request context is distinct from the HTTP request. For HTTP transports, HTTP request data may be available even when the MCP session is not yet established. To safely access the request context in situations where it may not be available: 
@@ -7606,6 +7761,7 @@ from fastmcp import FastMCP, Context
 from fastmcp.server.dependencies import get_http_request
 
 mcp = FastMCP(name="Session Aware Demo")
+
 
 @mcp.tool
 async def session_info(ctx: Context) -> dict:
@@ -7617,14 +7773,14 @@ async def session_info(ctx: Context) -> dict:
         return {
             "session_id": ctx.session_id,
             "request_id": ctx.request_id,
-            "has_meta": ctx.request_context.meta is not None
+            "has_meta": ctx.request_context.meta is not None,
         }
     else:
         # MCP session not available - use HTTP helpers for request data (if using HTTP transport)
         request = get_http_request()
         return {
             "message": "MCP session not available",
-            "user_agent": request.headers.get("user-agent", "Unknown")
+            "user_agent": request.headers.get("user-agent", "Unknown"),
         }
 ```
  For HTTP request access that works regardless of MCP session availability (when using HTTP transports), use the [HTTP request helpers](/servers/dependency-injection#http-request) like `get_http_request()` and `get_http_headers()`. #### Client Metadata Clients can send contextual information with their requests using the `meta` parameter. This metadata is accessible through `ctx.request_context.meta` and is available for all MCP operations (tools, resources, prompts). The `meta` field is `None` when clients don't provide metadata. When provided, metadata is accessible via attribute access (e.g., `meta.user_id`) rather than dictionary access. The structure of metadata is determined by the client making the request. 
@@ -7638,8 +7794,8 @@ def send_email(to: str, subject: str, body: str, ctx: Context) -> str:
 
     if meta:
         # Meta is accessed as an object with attribute access
-        user_id = meta.user_id if hasattr(meta, 'user_id') else None
-        trace_id = meta.trace_id if hasattr(meta, 'trace_id') else None
+        user_id = meta.user_id if hasattr(meta, "user_id") else None
+        trace_id = meta.trace_id if hasattr(meta, "trace_id") else None
 
         # Use metadata for logging, observability, etc.
         if trace_id:
@@ -7655,6 +7811,7 @@ from fastmcp.server.context import Context
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def my_tool(query: str, ctx: Context) -> str:
     await ctx.info(f"Processing: ")
@@ -7668,6 +7825,7 @@ from fastmcp.server.context import Context
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def my_tool(query: str, ctx: Context = CurrentContext()) -> str:
     await ctx.info(f"Processing: ")
@@ -7680,21 +7838,24 @@ from fastmcp.server.context import Context
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def process_data(data: str, ctx: Context) -> str:
     await ctx.info(f"Processing: ")
     return "Done"
 
+
 # Or explicitly with CurrentContext()
 from fastmcp.dependencies import CurrentContext
 
+
 @mcp.tool
-async def process_data(data: str, ctx: Context = CurrentContext()) -> str:
-    ...
+async def process_data(data: str, ctx: Context = CurrentContext()) -> str: ...
 ```
  **Function:** Use `get_context()` in helper functions or middleware: 
 ```python
 from fastmcp.server.dependencies import get_context
+
 
 async def log_something(message: str):
     ctx = get_context()
@@ -7707,6 +7868,7 @@ from fastmcp.dependencies import CurrentFastMCP
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def server_info(server: FastMCP = CurrentFastMCP()) -> str:
     return f"Server: "
@@ -7714,6 +7876,7 @@ async def server_info(server: FastMCP = CurrentFastMCP()) -> str:
  **Function:** Use `get_server()`: 
 ```python
 from fastmcp.server.dependencies import get_server
+
 
 def get_server_name() -> str:
     return get_server().name
@@ -7726,6 +7889,7 @@ from starlette.requests import Request
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def client_info(request: Request = CurrentRequest()) -> dict:
     return {
@@ -7736,6 +7900,7 @@ async def client_info(request: Request = CurrentRequest()) -> dict:
  **Function:** Use `get_http_request()`: 
 ```python
 from fastmcp.server.dependencies import get_http_request
+
 
 def get_client_ip() -> str:
     request = get_http_request()
@@ -7748,6 +7913,7 @@ from fastmcp.dependencies import CurrentHeaders
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def get_auth_type(headers: dict = CurrentHeaders()) -> str:
     auth = headers.get("authorization", "")
@@ -7756,6 +7922,7 @@ async def get_auth_type(headers: dict = CurrentHeaders()) -> str:
  **Function:** Use `get_http_headers()`: 
 ```python
 from fastmcp.server.dependencies import get_http_headers
+
 
 def get_user_agent() -> str:
     headers = get_http_headers()
@@ -7769,6 +7936,7 @@ from fastmcp.server.auth import AccessToken
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def get_user_id(token: AccessToken = CurrentAccessToken()) -> str:
     return token.claims.get("sub", "unknown")
@@ -7777,12 +7945,13 @@ async def get_user_id(token: AccessToken = CurrentAccessToken()) -> str:
 ```python
 from fastmcp.server.dependencies import get_access_token
 
+
 @mcp.tool
 async def get_user_info() -> dict:
     token = get_access_token()
     if token is None:
-        return 
-    return 
+        return
+    return
 ```
  The `AccessToken` object provides: * **`client_id`**: The OAuth client identifier * **`scopes`**: List of granted permission scopes * **`expires_at`**: Token expiration timestamp (if available) * **`claims`**: Dictionary of all token claims (JWT claims or provider-specific data) ### Token Claims When you need just one specific value from the token—like a user ID or tenant identifier—`TokenClaim()` extracts it directly without needing the full token object. 
 ```python
@@ -7791,13 +7960,14 @@ from fastmcp.server.dependencies import TokenClaim
 
 mcp = FastMCP("Demo")
 
+
 @mcp.tool
 async def add_expense(
     amount: float,
     user_id: str = TokenClaim("oid"),  # Azure object ID
 ) -> dict:
     await db.insert()
-    return 
+    return
 ```
  `TokenClaim()` raises a `RuntimeError` if the claim doesn't exist, listing available claims to help with debugging. Common claims vary by identity provider: | Provider | User ID Claim | Email Claim | Name Claim | | ----------- | ------------- | ----------- | ---------- | | Azure/Entra | `oid` | `email` | `name` | | GitHub | `sub` | `email` | `name` | | Google | `sub` | `email` | `name` | | Auth0 | `sub` | `email` | `name` | ### Background Task Dependencies For background task execution, FastMCP provides dependencies that integrate with [Docket](https://github.com/chrisguidry/docket). These require installing `fastmcp[tasks]`. 
 ```python
@@ -7805,6 +7975,7 @@ from fastmcp import FastMCP
 from fastmcp.dependencies import CurrentDocket, CurrentWorker, Progress
 
 mcp = FastMCP("Task Demo")
+
 
 @mcp.tool(task=True)
 async def long_running_task(
@@ -7829,12 +8000,15 @@ from fastmcp.dependencies import Depends
 
 mcp = FastMCP("Custom Deps Demo")
 
+
 def get_config() -> dict:
-    return 
+    return
+
 
 async def get_user_id() -> int:
     # Could fetch from database, external service, etc.
     return 42
+
 
 @mcp.tool
 async def fetch_data(
@@ -7851,15 +8025,19 @@ from fastmcp.dependencies import Depends
 
 mcp = FastMCP("Caching Demo")
 
+
 def get_db_connection():
     print("Connecting to database...")  # Only printed once per request
-    return 
+    return
+
 
 def get_user_repo(db=Depends(get_db_connection)):
-    return 
+    return
+
 
 def get_order_repo(db=Depends(get_db_connection)):
-    return 
+    return
+
 
 @mcp.tool
 async def process_order(
@@ -7879,6 +8057,7 @@ from fastmcp.dependencies import Depends
 
 mcp = FastMCP("Resource Demo")
 
+
 @asynccontextmanager
 async def get_database():
     db = await connect_to_database()
@@ -7886,6 +8065,7 @@ async def get_database():
         yield db
     finally:
         await db.close()
+
 
 @mcp.tool
 async def query_users(sql: str, db=Depends(get_database)) -> list:
@@ -7898,11 +8078,14 @@ from fastmcp.dependencies import Depends
 
 mcp = FastMCP("Nested Demo")
 
+
 def get_base_url() -> str:
     return "https://api.example.com"
 
+
 def get_api_client(base_url: str = Depends(get_base_url)) -> dict:
-    return 
+    return
+
 
 @mcp.tool
 async def call_api(endpoint: str, client: dict = Depends(get_api_client)) -> str:
@@ -7915,17 +8098,18 @@ from dataclasses import dataclass
 
 mcp = FastMCP("Elicitation Server")
 
+
 @dataclass
 class UserInfo:
     name: str
     age: int
 
+
 @mcp.tool
 async def collect_user_info(ctx: Context) -> str:
     """Collect user information through interactive prompts."""
     result = await ctx.elicit(
-        message="Please provide your information",
-        response_type=UserInfo
+        message="Please provide your information", response_type=UserInfo
     )
 
     if result.action == "accept":
@@ -7943,6 +8127,7 @@ from fastmcp.server.elicitation import (
     DeclinedElicitation,
     CancelledElicitation,
 )
+
 
 @mcp.tool
 async def pattern_example(ctx: Context) -> str:
@@ -7970,10 +8155,7 @@ async def plan_meeting(ctx: Context) -> str:
     if duration_result.action != "accept":
         return "Meeting planning cancelled"
 
-    priority_result = await ctx.elicit(
-        "Is this urgent?",
-        response_type=["yes", "no"]
-    )
+    priority_result = await ctx.elicit("Is this urgent?", response_type=["yes", "no"])
     if priority_result.action != "accept":
         return "Meeting planning cancelled"
 
@@ -8049,67 +8231,68 @@ async def approve_action(ctx: Context) -> str:
   ```
  
 ```python
-  from typing import Literal
+from typing import Literal
 
-  @mcp.tool
-  async def set_priority(ctx: Context) -> str:
-      result = await ctx.elicit(
-          "What priority level?",
-          response_type=Literal["low", "medium", "high"]
-      )
 
-      if result.action == "accept":
-          return f"Priority set to: "
-      return "No priority set"
+@mcp.tool
+async def set_priority(ctx: Context) -> str:
+    result = await ctx.elicit(
+        "What priority level?", response_type=Literal["low", "medium", "high"]
+    )
+
+    if result.action == "accept":
+        return f"Priority set to: "
+    return "No priority set"
   ```
  
 ```python
-  from enum import Enum
+from enum import Enum
 
-  class Priority(Enum):
-      LOW = "low"
-      MEDIUM = "medium"
-      HIGH = "high"
 
-  @mcp.tool
-  async def set_priority(ctx: Context) -> str:
-      result = await ctx.elicit("What priority level?", response_type=Priority)
+class Priority(Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
 
-      if result.action == "accept":
-          return f"Priority set to: "
-      return "No priority set"
+
+@mcp.tool
+async def set_priority(ctx: Context) -> str:
+    result = await ctx.elicit("What priority level?", response_type=Priority)
+
+    if result.action == "accept":
+        return f"Priority set to: "
+    return "No priority set"
   ```
  ### Multi-Select Enable multi-select by wrapping your choices in an additional list level. This allows users to select multiple values from the available options. 
 ```python
-  @mcp.tool
-  async def select_tags(ctx: Context) -> str:
-      result = await ctx.elicit(
-          "Choose tags",
-          response_type=[["bug", "feature", "documentation"]]  # Note: list of a list
-      )
+@mcp.tool
+async def select_tags(ctx: Context) -> str:
+    result = await ctx.elicit(
+        "Choose tags",
+        response_type=[["bug", "feature", "documentation"]],  # Note: list of a list
+    )
 
-      if result.action == "accept":
-          tags = result.data
-          return f"Selected tags: "
+    if result.action == "accept":
+        tags = result.data
+        return f"Selected tags: "
   ```
  
 ```python
-  from enum import Enum
+from enum import Enum
 
-  class Tag(Enum):
-      BUG = "bug"
-      FEATURE = "feature"
-      DOCS = "documentation"
 
-  @mcp.tool
-  async def select_tags(ctx: Context) -> str:
-      result = await ctx.elicit(
-          "Choose tags",
-          response_type=list[Tag]
-      )
-      if result.action == "accept":
-          tags = [tag.value for tag in result.data]
-          return f"Selected: "
+class Tag(Enum):
+    BUG = "bug"
+    FEATURE = "feature"
+    DOCS = "documentation"
+
+
+@mcp.tool
+async def select_tags(ctx: Context) -> str:
+    result = await ctx.elicit("Choose tags", response_type=list[Tag])
+    if result.action == "accept":
+        tags = [tag.value for tag in result.data]
+        return f"Selected: "
   ```
  ### Titled Options For better UI display, provide human-readable titles for enum options. FastMCP generates SEP-1330 compliant schemas using the `oneOf` pattern with `const` and `title` fields. 
 ```python
@@ -8148,6 +8331,7 @@ async def select_priorities(ctx: Context) -> str:
 from dataclasses import dataclass
 from typing import Literal
 
+
 @dataclass
 class TaskDetails:
     title: str
@@ -8155,12 +8339,10 @@ class TaskDetails:
     priority: Literal["low", "medium", "high"]
     due_date: str
 
+
 @mcp.tool
 async def create_task(ctx: Context) -> str:
-    result = await ctx.elicit(
-        "Please provide task details",
-        response_type=TaskDetails
-    )
+    result = await ctx.elicit("Please provide task details", response_type=TaskDetails)
 
     if result.action == "accept":
         task = result.data
@@ -8172,15 +8354,18 @@ async def create_task(ctx: Context) -> str:
 from pydantic import BaseModel, Field
 from enum import Enum
 
+
 class Priority(Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
 
+
 class TaskDetails(BaseModel):
     title: str = Field(description="Task title")
     description: str = Field(default="", description="Task description")
     priority: Priority = Field(default=Priority.MEDIUM, description="Task priority")
+
 
 @mcp.tool
 async def create_task(ctx: Context) -> str:
@@ -8193,11 +8378,7 @@ async def create_task(ctx: Context) -> str:
 ```python
 from mcp.types import Icon
 
-icon = Icon(
-    src="https://example.com/icon.png",
-    mimeType="image/png",
-    sizes=["48x48"]
-)
+icon = Icon(src="https://example.com/icon.png", mimeType="image/png", sizes=["48x48"])
 ```
  The fields serve different purposes: * **src**: URL or data URI pointing to the icon image * **mimeType** (optional): MIME type of the image (e.g., "image/png", "image/svg+xml") * **sizes** (optional): Array of size descriptors (e.g., \["48x48"], \["any"]) ## Server Icons Add icons and a website URL to your server for display in client applications. Multiple icons at different sizes help clients choose the best resolution for their display context. 
 ```python
@@ -8211,23 +8392,22 @@ mcp = FastMCP(
         Icon(
             src="https://weather.example.com/icon-48.png",
             mimeType="image/png",
-            sizes=["48x48"]
+            sizes=["48x48"],
         ),
         Icon(
             src="https://weather.example.com/icon-96.png",
             mimeType="image/png",
-            sizes=["96x96"]
+            sizes=["96x96"],
         ),
-    ]
+    ],
 )
 ```
  Server icons appear in MCP client interfaces to help users identify your server among others they may have installed. ## Component Icons Icons can be added to individual tools, resources, resource templates, and prompts. This helps users visually distinguish between different component types and purposes. ### Tool Icons 
 ```python
 from mcp.types import Icon
 
-@mcp.tool(
-    icons=[Icon(src="https://example.com/calculator-icon.png")]
-)
+
+@mcp.tool(icons=[Icon(src="https://example.com/calculator-icon.png")])
 def calculate_sum(a: int, b: int) -> int:
     """Add two numbers together."""
     return a + b
@@ -8235,28 +8415,22 @@ def calculate_sum(a: int, b: int) -> int:
  ### Resource Icons 
 ```python
 @mcp.resource(
-    "config://settings",
-    icons=[Icon(src="https://example.com/config-icon.png")]
+    "config://settings", icons=[Icon(src="https://example.com/config-icon.png")]
 )
 def get_settings() -> dict:
     """Retrieve application settings."""
-    return 
+    return
 ```
  ### Resource Template Icons 
 ```python
-@mcp.resource(
-    "user:///profile",
-    icons=[Icon(src="https://example.com/user-icon.png")]
-)
+@mcp.resource("user:///profile", icons=[Icon(src="https://example.com/user-icon.png")])
 def get_user_profile(user_id: str) -> dict:
     """Get a user's profile."""
     return {"id": user_id, "name": f"User "}
 ```
  ### Prompt Icons 
 ```python
-@mcp.prompt(
-    icons=[Icon(src="https://example.com/prompt-icon.png")]
-)
+@mcp.prompt(icons=[Icon(src="https://example.com/prompt-icon.png")])
 def analyze_code(code: str):
     """Create a prompt for code analysis."""
     return f"Please analyze this code:\n\n"
@@ -8269,8 +8443,9 @@ from fastmcp.utilities.types import Image
 # SVG icon as data URI
 svg_icon = Icon(
     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6Ii8+PC9zdmc+",
-    mimeType="image/svg+xml"
+    mimeType="image/svg+xml",
 )
+
 
 @mcp.tool(icons=[svg_icon])
 def my_tool() -> str:
@@ -8286,6 +8461,7 @@ from fastmcp.utilities.types import Image
 img = Image(path="./assets/brand/favicon.png")
 icon = Icon(src=img.to_data_uri())
 
+
 @mcp.tool(icons=[icon])
 def file_icon_tool() -> str:
     """A tool with an icon generated from a local file."""
@@ -8296,15 +8472,17 @@ def file_icon_tool() -> str:
 from fastmcp import FastMCP
 from fastmcp.server.lifespan import lifespan
 
+
 @lifespan
 async def app_lifespan(server):
     # Setup: runs once when server starts
     print("Starting up...")
     try:
-        yield 
+        yield
     finally:
         # Teardown: runs when server stops
         print("Shutting down...")
+
 
 mcp = FastMCP("MyServer", lifespan=app_lifespan)
 ```
@@ -8349,9 +8527,11 @@ mcp = FastMCP("MyServer", lifespan=config_lifespan | data_lifespan)
 from contextlib import asynccontextmanager
 from fastmcp import FastMCP
 
+
 @asynccontextmanager
 async def legacy_lifespan(server):
-    yield 
+    yield
+
 
 mcp = FastMCP("MyServer", lifespan=legacy_lifespan)
 ```
@@ -8360,13 +8540,16 @@ mcp = FastMCP("MyServer", lifespan=legacy_lifespan)
 from contextlib import asynccontextmanager
 from fastmcp.server.lifespan import lifespan, ContextManagerLifespan
 
+
 @asynccontextmanager
 async def legacy_lifespan(server):
-    yield 
+    yield
+
 
 @lifespan
 async def new_lifespan(server):
-    yield 
+    yield
+
 
 # Wrap the legacy lifespan explicitly for composition
 combined = ContextManagerLifespan(legacy_lifespan) | new_lifespan
@@ -8379,11 +8562,13 @@ from fastapi import FastAPI
 from fastmcp import FastMCP
 from fastmcp.utilities.lifespan import combine_lifespans
 
+
 @asynccontextmanager
 async def app_lifespan(app):
     print("FastAPI starting...")
     yield
     print("FastAPI shutting down...")
+
 
 mcp = FastMCP("Tools")
 mcp_app = mcp.http_app()
@@ -8397,6 +8582,7 @@ from fastmcp import FastMCP, Context
 
 mcp = FastMCP("LoggingDemo")
 
+
 @mcp.tool
 async def analyze_data(data: list[float], ctx: Context) -> dict:
     """Analyze numerical data with comprehensive logging."""
@@ -8406,11 +8592,11 @@ async def analyze_data(data: list[float], ctx: Context) -> dict:
     try:
         if not data:
             await ctx.warning("Empty data list provided")
-            return 
+            return
 
         result = sum(data) / len(data)
         await ctx.info(f"Analysis complete, average: ")
-        return 
+        return
 
     except Exception as e:
         await ctx.error(f"Analysis failed: ")
@@ -8422,16 +8608,11 @@ async def analyze_data(data: list[float], ctx: Context) -> dict:
 async def process_transaction(transaction_id: str, amount: float, ctx: Context):
     await ctx.info(
         f"Processing transaction ",
-        extra={
-            "transaction_id": transaction_id,
-            "amount": amount,
-            "currency": "USD"
-        }
+        extra={"transaction_id": transaction_id, "amount": amount, "currency": "USD"},
     )
 ```
  ## Server-Side Logs Messages sent to clients via `ctx.log()` and its convenience methods are also logged to the server's log at `DEBUG` level. Enable debug logging on the `fastmcp.server.context.to_client` logger to see these messages: 
 ```python
-
 from fastmcp.utilities.logging import get_logger
 
 to_client_logger = get_logger(name="fastmcp.server.context.to_client")
@@ -8446,12 +8627,14 @@ Request → Middleware A → Middleware B → Handler → Middleware B → Middl
 from fastmcp import FastMCP
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 
+
 class LoggingMiddleware(Middleware):
     async def on_message(self, context: MiddlewareContext, call_next):
         print(f"→ ")
         result = await call_next(context)
         print(f"← ")
         return result
+
 
 mcp = FastMCP("MyServer")
 mcp.add_middleware(LoggingMiddleware())
@@ -8464,9 +8647,9 @@ from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
 from fastmcp.server.middleware.logging import LoggingMiddleware
 
 mcp = FastMCP("MyServer")
-mcp.add_middleware(ErrorHandlingMiddleware())   # 1st in, last out
-mcp.add_middleware(RateLimitingMiddleware())    # 2nd in, 2nd out
-mcp.add_middleware(LoggingMiddleware())         # 3rd in, first out
+mcp.add_middleware(ErrorHandlingMiddleware())  # 1st in, last out
+mcp.add_middleware(RateLimitingMiddleware())  # 2nd in, 2nd out
+mcp.add_middleware(LoggingMiddleware())  # 3rd in, first out
 ```
  This ordering matters. Place error handling early so it catches exceptions from all subsequent middleware. Place logging late so it records the actual execution after other middleware has processed the request. ### Server Composition When using [mounted servers](/servers/composition), middleware behavior follows a clear hierarchy: * **Parent middleware** runs for all requests, including those routed to mounted servers * **Mounted server middleware** only runs for requests handled by that specific server 
 ```python
@@ -8559,8 +8742,11 @@ async def on_list_prompts(self, context: MiddlewareContext, call_next):
 from mcp import McpError
 from mcp.types import ErrorData
 
+
 async def on_initialize(self, context: MiddlewareContext, call_next):
-    client_info = context.message.params.get("clientInfo", )
+    client_info = context.message.params.get(
+        "clientInfo",
+    )
     client_name = client_info.get("name", "unknown")
 
     # Reject before call_next to send error to client
@@ -8573,6 +8759,7 @@ async def on_initialize(self, context: MiddlewareContext, call_next):
  **Returns:** `None` — The initialization response is handled internally by the MCP protocol. Raising `McpError` after `call_next()` will only log the error, not send it to the client. The response has already been sent. Always reject **before** `call_next()`. ### Raw Handler For complete control over all messages, override `__call__` instead of individual hooks: 
 ```python
 from fastmcp.server.middleware import Middleware, MiddlewareContext
+
 
 class RawMiddleware(Middleware):
     async def __call__(self, context: MiddlewareContext, call_next):
@@ -8594,13 +8781,17 @@ async def on_request(self, context: MiddlewareContext, call_next):
         # Session not yet established (e.g., during initialization)
         # Use HTTP helpers if needed
         from fastmcp.server.dependencies import get_http_headers
+
         headers = get_http_headers()
 
     return await call_next(context)
 ```
  For HTTP-specific data (headers, client IP) when using HTTP transports, see [HTTP Requests](/servers/context#http-requests). ## Built-in Middleware FastMCP includes production-ready middleware for common server concerns. ### Logging 
 ```python
-from fastmcp.server.middleware.logging import LoggingMiddleware, StructuredLoggingMiddleware
+from fastmcp.server.middleware.logging import (
+    LoggingMiddleware,
+    StructuredLoggingMiddleware,
+)
 ```
  `LoggingMiddleware` provides human-readable request and response logging. `StructuredLoggingMiddleware` outputs JSON-formatted logs for aggregation tools like Datadog or Splunk. 
 ```python
@@ -8608,10 +8799,7 @@ from fastmcp import FastMCP
 from fastmcp.server.middleware.logging import LoggingMiddleware
 
 mcp = FastMCP("MyServer")
-mcp.add_middleware(LoggingMiddleware(
-    include_payloads=True,
-    max_payload_length=1000
-))
+mcp.add_middleware(LoggingMiddleware(include_payloads=True, max_payload_length=1000))
 ```
  | Parameter | Type | Default | Description | | -------------------- | -------- | ------------- | ------------------------------------ | | `include_payloads` | `bool` | `False` | Log request/response content | | `max_payload_length` | `int` | `500` | Truncate payloads beyond this length | | `logger` | `Logger` | module logger | Custom logger instance | ### Timing 
 ```python
@@ -8643,14 +8831,16 @@ from fastmcp.server.middleware.caching import (
     ResponseCachingMiddleware,
     CallToolSettings,
     ListToolsSettings,
-    ReadResourceSettings
+    ReadResourceSettings,
 )
 
-mcp.add_middleware(ResponseCachingMiddleware(
-    list_tools_settings=ListToolsSettings(ttl=30),
-    call_tool_settings=CallToolSettings(included_tools=["expensive_tool"]),
-    read_resource_settings=ReadResourceSettings(enabled=False)
-))
+mcp.add_middleware(
+    ResponseCachingMiddleware(
+        list_tools_settings=ListToolsSettings(ttl=30),
+        call_tool_settings=CallToolSettings(included_tools=["expensive_tool"]),
+        read_resource_settings=ReadResourceSettings(enabled=False),
+    )
+)
 ```
  | Settings Class | Configures | | ----------------------- | --------------------------- | | `ListToolsSettings` | `on_list_tools` caching | | `CallToolSettings` | `on_call_tool` caching | | `ListResourcesSettings` | `on_list_resources` caching | | `ReadResourceSettings` | `on_read_resource` caching | | `ListPromptsSettings` | `on_list_prompts` caching | | `GetPromptSettings` | `on_get_prompt` caching | Each settings class accepts: * `enabled` — Enable/disable caching for this operation * `ttl` — Time-to-live in seconds * `included_*` / `excluded_*` — Whitelist or blacklist specific items For persistence or distributed deployments, configure a different storage backend: 
 ```python
@@ -8663,19 +8853,23 @@ from key_value.aio.stores.filetree import (
 )
 
 cache_dir = Path("cache")
-mcp.add_middleware(ResponseCachingMiddleware(
-    cache_storage=FileTreeStore(
-        data_directory=cache_dir,
-        key_sanitization_strategy=FileTreeV1KeySanitizationStrategy(cache_dir),
-        collection_sanitization_strategy=FileTreeV1CollectionSanitizationStrategy(cache_dir),
+mcp.add_middleware(
+    ResponseCachingMiddleware(
+        cache_storage=FileTreeStore(
+            data_directory=cache_dir,
+            key_sanitization_strategy=FileTreeV1KeySanitizationStrategy(cache_dir),
+            collection_sanitization_strategy=FileTreeV1CollectionSanitizationStrategy(
+                cache_dir
+            ),
+        )
     )
-))
+)
 ```
  See [Storage Backends](/servers/storage-backends) for complete options. Cache keys are based on the operation name and arguments only — they do not include user or session identity. If your tools return user-specific data derived from auth context (e.g., headers or session state) rather than from the request arguments, you should either disable caching for those tools or ensure user identity is part of the tool arguments. ### Rate Limiting 
 ```python
 from fastmcp.server.middleware.rate_limiting import (
     RateLimitingMiddleware,
-    SlidingWindowRateLimitingMiddleware
+    SlidingWindowRateLimitingMiddleware,
 )
 ```
  `RateLimitingMiddleware` uses a token bucket algorithm allowing controlled bursts. `SlidingWindowRateLimitingMiddleware` provides precise time-window rate limiting without burst allowance. 
@@ -8684,23 +8878,24 @@ from fastmcp import FastMCP
 from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
 
 mcp = FastMCP("MyServer")
-mcp.add_middleware(RateLimitingMiddleware(
-    max_requests_per_second=10.0,
-    burst_capacity=20
-))
+mcp.add_middleware(
+    RateLimitingMiddleware(max_requests_per_second=10.0, burst_capacity=20)
+)
 ```
  | Parameter | Type | Default | Description | | ------------------------- | ---------- | ------- | ---------------------------- | | `max_requests_per_second` | `float` | `10.0` | Sustained request rate | | `burst_capacity` | `int` | `20` | Maximum burst size | | `client_id_func` | `Callable` | `None` | Custom client identification | For sliding window rate limiting: 
 ```python
 from fastmcp.server.middleware.rate_limiting import SlidingWindowRateLimitingMiddleware
 
-mcp.add_middleware(SlidingWindowRateLimitingMiddleware(
-    max_requests=100,
-    window_minutes=1
-))
+mcp.add_middleware(
+    SlidingWindowRateLimitingMiddleware(max_requests=100, window_minutes=1)
+)
 ```
  ### Error Handling 
 ```python
-from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware, RetryMiddleware
+from fastmcp.server.middleware.error_handling import (
+    ErrorHandlingMiddleware,
+    RetryMiddleware,
+)
 ```
  `ErrorHandlingMiddleware` provides centralized error logging and transformation. `RetryMiddleware` automatically retries with exponential backoff for transient failures. 
 ```python
@@ -8708,20 +8903,19 @@ from fastmcp import FastMCP
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 
 mcp = FastMCP("MyServer")
-mcp.add_middleware(ErrorHandlingMiddleware(
-    include_traceback=True,
-    transform_errors=True,
-    error_callback=my_error_callback
-))
+mcp.add_middleware(
+    ErrorHandlingMiddleware(
+        include_traceback=True, transform_errors=True, error_callback=my_error_callback
+    )
+)
 ```
  | Parameter | Type | Default | Description | | ------------------- | ---------- | ------- | -------------------------------- | | `include_traceback` | `bool` | `False` | Include stack traces in logs | | `transform_errors` | `bool` | `False` | Convert exceptions to MCP errors | | `error_callback` | `Callable` | `None` | Custom callback on errors | For automatic retries: 
 ```python
 from fastmcp.server.middleware.error_handling import RetryMiddleware
 
-mcp.add_middleware(RetryMiddleware(
-    max_retries=3,
-    retry_exceptions=(ConnectionError, TimeoutError)
-))
+mcp.add_middleware(
+    RetryMiddleware(max_retries=3, retry_exceptions=(ConnectionError, TimeoutError))
+)
 ```
  ### Ping 
 ```python
@@ -8749,10 +8943,12 @@ mcp = FastMCP("MyServer")
 # Limit all tool responses to 500KB
 mcp.add_middleware(ResponseLimitingMiddleware(max_size=500_000))
 
+
 @mcp.tool
 def search(query: str) -> str:
     # This could return a very large result
     return "x" * 1_000_000  # 1MB response
+
 
 # When called, the response will be truncated to ~500KB with:
 # "...\n\n[Response truncated due to size limit]"
@@ -8760,10 +8956,12 @@ def search(query: str) -> str:
  When a response exceeds the limit, the middleware extracts all text content, joins it together, truncates to fit within the limit, and returns a single `TextContent` block. For non-text responses, the serialized JSON is used as the text source. If a tool defines an `output_schema`, truncated responses will no longer conform to that schema — the client will receive a plain `TextContent` block instead of the expected structured output. Keep this in mind when setting size limits for tools with structured responses. 
 ```python
 # Limit only specific tools
-mcp.add_middleware(ResponseLimitingMiddleware(
-    max_size=100_000,
-    tools=["search", "fetch_data"],
-))
+mcp.add_middleware(
+    ResponseLimitingMiddleware(
+        max_size=100_000,
+        tools=["search", "fetch_data"],
+    )
+)
 ```
  | Parameter | Type | Default | Description | | ------------------- | ------------------- | ---------------------------------------------- | -------------------------------------------- | | `max_size` | `int` | `1_000_000` | Maximum response size in bytes (1MB default) | | `truncation_suffix` | `str` | `"\n\n[Response truncated due to size limit]"` | Suffix appended to truncated responses | | `tools` | `list[str] \| None` | `None` | Limit only these tools (None = all tools) | ### Combining Middleware Order matters. Place middleware that should run first (on the way in) earliest: 
 ```python
@@ -8775,10 +8973,11 @@ from fastmcp.server.middleware.logging import LoggingMiddleware
 
 mcp = FastMCP("Production Server")
 
-mcp.add_middleware(ErrorHandlingMiddleware())   # Catch all errors
+mcp.add_middleware(ErrorHandlingMiddleware())  # Catch all errors
 mcp.add_middleware(RateLimitingMiddleware(max_requests_per_second=50))
 mcp.add_middleware(TimingMiddleware())
 mcp.add_middleware(LoggingMiddleware())
+
 
 @mcp.tool
 def my_tool(data: str) -> str:
@@ -8788,6 +8987,7 @@ def my_tool(data: str) -> str:
 ```python
 from fastmcp import FastMCP
 from fastmcp.server.middleware import Middleware, MiddlewareContext
+
 
 class CustomMiddleware(Middleware):
     async def on_request(self, context: MiddlewareContext, call_next):
@@ -8800,6 +9000,7 @@ class CustomMiddleware(Middleware):
         print(f"← ")
         return result
 
+
 mcp = FastMCP("MyServer")
 mcp.add_middleware(CustomMiddleware())
 ```
@@ -8807,6 +9008,7 @@ mcp.add_middleware(CustomMiddleware())
 ```python
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from fastmcp.exceptions import ToolError
+
 
 class AuthMiddleware(Middleware):
     async def on_call_tool(self, context: MiddlewareContext, call_next):
@@ -8821,6 +9023,7 @@ class AuthMiddleware(Middleware):
 ```python
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 
+
 class InputSanitizer(Middleware):
     async def on_call_tool(self, context: MiddlewareContext, call_next):
         if context.message.name == "search":
@@ -8833,6 +9036,7 @@ class InputSanitizer(Middleware):
  ### Modifying Responses Transform results after the handler executes. 
 ```python
 from fastmcp.server.middleware import Middleware, MiddlewareContext
+
 
 class ResponseEnricher(Middleware):
     async def on_call_tool(self, context: MiddlewareContext, call_next):
@@ -8847,6 +9051,7 @@ class ResponseEnricher(Middleware):
 ```python
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from fastmcp.exceptions import ToolError
+
 
 class PrivateToolFilter(Middleware):
     async def on_list_tools(self, context: MiddlewareContext, call_next):
@@ -8866,11 +9071,14 @@ class PrivateToolFilter(Middleware):
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from fastmcp.exceptions import ToolError
 
+
 class TagBasedAuth(Middleware):
     async def on_call_tool(self, context: MiddlewareContext, call_next):
         if context.fastmcp_context:
             try:
-                tool = await context.fastmcp_context.fastmcp.get_tool(context.message.name)
+                tool = await context.fastmcp_context.fastmcp.get_tool(
+                    context.message.name
+                )
 
                 if "requires-auth" in tool.tags:
                     # Check authentication here
@@ -8909,6 +9117,7 @@ from fastmcp import FastMCP, Context
 
 mcp = FastMCP("MyServer")
 
+
 @mcp.tool
 def get_user_data(ctx: Context) -> str:
     user_id = ctx.get_state("user_id")
@@ -8936,6 +9145,7 @@ mcp.add_middleware(ConfigurableMiddleware(
  ### Error Handling in Custom Middleware Wrap `call_next()` to handle errors from downstream middleware and handlers. 
 ```python
 from fastmcp.server.middleware import Middleware, MiddlewareContext
+
 
 class ErrorLogger(Middleware):
     async def on_request(self, context: MiddlewareContext, call_next):
@@ -8992,14 +9202,17 @@ from fastmcp import FastMCP
 # Enable pagination with 50 items per page
 server = FastMCP("ComponentRegistry", list_page_size=50)
 
+
 # Register tools (in practice, these might come from a database or config)
 @server.tool
 def search(query: str) -> str:
     return f"Results for: "
 
+
 @server.tool
 def analyze(data: str) -> dict:
-    return 
+    return
+
 
 # ... many more tools, resources, prompts
 ```
@@ -9032,6 +9245,7 @@ from fastmcp import FastMCP, Context
 
 mcp = FastMCP("ProgressDemo")
 
+
 @mcp.tool
 async def process_items(items: list[str], ctx: Context) -> dict:
     """Process a list of items with progress updates."""
@@ -9044,7 +9258,7 @@ async def process_items(items: list[str], ctx: Context) -> dict:
         results.append(item.upper())
 
     await ctx.report_progress(progress=total, total=total)
-    return 
+    return
 ```
  ## Progress Patterns | Pattern | Description | Example | | ------------- | -------------------------------- | --------------------------------- | | Percentage | Progress as 0-100 percentage | `progress=75, total=100` | | Absolute | Completed items of a known count | `progress=3, total=10` | | Indeterminate | Progress without known endpoint | `progress=files_found` (no total) | For multi-stage operations, map each stage to a portion of the total progress range. A four-stage operation might allocate 0-25% to validation, 25-60% to export, 60-80% to transform, and 80-100% to import. ## Client Requirements Progress reporting requires clients to support progress handling. Clients must send a `progressToken` in the initial request to receive progress updates. If no progress token is provided, progress calls have no effect (they don't error). See [Client Progress](/clients/progress) for details on implementing client-side progress handling. # Prompts Source: https://gofastmcp.com/servers/prompts Create reusable, parameterized prompt templates for MCP clients. Prompts are reusable message templates that help LLMs generate structured, purposeful responses. FastMCP simplifies defining these templates, primarily using the `@mcp.prompt` decorator. ## What Are Prompts? Prompts provide parameterized message templates for LLMs. When a client requests a prompt: 1. FastMCP finds the corresponding prompt definition. 2. If it has parameters, they are validated against your function signature. 3. Your function executes with the validated inputs. 4. The generated message(s) are returned to the LLM to guide its response. This allows you to define consistent, reusable templates that LLMs can use across different clients and contexts. ## Prompts ### The `@prompt` Decorator The most common way to define a prompt is by decorating a Python function. The decorator uses the function name as the prompt's identifier. 
 ```python
@@ -9053,11 +9267,13 @@ from fastmcp.prompts import Message
 
 mcp = FastMCP(name="PromptServer")
 
+
 # Basic prompt returning a string (converted to user message automatically)
 @mcp.prompt
 def ask_about_topic(topic: str) -> str:
     """Generates a user message asking for an explanation of a topic."""
     return f"Can you please explain the concept of ''?"
+
 
 # Prompt returning multiple messages
 @mcp.prompt
@@ -9085,15 +9301,11 @@ def data_analysis_prompt(
 ```
  Sets the explicit prompt name exposed via MCP. If not provided, uses the function name A human-readable title for the prompt Provides the description exposed via MCP. If set, the function's docstring is ignored for the prompt description, though docstring-derived argument descriptions still apply (see [Argument Descriptions](#argument-descriptions)). A set of strings used to categorize the prompt. These can be used by the server and, in some cases, by clients to filter or group available prompts. Deprecated in v3.0.0. Use `mcp.enable()` / `mcp.disable()` at the server level instead. A boolean to enable or disable the prompt. See [Component Visibility](#component-visibility) for the recommended approach. Optional list of icon representations for this prompt. See [Icons](/servers/icons) for detailed examples Optional meta information about the prompt. This data is passed through to the MCP client as the `meta` field of the client-side prompt object and can be used for custom metadata, versioning, or other application-specific purposes. Optional version identifier for this prompt. See [Versioning](/servers/versioning) for details. #### Using with Methods For decorating instance or class methods, use the standalone `@prompt` decorator and register the bound method. See [Tools: Using with Methods](/servers/tools#using-with-methods) for the pattern. ### Argument Types The MCP specification requires that all prompt arguments be passed as strings, but FastMCP allows you to use typed annotations for better developer experience. When you use complex types like `list[int]` or `dict[str, str]`, FastMCP: 1. **Automatically converts** string arguments from MCP clients to the expected types 2. **Generates helpful descriptions** showing the exact JSON string format needed 3. **Preserves direct usage** - you can still call prompts with properly typed arguments Since the MCP specification only allows string arguments, clients need to know what string format to use for complex types. FastMCP solves this by automatically enhancing the argument descriptions with JSON schema information, making it clear to both humans and LLMs how to format their arguments. 
 ```python
-  @mcp.prompt
-  def analyze_data(
-      numbers: list[int],
-      metadata: dict[str, str], 
-      threshold: float
-  ) -> str:
-      """Analyze numerical data."""
-      avg = sum(numbers) / len(numbers)
-      return f"Average: , above threshold: "
+@mcp.prompt
+def analyze_data(numbers: list[int], metadata: dict[str, str], threshold: float) -> str:
+    """Analyze numerical data."""
+    avg = sum(numbers) / len(numbers)
+    return f"Average: , above threshold: "
   ```
  
 ```json
@@ -9152,12 +9364,13 @@ def analyze_data(dataset: str, method: str = "summary") -> str:
 ```python
 from fastmcp.prompts import Message
 
+
 @mcp.prompt
 def roleplay_scenario(character: str, situation: str) -> list[Message]:
     """Sets up a roleplaying scenario with initial messages."""
     return [
         Message(f"Let's roleplay. You are . The situation is: "),
-        Message("Okay, I understand. I am ready. What happens next?", role="assistant")
+        Message("Okay, I understand. I am ready. What happens next?", role="assistant"),
     ]
 ```
  #### Message `Message` provides a user-friendly wrapper for prompt messages with automatic serialization. 

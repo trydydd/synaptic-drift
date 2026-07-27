@@ -207,12 +207,14 @@ def test_fetch_llms_full_pages_calls_fetch_text_and_splits() -> None:
 
 
 def test_fetch_llms_full_pages_raises_fetch_error_on_failure() -> None:
-    with patch(
-        "synd.builder.llms_full.fetch_text",
-        side_effect=FetchError("HTTP 404 fetching llms-full.txt"),
+    with (
+        patch(
+            "synd.builder.llms_full.fetch_text",
+            side_effect=FetchError("HTTP 404 fetching llms-full.txt"),
+        ),
+        pytest.raises(FetchError, match="HTTP 404"),
     ):
-        with pytest.raises(FetchError, match="HTTP 404"):
-            fetch_llms_full_pages("https://docs.example.com/llms-full.txt")
+        fetch_llms_full_pages("https://docs.example.com/llms-full.txt")
 
 
 # --- fetch_pages ---
@@ -264,9 +266,11 @@ def test_fetch_pages_skips_failed_pages() -> None:
 
 
 def test_fetch_pages_raises_fetch_error_when_index_fails() -> None:
-    with patch(
-        "synd.builder.llms_full.fetch_text",
-        side_effect=FetchError("HTTP 404 fetching index"),
+    with (
+        patch(
+            "synd.builder.llms_full.fetch_text",
+            side_effect=FetchError("HTTP 404 fetching index"),
+        ),
+        pytest.raises(FetchError, match="HTTP 404"),
     ):
-        with pytest.raises(FetchError, match="HTTP 404"):
-            fetch_pages("https://docs.example.com/index.txt")
+        fetch_pages("https://docs.example.com/index.txt")

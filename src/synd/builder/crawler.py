@@ -141,7 +141,7 @@ def parse_sitemap(xml_text: str) -> tuple[list[str], list[str]]:
     sitemaps.org namespace. Raises xml.etree.ElementTree.ParseError on
     malformed XML — callers fall back to link-following.
     """
-    root = ET.fromstring(xml_text)  # noqa: S314 — sitemap XML from the crawled site
+    root = ET.fromstring(xml_text)
 
     def local_name(tag: str) -> str:
         return tag.rsplit("}", 1)[-1]

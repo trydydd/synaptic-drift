@@ -63,23 +63,27 @@ def test_fetch_page_raises_fetch_error_on_4xx() -> None:
     import http.client
 
     headers = http.client.HTTPMessage()
-    with patch(
-        "synd.builder.fetch.urlopen",
-        side_effect=HTTPError(
-            "https://example.com/page.md", 404, "Not Found", headers, None
+    with (
+        patch(
+            "synd.builder.fetch.urlopen",
+            side_effect=HTTPError(
+                "https://example.com/page.md", 404, "Not Found", headers, None
+            ),
         ),
+        pytest.raises(FetchError, match="HTTP 404"),
     ):
-        with pytest.raises(FetchError, match="HTTP 404"):
-            fetch_page("https://example.com/page.md")
+        fetch_page("https://example.com/page.md")
 
 
 def test_fetch_page_raises_fetch_error_on_network_failure() -> None:
-    with patch(
-        "synd.builder.fetch.urlopen",
-        side_effect=URLError("connection refused"),
+    with (
+        patch(
+            "synd.builder.fetch.urlopen",
+            side_effect=URLError("connection refused"),
+        ),
+        pytest.raises(FetchError, match="Network error"),
     ):
-        with pytest.raises(FetchError, match="Network error"):
-            fetch_page("https://example.com/page.html")
+        fetch_page("https://example.com/page.html")
 
 
 def test_fetch_page_rate_limit_sleep_is_called() -> None:
@@ -116,23 +120,27 @@ def test_fetch_text_raises_fetch_error_on_4xx() -> None:
     import http.client
 
     headers = http.client.HTTPMessage()
-    with patch(
-        "synd.builder.fetch.urlopen",
-        side_effect=HTTPError(
-            "https://example.com/llms-full.txt", 404, "Not Found", headers, None
+    with (
+        patch(
+            "synd.builder.fetch.urlopen",
+            side_effect=HTTPError(
+                "https://example.com/llms-full.txt", 404, "Not Found", headers, None
+            ),
         ),
+        pytest.raises(FetchError, match="HTTP 404"),
     ):
-        with pytest.raises(FetchError, match="HTTP 404"):
-            fetch_text("https://example.com/llms-full.txt")
+        fetch_text("https://example.com/llms-full.txt")
 
 
 def test_fetch_text_raises_fetch_error_on_network_failure() -> None:
-    with patch(
-        "synd.builder.fetch.urlopen",
-        side_effect=URLError("connection refused"),
+    with (
+        patch(
+            "synd.builder.fetch.urlopen",
+            side_effect=URLError("connection refused"),
+        ),
+        pytest.raises(FetchError, match="Network error"),
     ):
-        with pytest.raises(FetchError, match="Network error"):
-            fetch_text("https://example.com/llms-full.txt")
+        fetch_text("https://example.com/llms-full.txt")
 
 
 # --- User-Agent threading ---
@@ -197,21 +205,27 @@ def test_fetch_html_raises_fetch_error_on_4xx() -> None:
     import http.client
 
     headers = http.client.HTTPMessage()
-    with patch(
-        "synd.builder.fetch.urlopen",
-        side_effect=HTTPError("https://example.com/", 403, "Forbidden", headers, None),
+    with (
+        patch(
+            "synd.builder.fetch.urlopen",
+            side_effect=HTTPError(
+                "https://example.com/", 403, "Forbidden", headers, None
+            ),
+        ),
+        pytest.raises(FetchError, match="HTTP 403"),
     ):
-        with pytest.raises(FetchError, match="HTTP 403"):
-            fetch_html("https://example.com/")
+        fetch_html("https://example.com/")
 
 
 def test_fetch_html_raises_fetch_error_on_network_failure() -> None:
-    with patch(
-        "synd.builder.fetch.urlopen",
-        side_effect=URLError("connection refused"),
+    with (
+        patch(
+            "synd.builder.fetch.urlopen",
+            side_effect=URLError("connection refused"),
+        ),
+        pytest.raises(FetchError, match="Network error"),
     ):
-        with pytest.raises(FetchError, match="Network error"):
-            fetch_html("https://example.com/")
+        fetch_html("https://example.com/")
 
 
 # --- extract_links ---

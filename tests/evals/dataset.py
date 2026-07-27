@@ -116,7 +116,7 @@ def load_dataset(path: Path) -> EvalDataset:
     )
 
 
-def resolve_gold_refs(db: "Database", package: str, refs: list[GoldRef]) -> set[int]:
+def resolve_gold_refs(db: Database, package: str, refs: list[GoldRef]) -> set[int]:
     """Map gold refs to the union of matching chunk ids.
 
     A chunk matches a ref when chunk.source_url.endswith(ref.source_path) AND

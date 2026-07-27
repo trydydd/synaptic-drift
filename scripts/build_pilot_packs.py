@@ -32,7 +32,7 @@ PILOT_PACKS: list[tuple[str, str]] = [
 def _find_synd() -> str:
     for c in [".venv/bin/synd", "synd"]:
         try:
-            subprocess.run([c, "--help"], capture_output=True)
+            subprocess.run([c, "--help"], capture_output=True, check=False)
             return c
         except FileNotFoundError:
             pass
@@ -66,6 +66,7 @@ def main() -> None:
             ],
             capture_output=True,
             text=True,
+            check=False,
         )
         if result.returncode == 0 and pack_path.exists():
             print(f"  -> {pack_path}")
@@ -86,6 +87,7 @@ def main() -> None:
             capture_output=True,
             text=True,
             cwd=DB_PATH.parent,
+            check=False,
         )
         if result.returncode != 0:
             err = (result.stderr or result.stdout or "").strip().splitlines()[-1:]

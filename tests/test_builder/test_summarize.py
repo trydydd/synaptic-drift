@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import json
 import threading
+from collections.abc import Callable
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import pytest
 
@@ -22,7 +23,6 @@ from synd.builder.summarize import (
     read_lockfile,
 )
 from synd.errors import SummarizerError
-
 
 # -- fake vLLM endpoint -------------------------------------------------------
 
@@ -40,14 +40,14 @@ class _FakeLlm:
         fake = self
 
         class Handler(BaseHTTPRequestHandler):
-            def do_POST(self) -> None:  # noqa: N802 - http.server API
+            def do_POST(self) -> None:
                 length = int(self.headers["Content-Length"])
                 payload = json.loads(self.rfile.read(length))
                 prompt = payload["messages"][0]["content"]
                 fake.requests_served += 1
                 try:
                     content = fake.reply_fn(prompt)
-                except Exception:
+                except Exception:  # noqa: BLE001 — reply_fn may raise anything to simulate a 500
                     self.send_response(500)
                     self.end_headers()
                     self.wfile.write(b"boom")

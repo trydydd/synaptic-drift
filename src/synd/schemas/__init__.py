@@ -17,7 +17,7 @@ format can grow additively without breaking older readers.
 from __future__ import annotations
 
 import json
-from functools import lru_cache
+from functools import cache
 from importlib.resources import files
 from typing import Any, cast
 
@@ -31,7 +31,7 @@ _PAGES_SCHEMA = "pages.v1.schema.json"
 _TOOL_RESPONSE_SCHEMA = "tool-response.v1.schema.json"
 
 
-@lru_cache(maxsize=None)
+@cache
 def _load_schema(name: str) -> dict[str, Any]:
     """Load and cache a JSON Schema bundled with this package by file name."""
     text = files("synd.schemas").joinpath(name).read_text("utf-8")

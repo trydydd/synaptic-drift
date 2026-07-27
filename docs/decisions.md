@@ -703,3 +703,57 @@ Verdict: generation quality is not a blocker at 27B/greedy. The failure mode to 
 **Out of scope (unchanged)**: weighted RRF + sqlite-vec (D30 step 2, `hybrid-search.md`), query-time reranking (S14), and the pilot-corpus enrichment ship-readiness — all downstream of this step and independent of it.
 
 **Revisit when**: D30 step 2 ships (then re-evaluate append-for-FTS + LLM-only-for-embedding, and the v3/v4 prompts for hybrid-only packs), or if a concrete need for partial-failure fallback appears.
+
+## D32: Query-Time Reranking (S14) — MiniLM-6 Cross-Encoder Rejected as Configured
+
+**Context**: S14 (`docs/spikes.yaml`) opened against a concrete, measured gap — Context7's server-side reranker beats the shipped BM25+dense hybrid on page-recall@1 (10/26 vs 6/26) despite parity at recall@5, and the D30 L2 confirmation found the same failure from the agent side (gold-fetch rate barely moves even as retrieval surfaces gold more often — selection among surfaced results is the residual failure, exactly what a reranker targets). The hard constraint carried over from D30/hybrid-search.md: the base query path stays model-free and offline; anything model-shaped is only ever an optional extra that degrades byte-for-byte to the unranked path when absent, same precedent as the fastembed dense encoder (`synaptic-drift[semantic]`).
+
+**Measurement (2026-07-17)**: `Xenova/ms-marco-MiniLM-L-6-v2` (80MB ONNX cross-encoder via fastembed, no torch) reranking the top-20 of the winning `rrf-bm25+bgelarge` fusion (see the ONNX-dense-candidates measurement above), both gold corpora, harness in `tests/evals/l1_rerank_matrix.py`, raw results in `tests/evals/results/{html,pilot}_l1_rerank_matrix.json`.
+
+- **Latency**: mean 653–693ms per query (p90 700–730ms) to rerank 20 candidates — two orders of magnitude above the dense encoder's 8–37ms per query. This alone works against the product's sub-second local-search expectation.
+- **Quality is net negative in aggregate on both corpora.** html [query] overall: recall@1 0.422 → 0.413, recall@5 0.727 → 0.702, mrr 0.562 → 0.554. pilot [query] overall: recall@1 0.561 → 0.489, mrr 0.700 → 0.648.
+- **The regression concentrates in the `direct` tier** (the largest slice of the query mix — 176/300 on html, 42/114 on pilot), where the fusion was already near-ceiling: html direct recall@1 0.645 → 0.614, mrr 0.783 → 0.750; pilot direct recall@1 0.712 → 0.585, mrr 0.852 → 0.733. The reranker reshuffles cases the fusion already had right.
+- **It does help the tiers it was hypothesized to help**, just not enough to offset the direct-tier cost: html paraphrase recall@1 0.122 → 0.163, ndcg@10 0.357 → 0.377; html vocabulary_mismatch recall@5 0.077 → 0.269.
+
+**Decision**: reject `ms-marco-MiniLM-L-6-v2` top-20 reranking as configured. It is not a strict improvement — it trades quality on the majority-share `direct` tier for a narrow, tier-specific gain, at a per-query latency cost far larger than anything else in the stack. Do not ship this as the default optional-extra behavior.
+
+**Larger-model addendum (2026-07-17)**: `BAAI/bge-reranker-base` (1.04GB, ~13× MiniLM-6's size) was measured the same way, same harness, `--model BAAI/bge-reranker-base`, results in `tests/evals/results/{html,pilot}_l1_rerank_matrix_bgererankbase.json`. Verdict: **size is not the lever — going bigger makes it worse, not better.**
+
+- **Latency scales with model size as expected and then some**: mean 3.49–3.80s per query (p90 up to 4.0s) — 5–6× MiniLM-6's already-prohibitive 650–700ms, now firmly outside any interactive-search budget.
+- **Quality does not improve over MiniLM-6 — on html it's worse.** html [query] overall: recall@1 0.422 → 0.392 (MiniLM-6 landed at 0.413), mrr 0.562 → 0.534 (vs MiniLM-6's 0.554). pilot [query] overall: recall@1 0.561 → 0.505, mrr 0.700 → 0.648 — statistically indistinguishable from MiniLM-6's 0.489/0.648.
+- **Same direct-tier regression, slightly deeper**: html direct recall@1 0.645 → 0.560 (MiniLM-6: → 0.614), mrr 0.783 → 0.715 (MiniLM-6: → 0.750). pilot direct recall@1 0.712 → 0.609 (MiniLM-6: → 0.585, i.e. worse there).
+- **Marginally better on the hard tiers it targets**: html paraphrase recall@1 0.194 vs MiniLM-6's 0.163, vocabulary_mismatch ndcg@10 0.177 vs 0.151 — a small edge, not remotely worth 5–6× the latency and the deeper direct-tier cost.
+
+This rules out "reranker capacity" as the explanation for D32's finding. The regression is structural: reranking-then-truncating the fusion's top-20 collides with a fusion that is already near-ceiling on the majority `direct` tier, regardless of which cross-encoder does the reranking. A bigger model reorders the same well-ranked candidates with more confidence, not more correctness.
+
+**Decision (final)**: reject query-time cross-encoder reranking of the RRF fusion, at any tested model size, as the default optional-extra behavior. `S14` closed — see `docs/spikes.yaml`.
+
+**Alternatives considered but not measured**: (a) conditional triggering (only rerank when the fusion's own confidence looks low, mirroring the `andgate` pattern from D30) — would avoid the direct-tier regression by construction, but the tier-specific gain that motivated it is thin even before paying any latency cost, and MiniLM-6's 650ms floor is still expensive to pay even conditionally; (b) a shallower rerank window (<20) — would cut latency somewhat but does not address the structural direct-tier collision, and the hard-tier gain that's the entire point of reranking lives partly in the tail of that window; (c) S14 item 2 (agent-as-reranker baseline via L2) is now moot — there is no reranked list worth handing to the agent, since reranking degrades the list rather than improving it.
+
+**Revisit when**: a concrete architectural reason emerges to reconsider (e.g. the confidence-gated variant gets prototyped and measured cheaply enough to be worth the branching complexity), or the underlying fusion changes enough (new dense encoder, new fusion weights) that the direct-tier collision mechanism no longer applies.
+
+## D33: BGE-M3 Dense+Sparse (S15) — Rejected; `bge-large-en-v1.5` Adopted as the [semantic] Encoder Candidate
+
+**Context**: the roadmap's original v1.1 design proposed BGE-M3 dense+sparse as *the* vector leg. S15 (`docs/spikes.yaml`) tests that assumption against what was actually measured and shipped instead (D30/D31: unicode61 BM25 + build-time enrichment + a prototyped MiniLM-dense RRF leg). Full task: (1) confirm a PyTorch-free path exists at all — the hard gate, since anything that pulls torch is dead on arrival under the no-heavy-deps rule; (2/3) score BGE-M3 dense, BGE-M3 sparse, and their fusion against the current stack on both gold corpora; (4) measure query latency; (5) recommend adopt/keep/reject and correct `docs/hybrid-search.md`.
+
+**1. Feasibility gate: FAILS for BGE-M3 itself.** No PyTorch-free path exists — the reference implementation requires `torch` + `FlagEmbedding` (`tests/evals/generation/gen_bgem3_artifacts.py` runs in an isolated venv for exactly this reason). Measured footprint: the isolated venv is 1.4GB (torch alone is 722MB of that), plus a separate 4.3GB of BGE-M3 model weights — against bge-large-en-v1.5's PyTorch-free 1.2GB total (venv unchanged, just the model download) confirmed in the S15 follow-up below. This alone would sink BGE-M3 as specified; the rest of the spike asks whether *any part* of BGE-M3's win is worth chasing through a different, lighter vehicle.
+
+**2/3. Per-tier scoring** (`tests/evals/l1_bgem3_matrix.py`, results in `tests/evals/results/{html,pilot}_l1_bgem3_matrix.json`, enriched-append indexed side, both gold corpora):
+
+- **Dense leg: real, measurable lift over MiniLM.** html [query] recall@5: minilm-dense 0.595 → bgem3-dense 0.699; pilot: 0.615 → 0.678. This is the one part of the BGE-M3 hypothesis that held up.
+- **Sparse leg: the core hypothesis is falsified.** bgem3-sparse alone underperforms plain BM25 in aggregate (html recall@5 0.623 → 0.588) and pays a severe direct-tier tax standalone (html direct recall@5 0.972 → 0.804, mrr 0.723 → 0.625). On the vocabulary_mismatch tier it was specifically supposed to fix, `rrf-bm25+bgem3sparse` does not beat the already-shipped-prototype `rrf-bm25+minilm` (html vocab mrr 0.050 vs 0.107 — the plain MiniLM fusion wins). Sparse was meant to recover vocabulary_mismatch without a direct-tier tax; it does neither.
+- **Full fusion is dragged down by the sparse leg.** `rrf-bm25+bgem3both` (dense+sparse+bm25) scores below `rrf-bm25+bgem3dense` (dense+bm25 only) on both corpora (html recall@5 0.704 vs 0.723; pilot 0.771 vs 0.780) — sparse is actively harmful in combination, not just neutral.
+
+**4. Latency**: BGE-M3 query-encode is 35.7ms/query (html) / 39.2ms/query (pilot) — comparable to, not dramatically worse than, the PyTorch-free alternative (see below). The real cost is the install footprint (gate 1) and full-corpus indexing time (BGE-M3 chunk-encode: 8295s / 6469 chunks on html, ≈138 min for the corpus alone), not per-query latency.
+
+**5. Follow-up and recommendation**: since the dense leg was BGE-M3's only real win, and fastembed ships PyTorch-free ONNX `bge-base-en-v1.5` (0.21GB, quantized) and `bge-large-en-v1.5` (1.2GB), both were measured the same way against BGE-M3-dense and MiniLM (`tests/evals/l1_onnx_dense_matrix.py`, results in `tests/evals/results/{html,pilot}_l1_onnx_dense_matrix.json`):
+
+- **bge-large's dense-only leg matches or beats BGE-M3's dense-only leg, PyTorch-free.** html dense-only recall@5: minilm 0.595 → bgebase 0.677 → **bgelarge 0.707** vs bgem3 0.699. pilot: minilm 0.615 → bgebase 0.698 → **bgelarge 0.712** vs bgem3 0.678.
+- **After RRF fusion with BM25, bge-large and BGE-M3(dense-only) are within noise of each other**, trading small wins per corpus/metric (html `rrf+bgelarge` ndcg@10 0.619 vs `rrf+bgem3dense` 0.610; pilot `rrf+bgem3dense` recall@5 0.780 vs `rrf+bgelarge` 0.771, but `rrf+bgelarge` wins pilot mrr 0.700 vs 0.684).
+- **Query latency**: bge-large 29.8–36.9ms/query, essentially tied with BGE-M3's 35.7–39.2ms, but bge-base is meaningfully cheaper (8.3–10.2ms) if the last few points of recall aren't needed.
+
+**Decision**: reject BGE-M3 (dense+sparse) as specified — fails the feasibility gate, and its one real strength (dense quality) is fully captured by a PyTorch-free alternative. Drop the learned-sparse leg from consideration entirely; the hypothesis that motivated it (recover vocabulary-mismatch without a direct-tier tax) is falsified by direct measurement, not just unproven. Adopt **`bge-large-en-v1.5`** (via `fastembed`, no torch) as the recommended `[semantic]` dense encoder for D30 step 2, replacing the `all-MiniLM-L6-v2` prototype; **`bge-base-en-v1.5`** is the documented lighter fallback. `docs/hybrid-search.md`'s Dependencies and File size sections are corrected to match. `S15` closed — see `docs/spikes.yaml`.
+
+**Interaction with S14**: S15's context noted "a good sparse leg may reduce the need for a query-time reranker" — moot, since the sparse leg is rejected outright. D32's independent finding (reranking the fusion is a net loss regardless of model size) stands unaffected by this decision.
+
+**Revisit when**: D30 step 2 is implemented (this decision is the model choice input it was waiting on); or a future fastembed release ships a PyTorch-free BGE-M3 variant, which would reopen gate 1 only — the sparse-leg rejection (measured, not a feasibility artifact) would still stand.

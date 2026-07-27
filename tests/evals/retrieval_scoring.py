@@ -23,7 +23,7 @@ K_VALUES = (1, 5, 10, 20)
 NDCG_K = 10
 
 
-def load_hash_to_ids(db: "Database") -> dict[str, set[int]]:
+def load_hash_to_ids(db: Database) -> dict[str, set[int]]:
     """Map content_hash -> set of chunk ids across the whole indexed corpus.
 
     A set (not a single id) because content_hash collisions are possible in

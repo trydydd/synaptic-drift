@@ -84,17 +84,19 @@ def _make_broken_ctx(tmp_path: Path) -> Path:
 def _make_tampered_ctx(tmp_path: Path, valid_ctx: Path) -> Path:
     """Create a .ctx that is a copy of valid_ctx but with a modified chunk, invalidating the digest."""
     ctx_path = tmp_path / "tampered.ctx"
-    with zipfile.ZipFile(valid_ctx, "r") as zf_in:
-        with zipfile.ZipFile(ctx_path, "w", zipfile.ZIP_DEFLATED) as zf_out:
-            for item in zf_in.infolist():
-                data = zf_in.read(item.filename)
-                if item.filename == "chunks.jsonl":
-                    text = data.decode("utf-8")
-                    lines = text.strip().split("\n")
-                    if lines:
-                        lines[0] = lines[0] + "CORRUPTED"
-                        data = "\n".join(lines).encode("utf-8")
-                zf_out.writestr(item, data)
+    with (
+        zipfile.ZipFile(valid_ctx, "r") as zf_in,
+        zipfile.ZipFile(ctx_path, "w", zipfile.ZIP_DEFLATED) as zf_out,
+    ):
+        for item in zf_in.infolist():
+            data = zf_in.read(item.filename)
+            if item.filename == "chunks.jsonl":
+                text = data.decode("utf-8")
+                lines = text.strip().split("\n")
+                if lines:
+                    lines[0] = lines[0] + "CORRUPTED"
+                    data = "\n".join(lines).encode("utf-8")
+            zf_out.writestr(item, data)
     return ctx_path
 
 

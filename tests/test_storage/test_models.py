@@ -1,10 +1,10 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from synd.storage.models import Chunk, Page, Pack
+from synd.storage.models import Chunk, Pack, Page
 
 
 def test_pack_creation() -> None:
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     pack = Pack(
         name="my-lib",
         version="1.0.0",

@@ -45,11 +45,11 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from synd.search.fts import SearchError  # noqa: E402
-from synd.search.fts import search as fts_search  # noqa: E402
-from synd.server import search_docs  # noqa: E402
-from synd.storage.db import Database  # noqa: E402
-from tests.evals.retrieval_scoring import (  # noqa: E402
+from synd.search.fts import SearchError
+from synd.search.fts import search as fts_search
+from synd.server import search_docs
+from synd.storage.db import Database
+from tests.evals.retrieval_scoring import (
     aggregate,
     load_hash_to_ids,
     metric_names,

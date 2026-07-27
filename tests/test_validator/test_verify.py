@@ -85,20 +85,22 @@ def _rewrite_archive_keep_digest(
 
     # Step 1: Build the modified archive (without pack_digest in manifest)
     # to compute the correct digest
-    with zipfile.ZipFile(src, "r") as orig:
-        with zipfile.ZipFile(result, "w", zipfile.ZIP_DEFLATED) as zf:
-            for item in orig.infolist():
-                data = orig.read(item.filename)
-                if item.filename == "manifest.json":
-                    zeroed = dict(manifest)
-                    zeroed["pack_digest"] = ""
-                    data = json.dumps(zeroed, indent=2, sort_keys=True).encode()
-                if remove_entries and item.filename in remove_entries:
-                    continue
-                zf.writestr(item, data)
-            if extra_entries:
-                for name, data in extra_entries.items():
-                    zf.writestr(name, data)
+    with (
+        zipfile.ZipFile(src, "r") as orig,
+        zipfile.ZipFile(result, "w", zipfile.ZIP_DEFLATED) as zf,
+    ):
+        for item in orig.infolist():
+            data = orig.read(item.filename)
+            if item.filename == "manifest.json":
+                zeroed = dict(manifest)
+                zeroed["pack_digest"] = ""
+                data = json.dumps(zeroed, indent=2, sort_keys=True).encode()
+            if remove_entries and item.filename in remove_entries:
+                continue
+            zf.writestr(item, data)
+        if extra_entries:
+            for name, data in extra_entries.items():
+                zf.writestr(name, data)
 
     # Step 2: Compute pack_digest from the modified archive
     digest = _compute_pack_digest(result)
@@ -109,14 +111,16 @@ def _rewrite_archive_keep_digest(
 
     # Step 4: Rewrite archive with the updated manifest
     buf2 = _io.BytesIO()
-    with zipfile.ZipFile(result, "r") as zf:
-        with zipfile.ZipFile(buf2, "w", zipfile.ZIP_DEFLATED) as out:
-            for item in zf.infolist():
-                data = zf.read(item.filename)
-                if item.filename == "manifest.json":
-                    out.writestr(item, manifest_json_out)
-                else:
-                    out.writestr(item, data)
+    with (
+        zipfile.ZipFile(result, "r") as zf,
+        zipfile.ZipFile(buf2, "w", zipfile.ZIP_DEFLATED) as out,
+    ):
+        for item in zf.infolist():
+            data = zf.read(item.filename)
+            if item.filename == "manifest.json":
+                out.writestr(item, manifest_json_out)
+            else:
+                out.writestr(item, data)
     result.write_bytes(buf2.getvalue())
 
     return result
@@ -175,13 +179,15 @@ def _rewrite_archive_with_modified_chunks(
 
     # Step 3: Rewrite result with the real digest in manifest
     buf = _io.BytesIO()
-    with zipfile.ZipFile(result, "r") as zf:
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out:
-            for item in zf.infolist():
-                data = zf.read(item.filename)
-                if item.filename == "manifest.json":
-                    data = json.dumps(manifest, indent=2, sort_keys=True).encode()
-                out.writestr(item, data)
+    with (
+        zipfile.ZipFile(result, "r") as zf,
+        zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out,
+    ):
+        for item in zf.infolist():
+            data = zf.read(item.filename)
+            if item.filename == "manifest.json":
+                data = json.dumps(manifest, indent=2, sort_keys=True).encode()
+            out.writestr(item, data)
     result.write_bytes(buf.getvalue())
 
     return result

@@ -92,7 +92,7 @@ def _chunk_count(ctx_path: Path) -> int:
     try:
         with zipfile.ZipFile(ctx_path, "r") as zf:
             return zf.read("chunks.jsonl").count(b"\n")
-    except Exception:
+    except (OSError, zipfile.BadZipFile, KeyError):
         return 0
 
 
@@ -100,7 +100,7 @@ def _find_synd() -> str:
     candidates = [".venv/bin/synd", "synd"]
     for c in candidates:
         try:
-            subprocess.run([c, "--help"], capture_output=True)
+            subprocess.run([c, "--help"], capture_output=True, check=False)
             return c
         except FileNotFoundError:
             pass
@@ -133,6 +133,7 @@ def main() -> None:
                 ],
                 capture_output=True,
                 text=True,
+                check=False,
             )
             if result.returncode == 0 and pack_path.exists():
                 count = _chunk_count(pack_path)

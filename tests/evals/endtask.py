@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from synd.search.fts import SearchError
@@ -266,7 +266,7 @@ def _git_commit() -> str:
         return subprocess.check_output(
             ["git", "rev-parse", "--short", "HEAD"], text=True
         ).strip()
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         return "unknown"
 
 
@@ -326,7 +326,7 @@ def run_endtask_eval(
 
     return {
         "meta": {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "git_commit": _git_commit(),
             "model": getattr(client, "model", "fake"),
             "reps": reps,

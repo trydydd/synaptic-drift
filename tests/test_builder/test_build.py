@@ -565,17 +565,19 @@ def test_crawled_build_deterministic_under_discovery_order(tmp_path: Path) -> No
 
 
 def test_build_pack_from_url_crawl_error_propagates(tmp_path: Path) -> None:
-    with patch(
-        "synd.builder.build.crawl",
-        side_effect=CrawlError("No documentation pages found crawling ..."),
+    with (
+        patch(
+            "synd.builder.build.crawl",
+            side_effect=CrawlError("No documentation pages found crawling ..."),
+        ),
+        pytest.raises(CrawlError, match="No documentation pages"),
     ):
-        with pytest.raises(CrawlError, match="No documentation pages"):
-            build_pack_from_url(
-                package="test-lib",
-                version="1.0.0",
-                source_url=_CRAWL_ROOT,
-                output=tmp_path / "packs",
-            )
+        build_pack_from_url(
+            package="test-lib",
+            version="1.0.0",
+            source_url=_CRAWL_ROOT,
+            output=tmp_path / "packs",
+        )
 
 
 def test_build_html_source_chunks_contain_no_raw_tags(tmp_path: Path) -> None:

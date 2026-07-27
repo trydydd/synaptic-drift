@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -44,7 +44,7 @@ def _import_pack(ctx_path: Path, policy: Policy, db: Database) -> Path:
         version=str(manifest["version"]),
         lifecycle_state=str(manifest["lifecycle_state"]),
         doc_version_status=doc_version_status,
-        indexed_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        indexed_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         policy_profile=str(manifest.get("policy_profile", "")),
         pack_digest=str(manifest["pack_digest"]),
         normalized_content_hash=str(manifest["normalized_content_hash"]),

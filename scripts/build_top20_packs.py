@@ -1,6 +1,6 @@
 """Build .ctx packs for the top-20 most intentionally installed Python packages.
 
-Acceptance harness for the v0.3.0 general web crawler (see
+Distribution-pack builder / crawler acceptance harness (see
 docs/top20-python-packages.md): 19 of the 20 packages are built — pydantic
 from its llms.txt, everything else crawled from its docs root. boto3 is
 deliberately excluded from the default run (docs.aws.amazon.com is a
@@ -8,6 +8,17 @@ deliberately excluded from the default run (docs.aws.amazon.com is a
 
 Run (network, slow — sequential polite crawling):
     python scripts/build_top20_packs.py [--only PKG ...] [--output DIR]
+
+Enriched (0.4.0 D31) packs — appends an LLM-generated sentence to each
+summary via a publisher-run OpenAI-compatible endpoint; query time stays
+fully local:
+    python scripts/build_top20_packs.py \\
+        --summarizer llm \\
+        --summarizer-url http://localhost:8000/v1 \\
+        --summarizer-model <served-model>
+The summarizer choice is applied uniformly to every target; each pack gets
+its own default summary lockfile (<output>/<pkg>@<ver>.summaries.jsonl) so
+warm rebuilds reuse cached summaries byte-for-byte.
 
 Already-built packs are skipped, so re-running after a partial build is
 safe. Each built pack is verified with `synd verify`, and a coverage report
@@ -21,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import zipfile
@@ -30,15 +42,39 @@ from pathlib import Path
 OUTDIR = Path("packs")
 
 _MATPLOTLIB_UA = (
-    "Mozilla/5.0 (compatible; synd/0.3; +https://github.com/trydydd/synaptic-drift)"
+    "Mozilla/5.0 (compatible; synd/0.4; +https://github.com/trydydd/synaptic-drift)"
 )
 
 # fastapi.tiangolo.com serves full translated copies of the docs under
 # two-letter (plus em/zh-hant) path prefixes. Without excluding them the
 # 500-page budget fills up with duplicate pages in other languages.
-_FASTAPI_LANGS = (
-    "az bn de em es fa fr he hi hu id it ja ko nl pl pt ru tr uk ur vi yo zh zh-hant"
-).split()
+_FASTAPI_LANGS = [
+    "az",
+    "bn",
+    "de",
+    "em",
+    "es",
+    "fa",
+    "fr",
+    "he",
+    "hi",
+    "hu",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "nl",
+    "pl",
+    "pt",
+    "ru",
+    "tr",
+    "uk",
+    "ur",
+    "vi",
+    "yo",
+    "zh",
+    "zh-hant",
+]
 _FASTAPI_EXCLUDES = [
     flag for lang in _FASTAPI_LANGS for flag in ("--exclude-url-pattern", lang)
 ]
@@ -56,53 +92,53 @@ class Target:
 # Docs roots from docs/top20-python-packages.md. boto3 (rank 4) is excluded —
 # see the recipe printed at the end of the run.
 TARGETS: list[Target] = [
-    Target("requests", "2.32.4", "https://requests.readthedocs.io/en/latest/"),
-    Target("numpy", "2.3.1", "https://numpy.org/doc/stable/"),
-    Target("pandas", "2.3.0", "https://pandas.pydata.org/docs/"),
+    Target("requests", "2.34.2", "https://requests.readthedocs.io/en/latest/"),
+    Target("numpy", "2.5.1", "https://numpy.org/doc/stable/"),
+    Target("pandas", "3.0.3", "https://pandas.pydata.org/docs/"),
     # pydantic is the one top-20 package with llms.txt (curated index build).
     Target(
         "pydantic",
-        "2.11.7",
+        "2.13.4",
         "https://docs.pydantic.dev/latest/llms.txt",
         notes="llms.txt build, not crawled",
     ),
-    Target("click", "8.2.1", "https://click.palletsprojects.com/en/stable/"),
-    Target("pytest", "8.4.1", "https://docs.pytest.org/en/stable/"),
-    Target("sqlalchemy", "2.0.41", "https://docs.sqlalchemy.org/en/20/"),
+    Target("click", "8.4.2", "https://click.palletsprojects.com/en/stable/"),
+    Target("pytest", "9.1.1", "https://docs.pytest.org/en/stable/"),
+    Target("sqlalchemy", "2.0.51", "https://docs.sqlalchemy.org/en/20/"),
     Target(
         "fastapi",
-        "0.115.14",
+        "0.139.2",
         "https://fastapi.tiangolo.com/",
         extra_flags=_FASTAPI_EXCLUDES,
         notes="translations excluded so the page budget goes to English docs",
     ),
-    Target("flask", "3.1.1", "https://flask.palletsprojects.com/en/stable/"),
+    Target("flask", "3.1.3", "https://flask.palletsprojects.com/en/stable/"),
     Target(
         "django",
-        "5.2.3",
-        "https://docs.djangoproject.com/en/5.2/",
+        "6.0.7",
+        "https://docs.djangoproject.com/en/6.0/",
         notes="large site; expect truncation at the default --max-pages",
     ),
-    Target("pillow", "11.2.1", "https://pillow.readthedocs.io/en/stable/"),
-    Target("scipy", "1.16.0", "https://docs.scipy.org/doc/scipy/"),
+    Target("pillow", "12.3.0", "https://pillow.readthedocs.io/en/stable/"),
+    Target("scipy", "1.18.0", "https://docs.scipy.org/doc/scipy/"),
     Target(
         "matplotlib",
-        "3.10.3",
+        "3.11.0",
         "https://matplotlib.org/stable/",
         extra_flags=["--user-agent", _MATPLOTLIB_UA],
         notes="403s the default User-Agent",
     ),
     Target("httpx", "0.28.1", "https://www.python-httpx.org/"),
-    Target("celery", "5.5.3", "https://docs.celeryq.dev/en/stable/"),
-    Target("redis", "6.2.0", "https://redis-py.readthedocs.io/en/stable/"),
-    Target("pyyaml", "6.0.2", "https://pyyaml.org/"),
+    Target("celery", "5.6.3", "https://docs.celeryq.dev/en/stable/"),
+    Target("redis", "8.0.1", "https://redis-py.readthedocs.io/en/stable/"),
+    Target("pyyaml", "6.0.3", "https://pyyaml.org/"),
     Target(
         "python-dotenv",
-        "1.1.1",
+        "1.2.2",
         "https://saurabh-kumar.com/python-dotenv/",
         notes="tiny single-project site",
     ),
-    Target("rich", "14.0.0", "https://rich.readthedocs.io/en/stable/"),
+    Target("rich", "15.0.0", "https://rich.readthedocs.io/en/stable/"),
 ]
 
 _BOTO3_RECIPE = """\
@@ -117,12 +153,46 @@ or the crawl will truncate far below useful coverage."""
 def _find_synd() -> str:
     for candidate in (".venv/bin/synd", "synd"):
         try:
-            subprocess.run([candidate, "--help"], capture_output=True)
+            subprocess.run([candidate, "--help"], capture_output=True, check=False)
             return candidate
         except FileNotFoundError:
             pass
     print("error: synd CLI not found. Run: pip install -e '.[all]'", file=sys.stderr)
     sys.exit(1)
+
+
+def _summarizer_flags(args: argparse.Namespace) -> list[str]:
+    """Translate the summarizer args into `synd build` flags for every target.
+
+    For --summarizer llm, --summarizer-url and --summarizer-model must be
+    resolvable (from the flag or the matching SYND_SUMMARIZER_* env var);
+    validated up front so a long crawl does not start only to fail on the
+    first target's endpoint call. Each pack uses synd's default per-pack
+    summary lockfile, so no lockfile flag is threaded here.
+    """
+    if args.summarizer != "llm":
+        return []
+    url = args.summarizer_url or os.environ.get("SYND_SUMMARIZER_URL")
+    model = args.summarizer_model or os.environ.get("SYND_SUMMARIZER_MODEL")
+    if not url or not model:
+        print(
+            "error: --summarizer llm requires --summarizer-url and "
+            "--summarizer-model (or SYND_SUMMARIZER_URL / SYND_SUMMARIZER_MODEL)",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    flags = [
+        "--summarizer",
+        "llm",
+        "--summarizer-url",
+        url,
+        "--summarizer-model",
+        model,
+    ]
+    api_key = args.summarizer_api_key or os.environ.get("SYND_SUMMARIZER_API_KEY")
+    if api_key:
+        flags += ["--summarizer-api-key", api_key]
+    return flags
 
 
 def _pack_stats(ctx_path: Path) -> dict[str, object]:
@@ -134,6 +204,9 @@ def _pack_stats(ctx_path: Path) -> dict[str, object]:
         "pages": manifest.get("pages", 0),
         "crawl_pages_fetched": manifest.get("crawl_pages_fetched", "-"),
         "truncated": manifest.get("crawl_truncated", "-"),
+        # 0.4.0 D31 provenance — absent on heuristic-only packs.
+        "summarizer": manifest.get("summarizer", "heuristic"),
+        "summarizer_model": manifest.get("summarizer_model", "-"),
     }
 
 
@@ -152,7 +225,39 @@ def main() -> None:
         default=OUTDIR,
         help=f"Directory for .ctx files (default: {OUTDIR})",
     )
+    parser.add_argument(
+        "--summarizer",
+        choices=("heuristic", "llm"),
+        default="heuristic",
+        help=(
+            "Summary strategy for every target (0.4.0 D31). 'llm' appends a "
+            "model-generated sentence via --summarizer-url/--summarizer-model."
+        ),
+    )
+    parser.add_argument(
+        "--summarizer-url",
+        default=None,
+        metavar="URL",
+        help="OpenAI-compatible base URL for --summarizer llm (or SYND_SUMMARIZER_URL).",
+    )
+    parser.add_argument(
+        "--summarizer-model",
+        default=None,
+        metavar="MODEL",
+        help="Served model name for --summarizer llm (or SYND_SUMMARIZER_MODEL).",
+    )
+    parser.add_argument(
+        "--summarizer-api-key",
+        default=None,
+        metavar="KEY",
+        help="Bearer token for the endpoint, if any (or SYND_SUMMARIZER_API_KEY).",
+    )
     args = parser.parse_args()
+
+    # Fail fast before crawling anything if enrichment is under-specified.
+    # synd would reject each build the same way, but this keeps a long run
+    # from starting only to error out on the first target's endpoint call.
+    summarizer_flags = _summarizer_flags(args)
 
     targets = TARGETS
     if args.only:
@@ -182,9 +287,11 @@ def main() -> None:
                     "--output",
                     str(args.output),
                     *target.extra_flags,
+                    *summarizer_flags,
                 ],
                 capture_output=True,
                 text=True,
+                check=False,
             )
             if build.returncode != 0 or not pack_path.exists():
                 detail = (build.stdout + build.stderr).strip().splitlines()
@@ -194,17 +301,28 @@ def main() -> None:
             print(f"skip   {spec:<28} already built")
 
         verify = subprocess.run(
-            [synd, "verify", str(pack_path)], capture_output=True, text=True
+            [synd, "verify", str(pack_path)],
+            capture_output=True,
+            text=True,
+            check=False,
         )
         stats = _pack_stats(pack_path)
         verdict = "verify OK" if verify.returncode == 0 else "VERIFY FAILED"
         note = f"  ({target.notes})" if target.notes else ""
+        enrich = (
+            f" summarizer={stats['summarizer']}({stats['summarizer_model']})"
+            if stats["summarizer"] != "heuristic"
+            else ""
+        )
         rows.append(
             (
                 spec,
-                f"{verdict}  pages={stats['pages']} "
-                f"crawled={stats['crawl_pages_fetched']} "
-                f"truncated={stats['truncated']} chunks={stats['chunks']}{note}",
+                (
+                    f"{verdict}  pages={stats['pages']} "
+                    f"crawled={stats['crawl_pages_fetched']} "
+                    f"truncated={stats['truncated']} chunks={stats['chunks']}"
+                    f"{enrich}{note}"
+                ),
             )
         )
 
